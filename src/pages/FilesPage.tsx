@@ -349,6 +349,7 @@ const FilesPage = () => {
                 </AnimatePresence>
               </motion.div>
             )}
+          </div>
         </motion.div>
       </div>
     </AppLayout>
