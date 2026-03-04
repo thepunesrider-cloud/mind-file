@@ -9,7 +9,10 @@ import {
   Settings,
   Zap,
   LogOut,
+  Moon,
+  Sun,
 } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -22,6 +25,7 @@ const navItems = [
 
 const AppSidebar = () => {
   const location = useLocation();
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 flex flex-col bg-sidebar border-r border-sidebar-border">
@@ -67,6 +71,14 @@ const AppSidebar = () => {
 
       {/* Footer */}
       <div className="px-3 py-4 border-t border-sidebar-border space-y-1">
+        <button
+          onClick={toggleTheme}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+          title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          {isDark ? "Light Mode" : "Dark Mode"}
+        </button>
         <RouterNavLink
           to="/settings"
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"

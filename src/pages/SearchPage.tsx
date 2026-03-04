@@ -9,6 +9,7 @@ import { getFileIcon, getFileColor, tagColors } from "@/data/mockFiles";
 import FileDetailPanel from "@/components/FileDetailPanel";
 import SearchFilters from "@/components/search/SearchFilters";
 import SearchResultCard from "@/components/search/SearchResultCard";
+import { SearchAutocomplete } from "@/components/search/SearchAutocomplete";
 import { cn } from "@/lib/utils";
 import { tokenize, scoreFile, highlightText, extractDateFilter, extractEntityQuery } from "@/lib/searchEngine";
 
@@ -45,9 +46,45 @@ const SearchPage = () => {
   const [selectedFile, setSelectedFile] = useState<any>(null);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [autocompleteOpen, setAutocompleteOpen] = useState(false);
   const { data: files, isLoading } = useFiles();
 
   const allTags = Array.from(new Set((files || []).flatMap((f) => f.tags.map((t) => t.name))));
+
+  // Generate smart autocomplete suggestions based on files and tags
+  const autocompleteSuggestions = useMemo(() => {
+    const baseSuggestions = [
+      { icon: "📄", label: "Show all invoices", tag: "Finance" },
+      { icon: "📋", label: "Find all contracts", tag: "Legal" },
+      { icon: "🏥", label: "Show health-related documents", tag: "Insurance · Health" },
+      { icon: "💰", label: "Find GST documents", tag: "Tax · Finance" },
+      { icon: "⚖️", label: "Legal agreements and documents", tag: "Legal" },
+      { icon: "📊", label: "Show all reports", tag: "Analytics" },
+      { icon: "🔔", label: "Files expiring soon", tag: "Reminders" },
+      { icon: "🏢", label: "Vendor agreements", tag: "Vendors" },
+      { icon: "📅", label: "Files from last month", tag: "Date Range" },
+    ];
+
+    // Dynamically add suggestions based on actual tags in files
+    const dynamicSuggestions = allTags.slice(0, 5).map((tag) => ({
+      icon: "🏷️",
+      label: `Show all ${tag.toLowerCase()} files`,
+      tag: `Tag: ${tag}`,
+    }));
+
+    return [...baseSuggestions, ...dynamicSuggestions];
+  }, [allTags]);
+
+  // Filter suggestions based on current query
+  const filteredSuggestions = useMemo(() => {
+    if (!query.trim()) return [];
+    const q = query.toLowerCase();
+    return autocompleteSuggestions.filter(
+      (s) =>
+        s.label.toLowerCase().includes(q) ||
+        s.tag.toLowerCase().includes(q)
+    );
+  }, [query, autocompleteSuggestions]);
 
   // Parse natural language date/entity queries
   const parsedQuery = useMemo(() => {
@@ -107,6 +144,17 @@ const SearchPage = () => {
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto">
+          {/* Filters Button */}
+          <div className="flex justify-end mb-2">
+            <button
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-card text-foreground border border-border hover:bg-primary/10 transition text-sm font-medium"
+              onClick={() => setShowFilters((v) => !v)}
+              aria-label="Toggle filters"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              Filters
+            </button>
+          </div>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
           <h1 className="text-2xl font-bold">Smart Search</h1>
           <p className="text-muted-foreground text-sm mt-1">
@@ -115,25 +163,17 @@ const SearchPage = () => {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <div className="relative">
-            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder="Try: 'invoices from last month' · 'contracts expiring this quarter' · 'health insurance policy'"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="h-12 pl-12 pr-12 bg-secondary border-border text-base"
-              autoFocus
-            />
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={cn(
-                "absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors",
-                showFilters ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-            </button>
-          </div>
+          <SearchAutocomplete
+            value={query}
+            onChange={setQuery}
+            onSelect={(suggestion) => {
+              setQuery(suggestion);
+              setAutocompleteOpen(false);
+            }}
+            suggestions={filteredSuggestions}
+            isOpen={autocompleteOpen && filteredSuggestions.length > 0}
+            onOpenChange={setAutocompleteOpen}
+          />
 
           {/* Smart filter indicators */}
           {(query || activeSmartFilters.length > 0) && (

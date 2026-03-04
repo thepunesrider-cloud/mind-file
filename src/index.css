@@ -1,31 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 96%;
+    --background: 0 0% 100%; /* white */
+    --foreground: 222 47% 6%; /* dark text */
 
-    --card: 222 44% 8%;
-    --card-foreground: 210 40% 96%;
+    --card: 0 0% 98%; /* very light gray */
+    --card-foreground: 222 47% 6%;
 
-    --popover: 222 44% 10%;
-    --popover-foreground: 210 40% 96%;
+    --popover: 0 0% 99%;
+    --popover-foreground: 222 47% 6%;
 
-    --primary: 187 80% 52%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 210 100% 50%; /* blue */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 30% 14%;
-    --secondary-foreground: 210 40% 90%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 6%;
 
-    --muted: 222 30% 12%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 210 40% 94%;
+    --muted-foreground: 222 47% 40%;
 
     --accent: 262 70% 58%;
-    --accent-foreground: 210 40% 98%;
+    --accent-foreground: 222 47% 6%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
@@ -36,14 +36,14 @@
 
     --radius: 0.75rem;
 
-    --sidebar-background: 222 44% 7%;
-    --sidebar-foreground: 210 40% 90%;
-    --sidebar-primary: 187 80% 52%;
-    --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 222 30% 12%;
-    --sidebar-accent-foreground: 210 40% 90%;
-    --sidebar-border: 222 30% 16%;
-    --sidebar-ring: 187 80% 52%;
+    --sidebar-background: 0 0% 98%; /* very light gray */
+    --sidebar-foreground: 222 47% 6%; /* dark text */
+    --sidebar-primary: 210 100% 50%; /* blue */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 94%;
+    --sidebar-accent-foreground: 222 47% 40%;
+    --sidebar-border: 0 0% 90%; /* light border */
+    --sidebar-ring: 210 100% 50%;
 
     /* Custom tokens */
     --success: 160 60% 45%;
@@ -70,6 +70,8 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--foreground, #e5e7eb); /* fallback to light gray if variable missing */
   }
 }
 
