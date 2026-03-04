@@ -1,0 +1,220 @@
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search as SearchIcon, SlidersHorizontal, Loader2, Sparkles } from "lucide-react";
+import AppLayout from "@/components/AppLayout";
+import { Input } from "@/components/ui/input";
+import { useFiles } from "@/hooks/useFiles";
+import type { FileWithTags } from "@/hooks/useFiles";
+import { getFileIcon, getFileColor, tagColors } from "@/data/mockFiles";
+import FileDetailPanel from "@/components/FileDetailPanel";
+import SearchFilters from "@/components/search/SearchFilters";
+import SearchResultCard from "@/components/search/SearchResultCard";
+import { cn } from "@/lib/utils";
+import { tokenize, scoreFile, highlightText, extractDateFilter, extractEntityQuery } from "@/lib/searchEngine";
+
+function mapFileType(mimeType: string): "pdf" | "image" | "docx" | "spreadsheet" {
+  if (mimeType.includes("pdf")) return "pdf";
+  if (mimeType.startsWith("image/")) return "image";
+  if (mimeType.includes("word") || mimeType.includes("document")) return "docx";
+  if (mimeType.includes("sheet") || mimeType.includes("excel")) return "spreadsheet";
+  return "pdf";
+}
+
+function toDetailFile(f: FileWithTags) {
+  return {
+    id: f.id,
+    name: f.file_name,
+    type: mapFileType(f.file_type),
+    size: `${(f.file_size / (1024 * 1024)).toFixed(1)} MB`,
+    uploadDate: new Date(f.upload_date).toLocaleDateString(),
+    tags: f.tags,
+    summary: f.ai_summary || "Processing...",
+    expiryDate: f.expiry_date || undefined,
+    extractedText: f.extracted_text || "",
+    aiDescription: f.ai_description || "",
+    versions: 1,
+    lastAccessed: new Date(f.updated_at).toLocaleDateString(),
+  };
+}
+
+const SearchPage = () => {
+  const [query, setQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const { data: files, isLoading } = useFiles();
+
+  const allTags = Array.from(new Set((files || []).flatMap((f) => f.tags.map((t) => t.name))));
+
+  // Parse natural language date/entity queries
+  const parsedQuery = useMemo(() => {
+    let cleanQuery = query;
+    let dateFilter: { from?: Date; to?: Date } | undefined;
+    let entityFilter: { entityType?: string; value?: string } | undefined;
+
+    // NL date extraction
+    const dateResult = extractDateFilter(cleanQuery);
+    if (dateResult) {
+      dateFilter = { from: dateResult.from, to: dateResult.to };
+      cleanQuery = dateResult.cleanQuery;
+    }
+
+    // Manual date picker overrides NL dates
+    if (dateFrom || dateTo) {
+      dateFilter = {
+        from: dateFrom ? new Date(dateFrom) : undefined,
+        to: dateTo ? new Date(dateTo) : undefined,
+      };
+    }
+
+    // Entity extraction
+    const entityResult = extractEntityQuery(cleanQuery);
+    if (entityResult) {
+      entityFilter = { entityType: entityResult.entityType, value: entityResult.value };
+      cleanQuery = entityResult.cleanQuery;
+    }
+
+    const tokens = tokenize(cleanQuery);
+    return { tokens, dateFilter, entityFilter, cleanQuery };
+  }, [query, dateFrom, dateTo]);
+
+  const results = useMemo(() => {
+    const scored = (files || [])
+      .map((f) => {
+        const score = scoreFile(f, parsedQuery.tokens, parsedQuery.dateFilter, parsedQuery.entityFilter);
+        const matchesTags = selectedTags.length === 0 || f.tags.some((t) => selectedTags.includes(t.name));
+        const ft = mapFileType(f.file_type);
+        const matchesType = selectedTypes.length === 0 || selectedTypes.includes(ft);
+        return { file: f, score, matchesTags, matchesType };
+      })
+      .filter((r) => r.score > 0 && r.matchesTags && r.matchesType);
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored;
+  }, [files, parsedQuery, selectedTags, selectedTypes]);
+
+  const toggleTag = (tag: string) => setSelectedTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
+  const toggleType = (type: string) => setSelectedTypes((prev) => prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]);
+
+  // Detect active smart filters
+  const activeSmartFilters: string[] = [];
+  if (parsedQuery.dateFilter) activeSmartFilters.push("📅 Date filter active");
+  if (parsedQuery.entityFilter) activeSmartFilters.push(`🔍 Entity: ${parsedQuery.entityFilter.entityType}`);
+
+  return (
+    <AppLayout>
+      <div className="max-w-5xl mx-auto">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
+          <h1 className="text-2xl font-bold">Smart Search</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Search by content, summary, tags, entities, dates, or natural language
+          </p>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+          <div className="relative">
+            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input
+              placeholder="Try: 'invoices from last month' · 'contracts expiring this quarter' · 'health insurance policy'"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="h-12 pl-12 pr-12 bg-secondary border-border text-base"
+              autoFocus
+            />
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={cn(
+                "absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors",
+                showFilters ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Smart filter indicators */}
+          {(query || activeSmartFilters.length > 0) && (
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              {query && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Sparkles className="w-3 h-3 text-primary" />
+                  <span>Searching names, summaries, content, tags & entities</span>
+                </div>
+              )}
+              {activeSmartFilters.map((f) => (
+                <span key={f} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{f}</span>
+              ))}
+            </div>
+          )}
+        </motion.div>
+
+        <AnimatePresence>
+          {showFilters && (
+            <SearchFilters
+              allTags={allTags}
+              selectedTags={selectedTags}
+              toggleTag={toggleTag}
+              selectedTypes={selectedTypes}
+              toggleType={toggleType}
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              onDateFromChange={setDateFrom}
+              onDateToChange={setDateTo}
+            />
+          )}
+        </AnimatePresence>
+
+        <div className="flex gap-6">
+          <div className="flex-1">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {results.length} result{results.length !== 1 ? "s" : ""}
+                  {query && <span className="text-primary ml-1">· sorted by relevance</span>}
+                </p>
+                {results.length === 0 && query && (
+                  <div className="text-center py-16">
+                    <SearchIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                    <p className="text-muted-foreground text-sm">No files match your search.</p>
+                    <p className="text-muted-foreground/60 text-xs mt-1">Try different keywords or check your filters.</p>
+                  </div>
+                )}
+                <div className="space-y-3">
+                  {results.map(({ file }, i) => {
+                    const detail = toDetailFile(file);
+                    const snippet = query
+                      ? highlightText(file.ai_summary || file.ai_description || file.extracted_text || "", parsedQuery.tokens)
+                      : detail.summary?.slice(0, 150);
+                    return (
+                      <SearchResultCard
+                        key={file.id}
+                        file={file}
+                        detail={detail}
+                        snippet={snippet}
+                        isSelected={selectedFile?.id === file.id}
+                        index={i}
+                        onClick={() => setSelectedFile(detail)}
+                      />
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+          <AnimatePresence>
+            {selectedFile && <FileDetailPanel file={selectedFile} onClose={() => setSelectedFile(null)} />}
+          </AnimatePresence>
+        </div>
+      </div>
+    </AppLayout>
+  );
+};
+
+export default SearchPage;

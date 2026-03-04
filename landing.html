@@ -1,0 +1,2651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sortify — Intelligent File Management</title>
+  <meta name="description" content="Sortify — AI-powered intelligent file management for India" />
+  <meta property="og:title" content="Sortify — Intelligent File Management" />
+  <meta property="og:description" content="Sortify reads, understands, and organises every document you own — automatically." />
+  <meta property="og:type" content="website" />
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F4F8FC;
+      --navy: #0B2044;
+      --teal: #0E879B;
+      --bright-teal: #13C5C5;
+      --text-primary: #0B2044;
+      --text-secondary: #4A6080;
+      --border: rgba(14,135,155,0.15);
+      --gradient: linear-gradient(135deg, #0B2044 0%, #0E879B 50%, #13C5C5 100%);
+      --ice-highlight: rgba(19,197,197,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    /* ── DARK MODE VARIABLES ── */
+    [data-theme="dark"] {
+      --bg: #0B1221;
+      --navy: #E4EDF8;
+      --teal: #2DD4E8;
+      --bright-teal: #13C5C5;
+      --text-primary: #E4EDF8;
+      --text-secondary: #7A9AB8;
+      --border: rgba(19,197,197,0.18);
+      --gradient: linear-gradient(135deg, #1A3A6E 0%, #0E879B 50%, #13C5C5 100%);
+      --ice-highlight: rgba(19,197,197,0.1);
+      --card-bg: #0E1A2E;
+      --surface: #0E1A2E;
+    }
+    :root {
+      --card-bg: #FFFFFF;
+      --surface: #FFFFFF;
+    }
+
+    /* ── DARK: BODY & BASE ── */
+    [data-theme="dark"] body { background: #0B1221; color: #E4EDF8; }
+
+    /* ── DARK: NAV ── */
+    [data-theme="dark"] nav.scrolled {
+      background: rgba(10,14,26,0.94);
+      border-bottom-color: rgba(19,197,197,0.12);
+    }
+    [data-theme="dark"] .mobile-menu {
+      background: rgba(10,14,26,0.97);
+      border-bottom-color: rgba(19,197,197,0.12);
+    }
+    [data-theme="dark"] .hamburger span { background: #E4EDF8; }
+
+    /* ── DARK: HERO ── */
+    [data-theme="dark"] #hero { background: #0B1221; }
+    [data-theme="dark"] .hero-h1 { color: #E4EDF8; }
+    [data-theme="dark"] .hero-stats {
+      background: rgba(14,26,46,0.8);
+      border-color: rgba(19,197,197,0.18);
+    }
+    [data-theme="dark"] .hero-stat strong { color: #E4EDF8; }
+    [data-theme="dark"] .hero-blob-1 { background: rgba(19,197,197,0.04); }
+    [data-theme="dark"] .hero-blob-2 { background: rgba(19,197,197,0.03); }
+
+    /* ── DARK: PROBLEM ── */
+    [data-theme="dark"] #problem { background: #0E1A2E; }
+    [data-theme="dark"] .problem-statement { color: #E4EDF8; }
+    [data-theme="dark"] .problem-card {
+      background: #0B1221; border-color: rgba(19,197,197,0.12);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    [data-theme="dark"] .problem-card h3 { color: #E4EDF8; }
+
+    /* ── DARK: SOLUTION ── */
+    [data-theme="dark"] #solution { background: #0B1221; }
+    [data-theme="dark"] .solution-title { color: #E4EDF8; }
+
+    /* ── DARK: FEATURES ── */
+    [data-theme="dark"] #features { background: #0E1A2E; }
+    [data-theme="dark"] .feature-card {
+      background: #0B1221; border-color: rgba(19,197,197,0.1);
+    }
+    [data-theme="dark"] .feature-card:hover {
+      background: #13213A; box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+    [data-theme="dark"] .feature-card h3 { color: #E4EDF8; }
+    [data-theme="dark"] .feature-icon { background: #1A3A6E; }
+
+    /* ── DARK: HOW IT WORKS ── */
+    [data-theme="dark"] #how { background: #0B1221; }
+    [data-theme="dark"] .step h3 { color: #E4EDF8; }
+    [data-theme="dark"] .search-demo-card {
+      background: rgba(14,26,46,0.8); border-color: rgba(19,197,197,0.18);
+    }
+    [data-theme="dark"] .search-bar {
+      background: #0B1221; border-color: rgba(19,197,197,0.25);
+    }
+    [data-theme="dark"] .search-bar input { color: #E4EDF8; }
+    [data-theme="dark"] .search-bar input::placeholder { color: rgba(122,154,184,0.6); }
+
+    /* ── DARK: SEARCH METHODS ── */
+    [data-theme="dark"] #search { background: #0E1A2E; }
+    [data-theme="dark"] .method-card { background: #0B1221; }
+    [data-theme="dark"] .method-card:hover { background: #13213A; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+    [data-theme="dark"] .method-name { color: #E4EDF8; }
+    [data-theme="dark"] .method-badge.navy { background: #1A3A6E; }
+
+    /* ── DARK: SECURITY ── */
+    [data-theme="dark"] #security { background: #0B1221; }
+    [data-theme="dark"] .security-title { color: #E4EDF8; }
+    [data-theme="dark"] .security-feature-text h4 { color: #E4EDF8; }
+    [data-theme="dark"] .milestone-title { color: #E4EDF8; }
+    [data-theme="dark"] .badge-card {
+      background: #0E1A2E; border-color: rgba(19,197,197,0.12);
+    }
+    [data-theme="dark"] .badge-card h4 { color: #E4EDF8; }
+    [data-theme="dark"] .badge-icon { background: #0B1221; }
+
+    /* ── DARK: ROADMAP ── */
+    [data-theme="dark"] #roadmap { background: #0E1A2E; }
+    [data-theme="dark"] .milestone-content {
+      background: #0B1221; border-color: rgba(19,197,197,0.12);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+    }
+    [data-theme="dark"] .milestone-node { background: #0B1221; }
+    [data-theme="dark"] .status-badge.future { background: rgba(26,58,110,0.4); color: #7A9AB8; }
+
+    /* ── DARK MODE TOGGLE ── */
+    .theme-toggle {
+      position: relative; width: 52px; height: 28px; flex-shrink: 0;
+      cursor: pointer; background: none; border: none; padding: 0;
+    }
+    .toggle-track {
+      position: absolute; inset: 0; border-radius: 100px;
+      background: rgba(14,135,155,0.15); border: 1.5px solid rgba(14,135,155,0.25);
+      transition: background 0.3s, border-color 0.3s;
+      overflow: hidden;
+    }
+    [data-theme="dark"] .toggle-track {
+      background: rgba(19,197,197,0.2); border-color: rgba(19,197,197,0.4);
+    }
+    .toggle-thumb {
+      position: absolute; top: 3px; left: 3px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--teal); transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), background 0.3s;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; line-height: 1;
+    }
+    [data-theme="dark"] .toggle-thumb { transform: translateX(24px); background: var(--bright-teal); }
+    .toggle-icon-sun, .toggle-icon-moon {
+      position: absolute; top: 50%; transition: opacity 0.25s, transform 0.25s;
+      font-size: 11px; line-height: 1;
+    }
+    .toggle-icon-sun { left: 6px; transform: translateY(-50%); opacity: 1; }
+    .toggle-icon-moon { right: 6px; transform: translateY(-50%); opacity: 0; }
+    [data-theme="dark"] .toggle-icon-sun { opacity: 0; }
+    [data-theme="dark"] .toggle-icon-moon { opacity: 1; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── SCROLL ANIMATIONS ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-scale {
+      opacity: 0;
+      transform: scale(0.96) translateY(20px);
+      transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+    }
+    .reveal-scale.visible { opacity: 1; transform: scale(1) translateY(0); }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 64px; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+      transition: background 0.35s ease, backdrop-filter 0.35s ease, border-bottom 0.35s ease;
+    }
+    nav.scrolled {
+      background: rgba(244,248,252,0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(14,135,155,0.12);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 20px; color: var(--navy);
+      text-decoration: none;
+    }
+    .nav-logo-dot {
+      width: 6px; height: 6px; background: var(--bright-teal); border-radius: 1px; flex-shrink: 0;
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 36px; list-style: none;
+    }
+    .nav-links a {
+      font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 14px; color: var(--text-secondary);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--teal); }
+    .nav-cta {
+      border: 1.5px solid var(--teal); color: var(--teal); background: transparent;
+      border-radius: 6px; padding: 8px 20px;
+      font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 14px;
+      cursor: pointer; transition: background 0.25s, color 0.25s;
+      text-decoration: none;
+    }
+    .nav-cta:hover { background: var(--teal); color: white; }
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px;
+    }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--navy); border-radius: 2px; transition: 0.3s; }
+    .mobile-menu {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(244,248,252,0.97); backdrop-filter: blur(20px);
+      padding: 24px 48px; z-index: 999; border-bottom: 1px solid var(--border);
+      flex-direction: column; gap: 20px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 16px; color: var(--text-secondary);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .mobile-menu a:hover { color: var(--teal); }
+
+    /* ── SECTION COMMONS ── */
+    section { position: relative; }
+    .container { max-width: 1160px; margin: 0 auto; padding: 0 48px; }
+    .section-label {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 11px;
+      letter-spacing: 3px; color: var(--teal); text-transform: uppercase; margin-bottom: 20px;
+    }
+    .gradient-text {
+      background: linear-gradient(90deg, var(--teal) 0%, var(--bright-teal) 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+    }
+    .diagonal-divider {
+      position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0;
+    }
+    .diagonal-divider::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: repeating-linear-gradient(
+        135deg,
+        rgba(14,135,155,0.06) 0px,
+        rgba(14,135,155,0.06) 1px,
+        transparent 1px,
+        transparent 60px
+      );
+    }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      text-align: center; overflow: hidden; padding-top: 64px;
+    }
+    .hero-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; padding: 0 24px; }
+    .hero-badge {
+      display: inline-flex; align-items: center;
+      border: 1px solid rgba(19,197,197,0.3); background: rgba(19,197,197,0.06);
+      border-radius: 100px; padding: 6px 16px;
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 11px;
+      letter-spacing: 2px; color: var(--teal); text-transform: uppercase;
+      margin-bottom: 32px;
+      opacity: 0; animation: heroFadeUp 0.7s ease-out forwards;
+    }
+    .hero-h1 {
+      font-family: 'Playfair Display', serif; font-weight: 800; font-size: 80px;
+      color: var(--navy); line-height: 1.05; margin-bottom: 28px;
+      opacity: 0; animation: heroFadeUp 0.7s ease-out 0.15s forwards;
+    }
+    .hero-sub {
+      font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 19px;
+      color: var(--text-secondary); max-width: 580px; margin: 0 auto 40px;
+      line-height: 1.8;
+      opacity: 0; animation: heroFadeUp 0.7s ease-out 0.3s forwards;
+    }
+    .hero-ctas {
+      display: flex; align-items: center; justify-content: center; gap: 32px; margin-bottom: 64px;
+      opacity: 0; animation: heroFadeUp 0.7s ease-out 0.45s forwards;
+    }
+    .btn-primary {
+      background: var(--navy); color: white;
+      border-radius: 8px; padding: 14px 32px;
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 15px;
+      border: none; cursor: pointer; text-decoration: none;
+      display: inline-block; transition: background 0.25s, transform 0.25s, box-shadow 0.25s;
+    }
+    .btn-primary:hover {
+      background: var(--teal); transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(14,135,155,0.3);
+    }
+    .btn-secondary {
+      background: none; border: none; color: var(--teal);
+      font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 15px;
+      cursor: pointer; text-decoration: none;
+      display: inline-block; transition: opacity 0.25s;
+      position: relative;
+    }
+    .btn-secondary::after {
+      content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 1px;
+      background: var(--teal); transform: scaleX(0); transition: transform 0.25s; transform-origin: left;
+    }
+    .btn-secondary:hover::after { transform: scaleX(1); }
+    .hero-stats {
+      display: inline-flex; align-items: center; gap: 40px;
+      background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border); border-radius: 100px; padding: 16px 40px;
+      opacity: 0; animation: heroFadeUp 0.7s ease-out 0.6s forwards;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat strong {
+      display: block; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 20px; color: var(--navy);
+    }
+    .hero-stat span {
+      font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text-secondary);
+    }
+    .hero-stat-divider { width: 1px; height: 32px; background: var(--border); }
+    .hero-blob {
+      position: absolute; border-radius: 50%; z-index: 0; pointer-events: none;
+    }
+    .hero-blob-1 {
+      width: 600px; height: 600px; top: -100px; right: -150px;
+      background: rgba(19,197,197,0.06); filter: blur(80px);
+    }
+    .hero-blob-2 {
+      width: 500px; height: 500px; bottom: -100px; left: -150px;
+      background: rgba(11,32,68,0.04); filter: blur(80px);
+    }
+
+    @keyframes heroFadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── PROBLEM ── */
+    #problem { background: white; padding: 120px 0; }
+    .problem-statement {
+      max-width: 800px; margin: 0 auto 72px; text-align: center;
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 52px;
+      color: var(--navy); line-height: 1.15;
+    }
+    .problem-cards {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 28px;
+    }
+    .problem-card {
+      background: white; border-radius: 16px; padding: 40px 32px;
+      border: 1px solid rgba(14,135,155,0.1);
+      box-shadow: 0 4px 24px rgba(11,32,68,0.05);
+    }
+    .problem-stat {
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 60px;
+      background: linear-gradient(90deg, var(--teal) 0%, var(--bright-teal) 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      line-height: 1; margin-bottom: 12px; display: block;
+    }
+    .problem-card h3 {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 18px;
+      color: var(--navy); margin-bottom: 10px;
+    }
+    .problem-card p {
+      font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text-secondary); line-height: 1.7;
+    }
+
+    /* ── SOLUTION ── */
+    #solution { background: var(--bg); padding: 120px 0; }
+    .solution-grid {
+      display: grid; grid-template-columns: 55% 45%; gap: 80px; align-items: center;
+    }
+    .solution-title {
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 46px;
+      color: var(--navy); line-height: 1.15; margin-bottom: 24px;
+    }
+    .solution-body {
+      font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--text-secondary);
+      line-height: 1.75; margin-bottom: 32px;
+    }
+    .feature-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+    .feature-pill {
+      background: rgba(19,197,197,0.08); border: 1px solid rgba(19,197,197,0.2);
+      border-radius: 100px; padding: 8px 18px;
+      font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 13px; color: var(--teal);
+    }
+    /* Terminal card */
+    .terminal-card {
+      background: var(--navy); border-radius: 16px; padding: 32px;
+      position: relative; overflow: hidden;
+    }
+    .terminal-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 36px;
+      background: #0D1B36; border-radius: 16px 16px 0 0;
+      display: flex; align-items: center;
+    }
+    .terminal-dots {
+      position: absolute; top: 11px; left: 16px; display: flex; gap: 6px; z-index: 1;
+    }
+    .terminal-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+    }
+    .terminal-dot.red { background: #FF5F57; }
+    .terminal-dot.yellow { background: #FEBC2E; }
+    .terminal-dot.green { background: #28C840; }
+    .terminal-lines { margin-top: 36px; }
+    .terminal-line {
+      font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+      font-size: 13px; line-height: 1.8; opacity: 0;
+      white-space: nowrap; overflow: hidden;
+    }
+    .terminal-line.grey { color: #6B8099; }
+    .terminal-line.teal { color: var(--bright-teal); }
+    .terminal-line.gold { color: #F5A623; }
+    .terminal-line.white { color: #E8EFF8; }
+    .terminal-line.bright { color: #13C5C5; font-weight: 600; }
+    .terminal-line.visible { opacity: 1; }
+    .cursor {
+      display: inline-block; width: 8px; height: 14px;
+      background: var(--bright-teal); margin-left: 2px; vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* terminal line animations */
+    .tl-1 { animation: termLine 0.3s ease forwards 0.2s; }
+    .tl-2 { animation: termLine 0.3s ease forwards 0.5s; }
+    .tl-3 { animation: termLine 0.3s ease forwards 0.8s; }
+    .tl-4 { animation: termLine 0.3s ease forwards 1.1s; }
+    .tl-5 { animation: termLine 0.3s ease forwards 1.4s; }
+    .tl-6 { animation: termLine 0.3s ease forwards 1.7s; }
+    .tl-7 { animation: termLine 0.3s ease forwards 2.0s; }
+    .tl-8 { animation: termLine 0.3s ease forwards 2.3s; }
+    @keyframes termLine { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
+    /* pause until card in view */
+    .terminal-card:not(.in-view) .terminal-line { animation-play-state: paused; }
+    .terminal-card.in-view .terminal-line { animation-play-state: running; }
+
+    /* ── FEATURES ── */
+    #features { background: white; padding: 120px 0; }
+    .features-header { text-align: center; margin-bottom: 64px; }
+    .section-title {
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 52px;
+      color: var(--navy); line-height: 1.15;
+    }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 24px;
+    }
+    .feature-card {
+      background: var(--bg); border-radius: 20px; padding: 36px 32px;
+      border: 1px solid rgba(14,135,155,0.08);
+      transition: background 0.3s, box-shadow 0.3s, transform 0.3s;
+    }
+    .feature-card:hover {
+      background: white; box-shadow: 0 12px 40px rgba(11,32,68,0.08); transform: translateY(-4px);
+    }
+    .feature-icon {
+      width: 48px; height: 48px; background: var(--navy); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin-bottom: 20px;
+    }
+    .feature-card h3 {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 22px;
+      color: var(--navy); margin-bottom: 12px;
+    }
+    .feature-card p {
+      font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* ── HOW IT WORKS ── */
+    #how { background: var(--bg); padding: 120px 0; }
+    .how-header { text-align: center; margin-bottom: 72px; }
+    .steps-wrapper { position: relative; display: grid; grid-template-columns: repeat(3,1fr); gap: 48px; margin-bottom: 48px; }
+    .steps-line {
+      position: absolute; top: 30px; left: calc(16.66% + 24px); right: calc(16.66% + 24px);
+      border-top: 2px dashed rgba(14,135,155,0.2); z-index: 0;
+    }
+    .step { text-align: center; position: relative; z-index: 1; }
+    .step-num {
+      width: 60px; height: 60px; margin: 0 auto 24px;
+      background: var(--gradient); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 28px; color: white;
+    }
+    .step h3 {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 20px; color: var(--navy); margin-bottom: 10px;
+    }
+    .step p {
+      font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-secondary); line-height: 1.75;
+    }
+    .search-demo-card {
+      background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px; border: 1px solid var(--border); padding: 40px 48px;
+    }
+    .search-demo-label {
+      font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;
+    }
+    .search-bar {
+      display: flex; align-items: center;
+      border: 1.5px solid rgba(14,135,155,0.3); border-radius: 100px; padding: 14px 20px 14px 24px;
+      background: white;
+    }
+    .search-bar input {
+      flex: 1; border: none; outline: none; background: transparent;
+      font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--navy);
+    }
+    .search-bar input::placeholder { color: rgba(74,96,128,0.5); }
+    .search-icon {
+      width: 36px; height: 36px; background: var(--teal); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer;
+      transition: background 0.25s;
+    }
+    .search-icon:hover { background: var(--bright-teal); }
+    .search-icon svg { width: 16px; height: 16px; fill: white; }
+
+    /* ── SEARCH METHODS ── */
+    #search { background: white; padding: 100px 0; }
+    .search-header { text-align: center; margin-bottom: 12px; }
+    .search-subtitle {
+      font-family: 'DM Sans', sans-serif; font-size: 18px; color: var(--text-secondary);
+      text-align: center; margin-bottom: 56px;
+    }
+    .methods-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
+    }
+    .method-card {
+      border-left: 3px solid var(--bright-teal); background: var(--bg);
+      border-radius: 0 12px 12px 0; padding: 20px 24px;
+      display: flex; flex-direction: column; gap: 4px;
+      transition: background 0.25s, box-shadow 0.25s;
+    }
+    .method-card:hover { background: white; box-shadow: 0 4px 16px rgba(11,32,68,0.06); }
+    .method-name {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; color: var(--navy);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .method-desc {
+      font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text-secondary);
+    }
+    .method-badge {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 10px;
+      padding: 2px 8px; border-radius: 100px; letter-spacing: 0.5px;
+    }
+    .method-badge.teal { background: rgba(19,197,197,0.15); color: var(--teal); }
+    .method-badge.navy { background: var(--navy); color: white; }
+
+    /* ── WHO IT'S FOR ── */
+    #usecases { background: var(--navy); padding: 120px 0; }
+    #usecases .section-label { color: rgba(19,197,197,0.7); }
+    #usecases .section-title { color: white; text-align: center; margin-bottom: 56px; }
+    .personas-grid {
+      display: grid; grid-template-columns: repeat(5,1fr); gap: 20px;
+    }
+    .persona-card {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px; padding: 36px 28px;
+      transition: background 0.25s, border-color 0.25s;
+    }
+    .persona-card:hover {
+      background: rgba(19,197,197,0.1); border-color: rgba(19,197,197,0.3);
+    }
+    .persona-icon { font-size: 40px; margin-bottom: 16px; display: block; }
+    .persona-name {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 18px;
+      color: white; margin-bottom: 10px; line-height: 1.3;
+    }
+    .persona-desc {
+      font-family: 'DM Sans', sans-serif; font-size: 14px; color: rgba(255,255,255,0.6);
+      line-height: 1.7; margin-bottom: 20px;
+    }
+    .persona-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .persona-tag {
+      background: rgba(19,197,197,0.15); color: var(--bright-teal);
+      border-radius: 100px; padding: 4px 12px;
+      font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500;
+    }
+
+    /* ── SECURITY ── */
+    #security { background: var(--bg); padding: 120px 0; }
+    .security-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .security-title {
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 46px;
+      color: var(--navy); margin-bottom: 20px; line-height: 1.15;
+    }
+    .security-body {
+      font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--text-secondary);
+      line-height: 1.75; margin-bottom: 36px;
+    }
+    .security-feature {
+      display: flex; align-items: flex-start; gap: 14px; margin-bottom: 24px;
+    }
+    .sec-check {
+      width: 22px; height: 22px; background: rgba(19,197,197,0.12); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+    }
+    .sec-check::after { content: '✓'; font-size: 11px; color: var(--teal); font-weight: 700; }
+    .security-feature-text h4 {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 15px; color: var(--navy); margin-bottom: 2px;
+    }
+    .security-feature-text p {
+      font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-secondary);
+    }
+    .badge-cards { display: flex; flex-direction: column; gap: 16px; }
+    .badge-card {
+      background: white; border-radius: 12px; border: 1px solid rgba(14,135,155,0.12);
+      padding: 20px 24px; display: flex; align-items: center; gap: 16px;
+    }
+    .badge-icon {
+      width: 44px; height: 44px; border-radius: 10px; background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .badge-card h4 {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 16px; color: var(--navy); margin-bottom: 2px;
+    }
+    .badge-card p {
+      font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text-secondary);
+    }
+
+    /* ── ROADMAP ── */
+    #roadmap { background: white; padding: 120px 0; }
+    .roadmap-header { text-align: center; margin-bottom: 80px; }
+    .timeline { position: relative; max-width: 900px; margin: 0 auto; }
+    .timeline-line {
+      position: absolute; left: 50%; top: 0; bottom: 0;
+      width: 2px; background: rgba(14,135,155,0.2); transform: translateX(-50%);
+    }
+    .milestone {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-bottom: 60px;
+      position: relative;
+    }
+    .milestone-content {
+      background: white; border-radius: 16px; padding: 32px;
+      border: 1px solid rgba(14,135,155,0.12);
+      box-shadow: 0 2px 16px rgba(11,32,68,0.04);
+    }
+    .milestone.right .milestone-content { grid-column: 2; }
+    .milestone.left .milestone-empty { display: none; }
+    .milestone-node {
+      position: absolute; left: 50%; top: 32px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: white; border: 2px solid var(--teal);
+      transform: translateX(-50%); z-index: 1;
+    }
+    .milestone-quarter {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 11px;
+      letter-spacing: 2px; color: var(--teal); text-transform: uppercase; margin-bottom: 8px;
+    }
+    .milestone-title {
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 22px;
+      color: var(--navy); margin-bottom: 8px;
+    }
+    .milestone-desc {
+      font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 16px;
+    }
+    .status-badge {
+      display: inline-flex; align-items: center;
+      border-radius: 6px; padding: 4px 12px;
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 11px; letter-spacing: 1px;
+    }
+    .status-badge.dev { background: rgba(245,166,35,0.15); color: #F5A623; }
+    .status-badge.planned { background: rgba(14,135,155,0.1); color: var(--teal); }
+    .status-badge.future { background: rgba(11,32,68,0.08); color: var(--navy); }
+
+    /* ── CTA ── */
+    #cta {
+      background: linear-gradient(135deg, #0B2044 0%, #0D3060 40%, #0E7A7A 100%);
+      padding: 140px 0; position: relative; overflow: hidden; text-align: center;
+    }
+    .cta-blobs { position: absolute; inset: 0; pointer-events: none; }
+    .cta-blob { position: absolute; border-radius: 50%; filter: blur(80px); }
+    .cta-blob-1 { width: 500px; height: 500px; top: -100px; left: -100px; background: rgba(19,197,197,0.08); }
+    .cta-blob-2 { width: 400px; height: 400px; bottom: -80px; right: 10%; background: rgba(255,255,255,0.03); }
+    .cta-blob-3 { width: 300px; height: 300px; top: 30%; right: -80px; background: rgba(19,197,197,0.06); }
+    .cta-inner { max-width: 700px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+    .cta-badge {
+      display: inline-flex; align-items: center;
+      border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.08);
+      border-radius: 100px; padding: 6px 16px;
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 11px;
+      letter-spacing: 2px; color: rgba(255,255,255,0.9); text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+    .cta-title {
+      font-family: 'Playfair Display', serif; font-weight: 800; font-size: 56px;
+      color: white; line-height: 1.1; margin-bottom: 20px;
+    }
+    .cta-sub {
+      font-family: 'DM Sans', sans-serif; font-size: 18px; color: rgba(255,255,255,0.7);
+      margin-bottom: 40px;
+    }
+    .email-form {
+      background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.2); border-radius: 100px;
+      padding: 8px 8px 8px 28px;
+      display: flex; max-width: 520px; margin: 0 auto 16px;
+    }
+    .email-form input {
+      flex: 1; background: transparent; border: none; outline: none;
+      font-family: 'DM Sans', sans-serif; font-size: 15px; color: white;
+      min-width: 0;
+    }
+    .email-form input::placeholder { color: rgba(255,255,255,0.5); }
+    .email-form button {
+      background: white; color: var(--navy);
+      border: none; border-radius: 100px; padding: 12px 28px;
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px;
+      cursor: pointer; flex-shrink: 0; margin-left: 8px;
+      transition: background 0.25s, color 0.25s;
+      white-space: nowrap;
+    }
+    .email-form button:hover { background: var(--bright-teal); color: white; }
+    .cta-fine {
+      font-family: 'DM Sans', sans-serif; font-size: 13px; color: rgba(255,255,255,0.5);
+    }
+
+    /* ── FOOTER ── */
+    footer { background: #07142B; padding: 60px 0 40px; }
+    .footer-top { border-top: 1px solid rgba(255,255,255,0.06); }
+    .footer-grid {
+      display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 60px; padding: 60px 0 40px;
+    }
+    .footer-logo {
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 20px; color: white;
+      display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    }
+    .footer-tagline {
+      font-family: 'DM Sans', sans-serif; font-size: 13px; color: rgba(255,255,255,0.4);
+      margin-bottom: 12px;
+    }
+    .footer-copy {
+      font-family: 'DM Sans', sans-serif; font-size: 12px; color: rgba(255,255,255,0.3);
+      margin-bottom: 6px;
+    }
+    .footer-location {
+      font-family: 'DM Sans', sans-serif; font-size: 12px; color: rgba(255,255,255,0.3);
+    }
+    .footer-col h5 {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 13px;
+      color: rgba(255,255,255,0.5); letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .footer-col a {
+      display: block; font-family: 'DM Sans', sans-serif; font-size: 14px;
+      color: rgba(255,255,255,0.5); text-decoration: none; margin-bottom: 12px;
+      transition: color 0.2s;
+    }
+    .footer-col a:hover { color: rgba(255,255,255,0.9); }
+    .footer-col a.teal { color: var(--bright-teal); }
+    .footer-col a.teal:hover { color: #5FE8E8; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      .nav-cta { display: none; }
+      .hamburger { display: flex; }
+      .container { padding: 0 24px; }
+      .hero-h1 { font-size: 48px; }
+      .hero-sub { font-size: 16px; }
+      .hero-stats { flex-direction: column; gap: 16px; border-radius: 20px; }
+      .hero-stat-divider { width: 80%; height: 1px; }
+      .hero-ctas { flex-direction: column; gap: 16px; }
+      .problem-statement { font-size: 36px; }
+      .problem-cards { grid-template-columns: 1fr; }
+      .solution-grid { grid-template-columns: 1fr; gap: 40px; }
+      .solution-title { font-size: 36px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .section-title { font-size: 36px; }
+      .steps-wrapper { grid-template-columns: 1fr; }
+      .steps-line { display: none; }
+      .methods-grid { grid-template-columns: 1fr; }
+      .personas-grid { grid-template-columns: 1fr 1fr; }
+      .security-grid { grid-template-columns: 1fr; gap: 40px; }
+      .security-title { font-size: 36px; }
+      .timeline-line { display: none; }
+      .milestone { grid-template-columns: 1fr; gap: 0; }
+      .milestone.right .milestone-content { grid-column: 1; }
+      .milestone-node { display: none; }
+      .cta-title { font-size: 40px; }
+      .email-form { border-radius: 16px; flex-direction: column; padding: 16px; }
+      .email-form button { margin-left: 0; margin-top: 8px; border-radius: 8px; }
+      .footer-grid { grid-template-columns: 1fr; gap: 36px; }
+      .search-demo-card { padding: 28px 24px; }
+      .files-grid { grid-template-columns: 1fr; }
+      .toast-container { bottom: 16px; right: 16px; left: 16px; }
+      .toast { min-width: unset; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-h1 { font-size: 38px; }
+      .hero-badge { font-size: 9px; letter-spacing: 1px; }
+      .personas-grid { grid-template-columns: 1fr; }
+      .section-title { font-size: 30px; }
+      .problem-stat { font-size: 48px; }
+      .files-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── AUTOCOMPLETE ── */
+    .search-wrapper { position: relative; }
+    .autocomplete-dropdown {
+      position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+      background: var(--surface,white); border-radius: 16px;
+      border: 1.5px solid var(--border);
+      box-shadow: 0 12px 40px rgba(11,32,68,0.12);
+      z-index: 200; overflow: hidden;
+      opacity: 0; transform: translateY(-8px); pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .autocomplete-dropdown.open {
+      opacity: 1; transform: translateY(0); pointer-events: all;
+    }
+    .autocomplete-header {
+      padding: 10px 20px 6px;
+      font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600;
+      letter-spacing: 2px; color: var(--teal); text-transform: uppercase;
+    }
+    .autocomplete-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 20px; cursor: pointer;
+      transition: background 0.15s;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-primary);
+    }
+    .autocomplete-item:hover, .autocomplete-item.focused {
+      background: var(--ice-highlight);
+    }
+    .autocomplete-item .ac-icon {
+      width: 28px; height: 28px; border-radius: 8px; background: rgba(14,135,155,0.08);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px;
+    }
+    .autocomplete-item .ac-text { flex: 1; }
+    .autocomplete-item .ac-text strong { display: block; font-weight: 500; }
+    .autocomplete-item .ac-text span {
+      font-size: 12px; color: var(--text-secondary);
+    }
+    .autocomplete-item mark {
+      background: none; color: var(--teal); font-weight: 600;
+    }
+    .autocomplete-footer {
+      padding: 8px 20px 12px;
+      font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .ac-kbd {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 5px; font-size: 10px;
+      font-family: monospace; color: var(--text-secondary);
+    }
+
+    /* ── QUICK CHIPS ── */
+    .quick-chips {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+      margin: 14px 0 24px;
+    }
+    .chip-label {
+      font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+      letter-spacing: 1px; color: var(--text-secondary); text-transform: uppercase; margin-right: 4px;
+    }
+    .quick-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 14px; border-radius: 100px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      color: var(--text-primary); cursor: pointer;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+    }
+    .quick-chip:hover, .quick-chip.active {
+      background: var(--teal); border-color: var(--teal); color: white;
+    }
+    [data-theme="dark"] .quick-chip { color: #E4EDF8; }
+    [data-theme="dark"] .quick-chip:hover, [data-theme="dark"] .quick-chip.active { color: white; }
+
+    /* ── FILE RESULTS ── */
+    .files-results-section {
+      margin-top: 28px;
+      display: none;
+    }
+    .files-results-section.visible { display: block; }
+    .files-results-label {
+      font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase; color: var(--teal);
+      margin-bottom: 12px;
+    }
+    .files-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
+    }
+    .file-card {
+      background: white; border-radius: 14px; padding: 18px 18px 14px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(11,32,68,0.05);
+      transition: box-shadow 0.25s, transform 0.25s;
+      animation: fileCardIn 0.35s ease both;
+    }
+    .file-card:hover { box-shadow: 0 8px 28px rgba(11,32,68,0.1); transform: translateY(-2px); }
+    @keyframes fileCardIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .file-card-top {
+      display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;
+    }
+    .file-type-icon {
+      width: 40px; height: 48px; border-radius: 8px; display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-end; padding-bottom: 5px;
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 9px;
+      letter-spacing: 0.5px; flex-shrink: 0;
+    }
+    .file-type-icon.pdf { background: #FEE2E2; color: #DC2626; }
+    .file-type-icon.doc { background: #DBEAFE; color: #2563EB; }
+    .file-type-icon.xls { background: #DCFCE7; color: #16A34A; }
+    .file-type-icon.img { background: #FEF9C3; color: #CA8A04; }
+    .file-type-icon.txt { background: #F3E8FF; color: #9333EA; }
+    .file-card-info { flex: 1; min-width: 0; }
+    .file-card-name {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 13px;
+      color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+    .file-card-meta {
+      font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--text-secondary);
+    }
+    .file-card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+    .file-tag {
+      background: var(--ice-highlight); color: var(--teal);
+      border: 1px solid rgba(19,197,197,0.2); border-radius: 100px;
+      font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 500; padding: 2px 8px;
+    }
+    .file-card-actions { display: flex; gap: 7px; }
+    .btn-download {
+      flex: 1; background: var(--teal); color: white;
+      border: none; border-radius: 8px; padding: 8px 12px;
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 12px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .btn-download:hover { background: var(--bright-teal); transform: translateY(-1px); }
+    .btn-preview {
+      background: var(--bg); color: var(--text-secondary);
+      border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
+      font-family: 'DM Sans', sans-serif; font-size: 12px;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-preview:hover { background: white; color: var(--navy); }
+
+    /* ── UPLOAD ZONE ── */
+    .upload-zone {
+      border: 2px dashed rgba(14,135,155,0.35); border-radius: 16px;
+      padding: 28px 24px; text-align: center; cursor: pointer;
+      background: rgba(19,197,197,0.03); margin-bottom: 18px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--teal); background: rgba(19,197,197,0.08);
+    }
+    .upload-zone-icon { color: var(--teal); margin-bottom: 10px; display: flex; justify-content: center; }
+    .upload-zone-text {
+      font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text-primary); margin-bottom: 5px;
+    }
+    .upload-browse {
+      color: var(--teal); font-weight: 600; cursor: pointer;
+      text-decoration: underline; text-underline-offset: 2px;
+    }
+    .upload-zone-hint { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text-secondary); }
+    [data-theme="dark"] .upload-zone { background: rgba(19,197,197,0.04); }
+    [data-theme="dark"] .upload-zone.drag-over { background: rgba(19,197,197,0.1); }
+
+    /* ── PREVIEW MODAL ── */
+    .preview-modal {
+      position: fixed; inset: 0; z-index: 10000;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .preview-backdrop {
+      position: absolute; inset: 0; background: rgba(5,12,24,0.75);
+      backdrop-filter: blur(6px); cursor: pointer;
+    }
+    .preview-box {
+      position: relative; z-index: 1; background: var(--surface, white);
+      border-radius: 20px; width: min(94vw, 940px); max-height: 90vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.4); overflow: hidden;
+    }
+    .preview-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 22px; border-bottom: 1px solid var(--border); gap: 12px; flex-shrink: 0;
+    }
+    .preview-filename {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px;
+      color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .preview-header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .preview-dl-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--teal); color: white; border: none; border-radius: 8px;
+      padding: 7px 14px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .preview-dl-btn:hover { background: var(--bright-teal); }
+    .preview-close {
+      background: transparent; border: 1px solid var(--border); border-radius: 8px;
+      width: 32px; height: 32px; font-size: 14px; cursor: pointer; color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+    }
+    .preview-close:hover { background: var(--bg); color: var(--text-primary); }
+    .preview-body {
+      flex: 1; overflow: auto; display: flex;
+      align-items: center; justify-content: center; min-height: 200px;
+    }
+    .preview-body iframe { width: 100%; height: 78vh; border: none; }
+    .preview-body img { max-width: 100%; max-height: 78vh; object-fit: contain; padding: 24px; }
+    .preview-body pre {
+      white-space: pre-wrap; word-break: break-all;
+      font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6;
+      color: var(--text-primary); padding: 28px; width: 100%; box-sizing: border-box; margin: 0;
+      align-self: flex-start;
+    }
+    .preview-no-support {
+      text-align: center; padding: 60px 32px;
+      font-family: 'DM Sans', sans-serif; color: var(--text-secondary);
+    }
+    .preview-no-support strong { display: block; font-size: 16px; color: var(--text-primary); margin-bottom: 8px; }
+
+    /* ── DOWNLOAD TOAST ── */
+    .toast-container {
+      position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+    }
+    .toast {
+      background: var(--navy); color: white;
+      border-radius: 12px; padding: 14px 20px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 8px 32px rgba(11,32,68,0.25);
+      pointer-events: all; min-width: 280px;
+      transform: translateX(120%); opacity: 0;
+      transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), opacity 0.3s;
+    }
+    .toast.show { transform: translateX(0); opacity: 1; }
+    .toast.hide { transform: translateX(120%); opacity: 0; }
+    .toast-icon {
+      width: 32px; height: 32px; background: rgba(19,197,197,0.2); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px;
+    }
+    .toast-text strong { display: block; font-weight: 600; font-size: 14px; }
+    .toast-text span { font-size: 12px; color: rgba(255,255,255,0.6); }
+    .toast-progress {
+      position: absolute; bottom: 0; left: 0; height: 3px;
+      background: var(--bright-teal); border-radius: 0 0 12px 12px;
+      width: 100%; transform-origin: left;
+      animation: toastProgress 2.8s linear forwards;
+    }
+    @keyframes toastProgress { from{transform:scaleX(1)} to{transform:scaleX(0)} }
+
+    /* ── DARK: NEW ELEMENTS ── */
+    [data-theme="dark"] .autocomplete-dropdown {
+      background: #0E1A2E; border-color: rgba(19,197,197,0.18);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+    [data-theme="dark"] .autocomplete-item:hover, [data-theme="dark"] .autocomplete-item.focused {
+      background: rgba(19,197,197,0.08);
+    }
+    [data-theme="dark"] .ac-kbd { background: #0B1221; border-color: rgba(19,197,197,0.18); }
+    [data-theme="dark"] .file-card {
+      background: #0E1A2E; border-color: rgba(19,197,197,0.12);
+    }
+    [data-theme="dark"] .btn-preview { background: #0B1221; border-color: rgba(19,197,197,0.15); }
+    [data-theme="dark"] .btn-preview:hover { background: #13213A; color: #E4EDF8; }
+    [data-theme="dark"] .toast { background: #0E1A2E; border: 1px solid rgba(19,197,197,0.2); }
+
+    /* ── SCROLL PROGRESS BAR ── */
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; height: 3px; z-index: 1001;
+      background: linear-gradient(90deg, #0E879B, #13C5C5);
+      width: 0%; transition: width 0.1s linear;
+      transform-origin: left;
+    }
+
+    /* ── HAMBURGER → X ── */
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* ── BACK TO TOP ── */
+    .back-to-top {
+      position: fixed; bottom: 32px; left: 32px; z-index: 999;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--navy); color: white; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 18px;
+      box-shadow: 0 4px 20px rgba(11,32,68,0.2);
+      opacity: 0; transform: translateY(12px); pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s, background 0.25s;
+    }
+    .back-to-top.visible { opacity: 1; transform: translateY(0); pointer-events: all; }
+    .back-to-top:hover { background: var(--teal); }
+    [data-theme="dark"] .back-to-top { background: #1A3A6E; }
+    [data-theme="dark"] .back-to-top:hover { background: var(--teal); }
+
+    /* ── TESTIMONIALS ── */
+    #testimonials { background: white; padding: 120px 0; }
+    [data-theme="dark"] #testimonials { background: #0E1A2E; }
+    .testimonials-header { text-align: center; margin-bottom: 64px; }
+    .testimonials-track-wrap { overflow: hidden; mask-image: linear-gradient(90deg, transparent 0%, black 6%, black 94%, transparent 100%); }
+    .testimonials-track {
+      display: flex; gap: 24px;
+      animation: scrollTrack 35s linear infinite;
+      width: max-content;
+    }
+    .testimonials-track:hover { animation-play-state: paused; }
+    @keyframes scrollTrack { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .testimonial-card {
+      background: var(--bg); border-radius: 20px; padding: 32px 28px;
+      border: 1px solid var(--border); width: 340px; flex-shrink: 0;
+      transition: box-shadow 0.25s, transform 0.25s;
+    }
+    [data-theme="dark"] .testimonial-card { background: #0B1221; }
+    .testimonial-card:hover { box-shadow: 0 12px 40px rgba(11,32,68,0.1); transform: translateY(-4px); }
+    .testimonial-stars { color: #F5A623; font-size: 14px; letter-spacing: 2px; margin-bottom: 14px; }
+    .testimonial-quote {
+      font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text-secondary);
+      line-height: 1.75; margin-bottom: 20px; font-style: italic;
+    }
+    .testimonial-author { display: flex; align-items: center; gap: 12px; }
+    .testimonial-avatar {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 15px; color: white;
+    }
+    .testimonial-name {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; color: var(--text-primary);
+    }
+    .testimonial-role {
+      font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text-secondary);
+    }
+
+    /* ── PRICING ── */
+    #pricing { background: var(--bg); padding: 120px 0; }
+    [data-theme="dark"] #pricing { background: #0B1221; }
+    .pricing-header { text-align: center; margin-bottom: 16px; }
+    .pricing-sub {
+      font-family: 'DM Sans', sans-serif; font-size: 18px; color: var(--text-secondary);
+      text-align: center; margin-bottom: 56px;
+    }
+    .pricing-toggle {
+      display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 48px;
+    }
+    .pricing-toggle span {
+      font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 14px; color: var(--text-secondary);
+      cursor: pointer; transition: color 0.2s;
+    }
+    .pricing-toggle span.active { color: var(--teal); font-weight: 600; }
+    .billing-toggle {
+      width: 44px; height: 24px; background: var(--teal);
+      border-radius: 100px; position: relative; cursor: pointer; border: none;
+      transition: background 0.25s;
+    }
+    .billing-toggle::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 18px; height: 18px; background: white; border-radius: 50%;
+      transition: transform 0.25s cubic-bezier(.34,1.56,.64,1);
+    }
+    .billing-toggle.yearly::after { transform: translateX(20px); }
+    .pricing-badge-save {
+      display: inline-flex; align-items: center;
+      background: rgba(19,197,197,0.12); border: 1px solid rgba(19,197,197,0.25);
+      border-radius: 100px; padding: 3px 10px;
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 11px; color: var(--teal);
+    }
+    .pricing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; align-items: start; }
+    .pricing-card {
+      background: white; border-radius: 24px; padding: 36px 32px;
+      border: 1px solid var(--border);
+      transition: box-shadow 0.3s, transform 0.3s;
+      position: relative; overflow: hidden;
+    }
+    [data-theme="dark"] .pricing-card { background: #0E1A2E; border-color: rgba(19,197,197,0.12); }
+    .pricing-card:hover { box-shadow: 0 16px 48px rgba(11,32,68,0.1); transform: translateY(-4px); }
+    .pricing-card.featured {
+      background: var(--navy); border-color: transparent;
+      box-shadow: 0 20px 60px rgba(11,32,68,0.25);
+    }
+    [data-theme="dark"] .pricing-card.featured { background: #0D2A4F; }
+    .pricing-card.featured::before {
+      content: 'MOST POPULAR';
+      position: absolute; top: 20px; right: -28px;
+      background: var(--bright-teal); color: var(--navy);
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 9px; letter-spacing: 1.5px;
+      padding: 5px 36px; transform: rotate(45deg) translateY(-10px);
+      transform-origin: center;
+    }
+    .plan-name {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 13px;
+      letter-spacing: 2px; text-transform: uppercase; color: var(--teal); margin-bottom: 8px;
+    }
+    .pricing-card.featured .plan-name { color: var(--bright-teal); }
+    .plan-price {
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 52px;
+      color: var(--text-primary); line-height: 1; margin-bottom: 4px;
+      display: flex; align-items: flex-start; gap: 4px;
+    }
+    .pricing-card.featured .plan-price { color: white; }
+    .plan-price sup { font-size: 22px; margin-top: 10px; font-weight: 500; }
+    .plan-period {
+      font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;
+    }
+    .pricing-card.featured .plan-period { color: rgba(255,255,255,0.55); }
+    .plan-desc {
+      font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-secondary);
+      margin-bottom: 28px; line-height: 1.6;
+    }
+    .pricing-card.featured .plan-desc { color: rgba(255,255,255,0.65); }
+    .plan-divider { height: 1px; background: var(--border); margin-bottom: 24px; }
+    .pricing-card.featured .plan-divider { background: rgba(255,255,255,0.1); }
+    .plan-features { list-style: none; margin-bottom: 32px; }
+    .plan-features li {
+      font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-secondary);
+      padding: 7px 0; display: flex; align-items: center; gap: 10px;
+    }
+    .pricing-card.featured .plan-features li { color: rgba(255,255,255,0.75); }
+    .plan-features li::before { content: '✓'; color: var(--teal); font-weight: 700; font-size: 13px; flex-shrink: 0; }
+    .pricing-card.featured .plan-features li::before { color: var(--bright-teal); }
+    .plan-features li.na { opacity: 0.4; }
+    .plan-features li.na::before { content: '—'; color: var(--text-secondary); }
+    .btn-plan {
+      width: 100%; padding: 13px; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px;
+      cursor: pointer; transition: background 0.25s, transform 0.2s, box-shadow 0.25s;
+      border: none;
+    }
+    .btn-plan.outline {
+      background: transparent; border: 1.5px solid var(--border); color: var(--text-primary);
+    }
+    .btn-plan.outline:hover { border-color: var(--teal); color: var(--teal); }
+    [data-theme="dark"] .btn-plan.outline { color: #E4EDF8; }
+    .btn-plan.filled {
+      background: var(--bright-teal); color: var(--navy);
+      box-shadow: 0 6px 20px rgba(19,197,197,0.3);
+    }
+    .btn-plan.filled:hover { background: white; transform: translateY(-2px); box-shadow: 0 10px 28px rgba(19,197,197,0.25); }
+
+    /* ── FAQ ── */
+    #faq { background: white; padding: 120px 0; }
+    [data-theme="dark"] #faq { background: #0E1A2E; }
+    .faq-header { text-align: center; margin-bottom: 64px; }
+    .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 60px; max-width: 960px; margin: 0 auto; }
+    .faq-item {
+      border-bottom: 1px solid var(--border); padding: 24px 0;
+      cursor: pointer;
+    }
+    .faq-question {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .faq-question h4 {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 16px; color: var(--text-primary);
+      line-height: 1.4;
+    }
+    .faq-chevron {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--ice-highlight); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: transform 0.3s, background 0.25s;
+      font-size: 12px; color: var(--teal);
+    }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); background: var(--teal); color: white; }
+    .faq-answer {
+      overflow: hidden; max-height: 0;
+      transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), padding 0.3s;
+    }
+    .faq-item.open .faq-answer { max-height: 300px; padding-top: 14px; }
+    .faq-answer p {
+      font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text-secondary); line-height: 1.75;
+    }
+
+    /* ── RESPONSIVE: NEW ── */
+    @media (max-width: 768px) {
+      .pricing-grid { grid-template-columns: 1fr; }
+      .faq-grid { grid-template-columns: 1fr; }
+      .back-to-top { bottom: 20px; left: 20px; }
+    }
+
+    /* ── FOCUS STATES ── */
+    a:focus-visible, button:focus-visible, input:focus-visible {
+      outline: 2px solid var(--teal); outline-offset: 3px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- SCROLL PROGRESS -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- BACK TO TOP -->
+<button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
+
+<!-- ══════════════ NAV ══════════════ -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    SORTIFY
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#security">Security</a></li>
+    <li><a href="#usecases">Use Cases</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+  </ul>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle light/dark mode">
+      <div class="toggle-track">
+        <span class="toggle-icon-sun">☀️</span>
+        <span class="toggle-icon-moon">🌙</span>
+      </div>
+      <div class="toggle-thumb"></div>
+    </button>
+    <a href="#cta" class="nav-cta">Get Early Access</a>
+  </div>
+  <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#features">Features</a>
+  <a href="#how">How It Works</a>
+  <a href="#security">Security</a>
+  <a href="#usecases">Use Cases</a>
+  <a href="#pricing">Pricing</a>
+  <a href="#roadmap">Roadmap</a>
+  <a href="#faq">FAQ</a>
+  <a href="#cta" class="nav-cta" style="text-align:center;margin-top:8px;">Get Early Access</a>
+</div>
+
+<!-- ══════════════ HERO ══════════════ -->
+<section id="hero">
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+  <div class="hero-inner">
+    <div class="hero-badge">✦&nbsp;&nbsp;AI-POWERED FILE INTELLIGENCE</div>
+    <h1 class="hero-h1">
+      Your files,<br>
+      finally <span class="gradient-text">intelligent.</span>
+    </h1>
+    <p class="hero-sub">
+      Sortify reads, understands, and organises every document you own — automatically. Search by meaning, get reminded before deadlines, and never lose a file again.
+    </p>
+    <div class="hero-ctas">
+      <a href="#cta" class="btn-primary">Start for Free</a>
+      <a href="http://localhost:8081" class="btn-secondary">Watch Demo →</a>
+      <a href="#how" class="btn-secondary">Try File Search ↓</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <strong>80% less time</strong>
+        <span>searching for files</span>
+      </div>
+      <div class="hero-stat-divider"></div>
+      <div class="hero-stat">
+        <strong>500ms</strong>
+        <span>average search speed</span>
+      </div>
+      <div class="hero-stat-divider"></div>
+      <div class="hero-stat">
+        <strong>100%</strong>
+        <span>India-ready documents</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ PROBLEM ══════════════ -->
+<section id="problem">
+  <div class="diagonal-divider"></div>
+  <div class="container" style="position:relative;z-index:1;">
+    <div class="reveal" style="text-align:center;margin-bottom:12px;">
+      <div class="section-label">THE PROBLEM</div>
+    </div>
+    <div class="problem-statement reveal" style="transition-delay:0.1s;">
+      Every day, professionals lose <span class="gradient-text">1.8 hours</span> searching for files they already have.
+    </div>
+    <div class="problem-cards">
+      <div class="problem-card reveal-scale" style="transition-delay:0.1s;">
+        <span class="problem-stat" data-count="1.8" data-suffix=" hrs" data-decimals="1">0 hrs</span>
+        <h3>Lost daily per person</h3>
+        <p>Searching for files that already exist on your own device.</p>
+      </div>
+      <div class="problem-card reveal-scale" style="transition-delay:0.22s;">
+        <span class="problem-stat" data-count="60" data-suffix="%" data-decimals="0">0%</span>
+        <h3>Files are unsearchable</h3>
+        <p>Because they were named 'final_v3_ACTUAL_final.pdf'.</p>
+      </div>
+      <div class="problem-card reveal-scale" style="transition-delay:0.34s;">
+        <span class="problem-stat" data-count="5" data-prefix="₹" data-suffix="L+" data-decimals="0">₹0L+</span>
+        <h3>Lost annually by SMBs</h3>
+        <p>Due to missed contract renewals and compliance deadlines.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ SOLUTION ══════════════ -->
+<section id="solution">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:8px;"><div class="section-label">THE SOLUTION</div></div>
+    <div class="solution-grid">
+      <div class="reveal" style="transition-delay:0.1s;">
+        <h2 class="solution-title">Sortify doesn't store files.<br>It understands them.</h2>
+        <p class="solution-body">The moment you upload a document, Sortify's AI reads it — extracts names, dates, amounts, and context — then makes it instantly findable by meaning, not just filename. It's the difference between a filing cabinet and an intelligent assistant.</p>
+        <div class="feature-pills">
+          <span class="feature-pill">✓ Auto-tagging</span>
+          <span class="feature-pill">✓ Smart summaries</span>
+          <span class="feature-pill">✓ Expiry reminders</span>
+          <span class="feature-pill">✓ Semantic search</span>
+        </div>
+      </div>
+      <div class="reveal" style="transition-delay:0.25s;">
+        <div class="terminal-card" id="terminalCard">
+          <div class="terminal-dots">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+          </div>
+          <div class="terminal-lines">
+            <div class="terminal-line grey tl-1">▸ File uploaded: insurance_policy.pdf</div>
+            <div class="terminal-line grey tl-2">▸ Reading document content...</div>
+            <div class="terminal-line teal tl-3">✓ Type detected: Insurance Policy</div>
+            <div class="terminal-line teal tl-4">✓ Tags: Insurance · Health · Renewal · 2025</div>
+            <div class="terminal-line teal tl-5">✓ Expiry date found: 14 March 2026</div>
+            <div class="terminal-line gold tl-6">⏰ Reminder set: 30 days before expiry</div>
+            <div class="terminal-line white tl-7">▸ File is now searchable as:</div>
+            <div class="terminal-line bright tl-8">&nbsp;&nbsp;"health insurance", "renewal", "March 2026"<span class="cursor"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ FEATURES ══════════════ -->
+<section id="features">
+  <div class="container">
+    <div class="features-header reveal">
+      <div class="section-label">CORE FEATURES</div>
+      <h2 class="section-title">Everything your files need.<br>Nothing you don't.</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal-scale" style="transition-delay:0.05s;">
+        <div class="feature-icon">🔍</div>
+        <h3>AI Metadata Extraction</h3>
+        <p>Upload any file — Sortify reads the content, extracts key information, and stores it as searchable metadata. No manual input ever.</p>
+      </div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.17s;">
+        <div class="feature-icon">🏷️</div>
+        <h3>Smart Auto-Tagging</h3>
+        <p>AI assigns intelligent labels the moment a file lands. Invoice, Contract, Medical, Legal — organised without you lifting a finger.</p>
+      </div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.29s;">
+        <div class="feature-icon">⚡</div>
+        <h3>Summary-Based Search</h3>
+        <p>Search inside AI-generated summaries of your documents. Find files by what they mean, not what they're named.</p>
+      </div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.41s;">
+        <div class="feature-icon">⏰</div>
+        <h3>Auto-Reminder System</h3>
+        <p>Sortify reads expiry dates inside your documents and sets reminders automatically — 90, 30, and 7 days before renewal.</p>
+      </div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.53s;">
+        <div class="feature-icon">🔐</div>
+        <h3>End-to-End Encryption</h3>
+        <p>AES-256 encryption on every file. Role-based access, PII detection alerts, and full audit logs for every action.</p>
+      </div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.65s;">
+        <div class="feature-icon">☁️</div>
+        <h3>Cloud Sync Everywhere</h3>
+        <p>Web, Android, iOS (coming), desktop agent. One upload reaches every device instantly. Works with Drive, OneDrive, Dropbox.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ HOW IT WORKS ══════════════ -->
+<section id="how">
+  <div class="diagonal-divider"></div>
+  <div class="container" style="position:relative;z-index:1;">
+    <div class="how-header reveal">
+      <div class="section-label">HOW IT WORKS</div>
+      <h2 class="section-title">From upload to intelligent in 3 seconds.</h2>
+    </div>
+    <div class="steps-wrapper">
+      <div class="steps-line"></div>
+      <div class="step reveal" style="transition-delay:0.08s;">
+        <div class="step-num">1</div>
+        <h3>Upload Anything</h3>
+        <p>Drop a file, photo, PDF or scan from any device. Web, mobile, or our desktop agent — Sortify accepts everything.</p>
+      </div>
+      <div class="step reveal" style="transition-delay:0.2s;">
+        <div class="step-num">2</div>
+        <h3>AI Reads & Understands</h3>
+        <p>In under 3 seconds, the AI extracts content, identifies document type, reads entities, detects dates, and generates a plain-English summary.</p>
+      </div>
+      <div class="step reveal" style="transition-delay:0.32s;">
+        <div class="step-num">3</div>
+        <h3>Instantly Organised</h3>
+        <p>Files are tagged, summarised, indexed for search, and reminder-ready. Search it in 500ms. Find it forever.</p>
+      </div>
+    </div>
+    <div class="search-demo-card">
+      <p class="search-demo-label">Upload your own files — then download or preview them instantly. Or try the AI search demo below.</p>
+
+      <!-- UPLOAD ZONE -->
+      <div class="upload-zone" id="uploadZone">
+        <div class="upload-zone-icon">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="upload-zone-text">
+          <strong>Drop files here</strong> or <label for="fileInput" class="upload-browse">click to browse</label>
+        </div>
+        <div class="upload-zone-hint">PDF · DOCX · XLSX · JPG · PNG · TXT · any format</div>
+        <input type="file" id="fileInput" multiple style="display:none">
+      </div>
+
+      <div class="search-wrapper">
+        <div class="search-bar">
+          <input type="text" id="demoSearchInput" placeholder="Show all invoices from last month…" autocomplete="off" />
+          <div class="search-icon" id="demoSearchBtn" role="button" aria-label="Search">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="white" d="M21 20l-5.285-5.285A7 7 0 1 0 5 15a7 7 0 0 0 4.716-1.716L15 18.715 21 20zm-14-7A5 5 0 1 1 12 8a5 5 0 0 1-5 5z"/></svg>
+          </div>
+        </div>
+        <div class="autocomplete-dropdown" id="autocompleteDropdown">
+          <div class="autocomplete-header">Suggestions</div>
+          <div id="acItems"></div>
+          <div class="autocomplete-footer">
+            <kbd class="ac-kbd">↑↓</kbd> navigate &nbsp;·&nbsp; <kbd class="ac-kbd">↵</kbd> select &nbsp;·&nbsp; <kbd class="ac-kbd">Esc</kbd> close
+          </div>
+        </div>
+      </div>
+
+      <!-- QUICK SEARCH CHIPS -->
+      <div class="quick-chips" id="quickChips">
+        <span class="chip-label">Try:</span>
+        <button class="quick-chip" data-q="invoices">📄 Invoices</button>
+        <button class="quick-chip" data-q="contracts">📋 Contracts</button>
+        <button class="quick-chip" data-q="health">🏥 Health</button>
+        <button class="quick-chip" data-q="GST">💰 GST</button>
+        <button class="quick-chip" data-q="legal">⚖️ Legal</button>
+        <button class="quick-chip" data-q="reports">📊 Reports</button>
+      </div>
+
+      <!-- FILE RESULTS -->
+      <div class="files-results-section visible" id="filesResults">
+        <div class="files-results-label" id="filesResultsLabel">6 sample files</div>
+        <div class="files-grid" id="filesGrid"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ SEARCH METHODS ══════════════ -->
+<section id="search">
+  <div class="container">
+    <div class="search-header reveal">
+      <div class="section-label">SEARCH INTELLIGENCE</div>
+      <h2 class="section-title">9 ways to find any file.</h2>
+    </div>
+    <p class="search-subtitle reveal" style="transition-delay:0.1s;">Most tools give you one. Sortify gives you nine.</p>
+    <div class="methods-grid">
+      <div class="method-card reveal-scale" style="transition-delay:0.05s;">
+        <div class="method-name">Keyword Search</div>
+        <div class="method-desc">Search inside file content, not just filenames.</div>
+      </div>
+      <div class="method-card reveal-scale" style="transition-delay:0.1s;">
+        <div class="method-name">Tag-Based Search</div>
+        <div class="method-desc">Filter by auto-assigned or custom tags instantly.</div>
+      </div>
+      <div class="method-card reveal-scale" style="transition-delay:0.15s;">
+        <div class="method-name">File Type Filter</div>
+        <div class="method-desc">Find all PDFs, JPGs, or DOCXs in one click.</div>
+      </div>
+      <div class="method-card reveal-scale" style="transition-delay:0.2s;">
+        <div class="method-name">Date Range Search</div>
+        <div class="method-desc">By upload date or dates found inside documents.</div>
+      </div>
+      <div class="method-card reveal-scale" style="transition-delay:0.25s;">
+        <div class="method-name">Natural Language</div>
+        <div class="method-desc">'Show invoices from last month' — just type it.</div>
+      </div>
+      <div class="method-card reveal-scale" style="transition-delay:0.3s;">
+        <div class="method-name">Entity Search</div>
+        <div class="method-desc">Find by PAN number, company name, or amount.</div>
+      </div>
+      <div class="method-card reveal-scale" style="transition-delay:0.35s;">
+        <div class="method-name">Semantic Search <span class="method-badge teal">V2.0</span></div>
+        <div class="method-desc">Understands meaning. Finds relevant files even without exact words.</div>
+      </div>
+      <div class="method-card reveal-scale" style="transition-delay:0.4s;">
+        <div class="method-name">Summary Search</div>
+        <div class="method-desc">Search inside AI-generated summaries of every file.</div>
+      </div>
+      <div class="method-card reveal-scale" style="transition-delay:0.45s;">
+        <div class="method-name">AI Chat Search <span class="method-badge navy">V4.0</span></div>
+        <div class="method-desc">'Which policies expire before June?' — conversational.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ WHO IT'S FOR ══════════════ -->
+<section id="usecases">
+  <div class="container">
+    <div class="reveal" style="text-align:center;margin-bottom:12px;">
+      <div class="section-label">USE CASES</div>
+    </div>
+    <h2 class="section-title reveal" style="transition-delay:0.08s;">Built for anyone who works with documents.</h2>
+    <div class="personas-grid">
+      <div class="persona-card reveal-scale" style="transition-delay:0.08s;">
+        <span class="persona-icon">💼</span>
+        <div class="persona-name">Freelancers &amp; Consultants</div>
+        <p class="persona-desc">Client contracts, invoices, project files — auto-organised across every client.</p>
+        <div class="persona-tags">
+          <span class="persona-tag">Invoices</span>
+          <span class="persona-tag">Contracts</span>
+          <span class="persona-tag">Projects</span>
+        </div>
+      </div>
+      <div class="persona-card reveal-scale" style="transition-delay:0.18s;">
+        <span class="persona-icon">🏢</span>
+        <div class="persona-name">Small Businesses</div>
+        <p class="persona-desc">GST documents, vendor agreements, employee files — never lost, always compliant.</p>
+        <div class="persona-tags">
+          <span class="persona-tag">GST</span>
+          <span class="persona-tag">Agreements</span>
+          <span class="persona-tag">Compliance</span>
+        </div>
+      </div>
+      <div class="persona-card reveal-scale" style="transition-delay:0.28s;">
+        <span class="persona-icon">⚖️</span>
+        <div class="persona-name">CA &amp; Legal Firms</div>
+        <p class="persona-desc">Case files, compliance docs, renewal deadlines — automated and always on time.</p>
+        <div class="persona-tags">
+          <span class="persona-tag">Legal</span>
+          <span class="persona-tag">Tax</span>
+          <span class="persona-tag">Deadlines</span>
+        </div>
+      </div>
+      <div class="persona-card reveal-scale" style="transition-delay:0.38s;">
+        <span class="persona-icon">🏥</span>
+        <div class="persona-name">Healthcare Clinics</div>
+        <p class="persona-desc">Patient records, insurance docs, license renewals — organised and secure.</p>
+        <div class="persona-tags">
+          <span class="persona-tag">Records</span>
+          <span class="persona-tag">Insurance</span>
+          <span class="persona-tag">Licenses</span>
+        </div>
+      </div>
+      <div class="persona-card reveal-scale" style="transition-delay:0.48s;">
+        <span class="persona-icon">🎓</span>
+        <div class="persona-name">Students &amp; Researchers</div>
+        <p class="persona-desc">Papers, notes, references, thesis drafts — intelligently organised and instantly findable.</p>
+        <div class="persona-tags">
+          <span class="persona-tag">Research</span>
+          <span class="persona-tag">Notes</span>
+          <span class="persona-tag">References</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ SECURITY ══════════════ -->
+<section id="security">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:8px;"><div class="section-label">SECURITY &amp; PRIVACY</div></div>
+    <div class="security-grid">
+      <div class="reveal" style="transition-delay:0.08s;">
+        <h2 class="security-title">Your files are yours.<br>Always.</h2>
+        <p class="security-body">Sortify is built with security as the foundation, not an afterthought. Every file is encrypted end-to-end. Every access is logged. Every action is reversible.</p>
+        <div class="security-feature">
+          <div class="sec-check"></div>
+          <div class="security-feature-text">
+            <h4>AES-256 Encryption</h4>
+            <p>End-to-end on every single file.</p>
+          </div>
+        </div>
+        <div class="security-feature">
+          <div class="sec-check"></div>
+          <div class="security-feature-text">
+            <h4>Role-Based Access</h4>
+            <p>Control who sees, edits, and shares.</p>
+          </div>
+        </div>
+        <div class="security-feature">
+          <div class="sec-check"></div>
+          <div class="security-feature-text">
+            <h4>PII Detection Alerts</h4>
+            <p>Warned when sensitive data is uploaded.</p>
+          </div>
+        </div>
+        <div class="security-feature">
+          <div class="sec-check"></div>
+          <div class="security-feature-text">
+            <h4>DPDP Act Compliant</h4>
+            <p>India's Data Protection law ready from day one.</p>
+          </div>
+        </div>
+      </div>
+      <div class="reveal" style="transition-delay:0.22s;">
+        <div class="badge-cards">
+          <div class="badge-card">
+            <div class="badge-icon">🔒</div>
+            <div>
+              <h4>AES-256</h4>
+              <p>Military-grade encryption standard</p>
+            </div>
+          </div>
+          <div class="badge-card">
+            <div class="badge-icon">🇮🇳</div>
+            <div>
+              <h4>DPDP Ready</h4>
+              <p>India Data Protection compliant</p>
+            </div>
+          </div>
+          <div class="badge-card">
+            <div class="badge-icon">🛡️</div>
+            <div>
+              <h4>Zero Knowledge</h4>
+              <p>We cannot read your files</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ ROADMAP ══════════════ -->
+<section id="roadmap">
+  <div class="container">
+    <div class="roadmap-header reveal">
+      <div class="section-label">ROADMAP</div>
+      <h2 class="section-title">Where we're going.</h2>
+    </div>
+    <div class="timeline">
+      <div class="timeline-line"></div>
+
+      <div class="milestone left">
+        <div class="milestone-content reveal" style="transition-delay:0.08s;">
+          <div class="milestone-quarter">Q2 2026</div>
+          <div class="milestone-title">V1.0 — Launch</div>
+          <div class="milestone-desc">Web app · AI engine · Smart search · Auto-reminders · Android app · First 1,000 users</div>
+          <span class="status-badge dev">IN DEVELOPMENT</span>
+        </div>
+        <div class="milestone-node"></div>
+      </div>
+
+      <div class="milestone right">
+        <div></div>
+        <div class="milestone-content reveal" style="transition-delay:0.12s;">
+          <div class="milestone-quarter">Q3–Q4 2026</div>
+          <div class="milestone-title">V2.0 — Growth</div>
+          <div class="milestone-desc">iOS app · Desktop agent · Custom AI model · Enterprise dashboard · Tally &amp; Zoho integration</div>
+          <span class="status-badge planned">PLANNED</span>
+        </div>
+        <div class="milestone-node"></div>
+      </div>
+
+      <div class="milestone left">
+        <div class="milestone-content reveal" style="transition-delay:0.08s;">
+          <div class="milestone-quarter">2027</div>
+          <div class="milestone-title">V3.0 — Enterprise</div>
+          <div class="milestone-desc">White-label product · Compliance packs · On-premise option · SOC 2 certified · API marketplace</div>
+          <span class="status-badge planned">PLANNED</span>
+        </div>
+        <div class="milestone-node"></div>
+      </div>
+
+      <div class="milestone right">
+        <div></div>
+        <div class="milestone-content reveal" style="transition-delay:0.12s;">
+          <div class="milestone-quarter">2027–2028</div>
+          <div class="milestone-title">V4.0 — Platform</div>
+          <div class="milestone-desc">AI chat assistant · Workflow automation · Vernacular AI for all 22 Indian languages · Sortify Marketplace</div>
+          <span class="status-badge future">FUTURE</span>
+        </div>
+        <div class="milestone-node"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ TESTIMONIALS ══════════════ -->
+<section id="testimonials">
+  <div class="container">
+    <div class="testimonials-header reveal">
+      <div class="section-label">WHAT PEOPLE SAY</div>
+      <h2 class="section-title">Trusted by early testers across India.</h2>
+    </div>
+  </div>
+  <div class="testimonials-track-wrap">
+    <div class="testimonials-track" id="testimonialsTrack">
+      <!-- Set 1 -->
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"I used to spend 30 minutes every morning hunting for client contracts. Sortify found everything in under 2 seconds. Game changer."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#0B2044,#0E879B)">RK</div>
+          <div><div class="testimonial-name">Rahul Khedekar</div><div class="testimonial-role">Freelance Consultant · Pune</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"The auto-reminder for our insurance renewals alone is worth it. We almost missed a ₹40L policy renewal last year — never again."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#0E879B,#13C5C5)">PR</div>
+          <div><div class="testimonial-name">Priya Rawat</div><div class="testimonial-role">CA · Mumbai</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"Our clinic now manages all patient consent forms and insurance docs through Sortify. What used to take an hour takes 5 minutes."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#13C5C5,#0B2044)">DP</div>
+          <div><div class="testimonial-name">Dr. Deepa Pillai</div><div class="testimonial-role">Healthcare Clinic · Bangalore</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"The natural language search understood 'GST invoices from March' perfectly. I didn't have to remember a single filename."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#0E879B,#0B2044)">AS</div>
+          <div><div class="testimonial-name">Arjun Shah</div><div class="testimonial-role">SMB Owner · Ahmedabad</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★☆</div>
+        <p class="testimonial-quote">"As a researcher, I have thousands of PDFs. Sortify's semantic search found papers relevant to my thesis that I'd completely forgotten I had."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#1A3A6E,#13C5C5)">NJ</div>
+          <div><div class="testimonial-name">Neha Joshi</div><div class="testimonial-role">PhD Researcher · IIT Delhi</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"For our legal firm, missed deadlines are catastrophic. Sortify's expiry detection reads inside agreements and flags renewals weeks before."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#0B2044,#13C5C5)">VM</div>
+          <div><div class="testimonial-name">Vikram Mehta</div><div class="testimonial-role">Legal Firm Partner · Delhi</div></div>
+        </div>
+      </div>
+      <!-- Set 2 (duplicate for infinite scroll) -->
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"I used to spend 30 minutes every morning hunting for client contracts. Sortify found everything in under 2 seconds. Game changer."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#0B2044,#0E879B)">RK</div>
+          <div><div class="testimonial-name">Rahul Khedekar</div><div class="testimonial-role">Freelance Consultant · Pune</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"The auto-reminder for our insurance renewals alone is worth it. We almost missed a ₹40L policy renewal last year — never again."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#0E879B,#13C5C5)">PR</div>
+          <div><div class="testimonial-name">Priya Rawat</div><div class="testimonial-role">CA · Mumbai</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"Our clinic now manages all patient consent forms and insurance docs through Sortify. What used to take an hour takes 5 minutes."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#13C5C5,#0B2044)">DP</div>
+          <div><div class="testimonial-name">Dr. Deepa Pillai</div><div class="testimonial-role">Healthcare Clinic · Bangalore</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"The natural language search understood 'GST invoices from March' perfectly. I didn't have to remember a single filename."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#0E879B,#0B2044)">AS</div>
+          <div><div class="testimonial-name">Arjun Shah</div><div class="testimonial-role">SMB Owner · Ahmedabad</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★☆</div>
+        <p class="testimonial-quote">"As a researcher, I have thousands of PDFs. Sortify's semantic search found papers relevant to my thesis that I'd completely forgotten I had."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#1A3A6E,#13C5C5)">NJ</div>
+          <div><div class="testimonial-name">Neha Joshi</div><div class="testimonial-role">PhD Researcher · IIT Delhi</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"For our legal firm, missed deadlines are catastrophic. Sortify's expiry detection reads inside agreements and flags renewals weeks before."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#0B2044,#13C5C5)">VM</div>
+          <div><div class="testimonial-name">Vikram Mehta</div><div class="testimonial-role">Legal Firm Partner · Delhi</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ PRICING ══════════════ -->
+<section id="pricing">
+  <div class="container">
+    <div class="pricing-header reveal">
+      <div class="section-label">PRICING</div>
+      <h2 class="section-title">Simple, transparent pricing.</h2>
+    </div>
+    <p class="pricing-sub reveal" style="transition-delay:0.08s;">No surprises. Cancel or change your plan at any time.</p>
+    <div class="pricing-toggle reveal" style="transition-delay:0.14s;">
+      <span class="active" id="lblMonthly">Monthly</span>
+      <button class="billing-toggle" id="billingToggle" aria-label="Toggle billing period"></button>
+      <span id="lblYearly">Yearly</span>
+      <span class="pricing-badge-save" id="saveBadge" style="opacity:0;transition:opacity 0.3s;">Save 30%</span>
+    </div>
+    <div class="pricing-grid">
+      <!-- FREE -->
+      <div class="pricing-card reveal-scale" style="transition-delay:0.08s;">
+        <div class="plan-name">Free</div>
+        <div class="plan-price"><sup>₹</sup><span class="price-val" data-monthly="0" data-yearly="0">0</span></div>
+        <div class="plan-period">forever free</div>
+        <p class="plan-desc">Perfect for individuals getting started with smart file management.</p>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Up to 50 files</li>
+          <li>AI metadata extraction</li>
+          <li>Smart auto-tagging</li>
+          <li>Keyword &amp; tag search</li>
+          <li>7-day expiry reminders</li>
+          <li class="na">Natural language search</li>
+          <li class="na">Semantic search</li>
+          <li class="na">Team collaboration</li>
+        </ul>
+        <button class="btn-plan outline">Get Started Free</button>
+      </div>
+      <!-- PRO (featured) -->
+      <div class="pricing-card featured reveal-scale" style="transition-delay:0.18s;">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price"><sup>₹</sup><span class="price-val" data-monthly="499" data-yearly="349">499</span></div>
+        <div class="plan-period" id="proPeriod">per month</div>
+        <p class="plan-desc">For professionals and freelancers who live inside documents.</p>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Unlimited files</li>
+          <li>AI metadata extraction</li>
+          <li>Smart auto-tagging</li>
+          <li>All 9 search modes</li>
+          <li>Auto-reminders (90/30/7 days)</li>
+          <li>Natural language search</li>
+          <li>Semantic search (V2.0)</li>
+          <li class="na">Team collaboration</li>
+        </ul>
+        <button class="btn-plan filled">Start Pro Free →</button>
+      </div>
+      <!-- TEAM -->
+      <div class="pricing-card reveal-scale" style="transition-delay:0.28s;">
+        <div class="plan-name">Team</div>
+        <div class="plan-price"><sup>₹</sup><span class="price-val" data-monthly="1499" data-yearly="999">1499</span></div>
+        <div class="plan-period" id="teamPeriod">per month · up to 10 users</div>
+        <p class="plan-desc">For small businesses, legal firms, and clinic teams.</p>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Everything in Pro</li>
+          <li>Up to 10 team members</li>
+          <li>Role-based access control</li>
+          <li>PII detection alerts</li>
+          <li>Audit logs &amp; activity feed</li>
+          <li>Tally &amp; Zoho integration</li>
+          <li>Priority support</li>
+          <li>DPDP compliance tools</li>
+        </ul>
+        <button class="btn-plan outline">Start Team Trial</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ FAQ ══════════════ -->
+<section id="faq">
+  <div class="container">
+    <div class="faq-header reveal">
+      <div class="section-label">FAQ</div>
+      <h2 class="section-title">Questions, answered.</h2>
+    </div>
+    <div class="faq-grid">
+      <div class="faq-item reveal" style="transition-delay:0.05s;">
+        <div class="faq-question"><h4>Does Sortify store my actual files?</h4><div class="faq-chevron">▾</div></div>
+        <div class="faq-answer"><p>Sortify stores encrypted copies of your files on secure Indian cloud infrastructure. All files encrypted with AES-256 and we operate a Zero Knowledge policy — our team cannot access your file contents.</p></div>
+      </div>
+      <div class="faq-item reveal" style="transition-delay:0.1s;">
+        <div class="faq-question"><h4>What file types does Sortify support?</h4><div class="faq-chevron">▾</div></div>
+        <div class="faq-answer"><p>PDFs, Word documents (.docx, .doc), Excel sheets, JPGs and PNGs (with OCR), scanned documents, and plain text files. More formats added every month.</p></div>
+      </div>
+      <div class="faq-item reveal" style="transition-delay:0.15s;">
+        <div class="faq-question"><h4>How does the AI read my documents?</h4><div class="faq-chevron">▾</div></div>
+        <div class="faq-answer"><p>When you upload a file, our AI engine runs OCR (for scans/images), then applies NLP to extract entities like names, dates, amounts, and document type. This is all processed on secure servers — your data never trains public models.</p></div>
+      </div>
+      <div class="faq-item reveal" style="transition-delay:0.2s;">
+        <div class="faq-question"><h4>Is Sortify compliant with India's DPDP Act?</h4><div class="faq-chevron">▾</div></div>
+        <div class="faq-answer"><p>Yes. Sortify is built from the ground up to comply with India's Digital Personal Data Protection Act 2023. Data is stored in India, consent records are maintained, and you can request full data deletion at any time.</p></div>
+      </div>
+      <div class="faq-item reveal" style="transition-delay:0.25s;">
+        <div class="faq-question"><h4>Can I use Sortify offline?</h4><div class="faq-chevron">▾</div></div>
+        <div class="faq-answer"><p>The desktop agent (coming Q3 2026) will support offline access to previously synced files. The web app requires an internet connection for search and AI features.</p></div>
+      </div>
+      <div class="faq-item reveal" style="transition-delay:0.3s;">
+        <div class="faq-question"><h4>How do reminders work exactly?</h4><div class="faq-chevron">▾</div></div>
+        <div class="faq-answer"><p>The AI reads expiry or renewal dates directly from inside your documents and automatically schedules notifications at 90, 30, and 7 days before the deadline via email, push notification, and in-app alert.</p></div>
+      </div>
+      <div class="faq-item reveal" style="transition-delay:0.35s;">
+        <div class="faq-question"><h4>What happens if I exceed the free plan limit?</h4><div class="faq-chevron">▾</div></div>
+        <div class="faq-answer"><p>You'll be notified before hitting the limit. Existing files remain accessible and searchable. New uploads are paused until you upgrade or remove older files — nothing is deleted automatically.</p></div>
+      </div>
+      <div class="faq-item reveal" style="transition-delay:0.4s;">
+        <div class="faq-question"><h4>Is there a mobile app?</h4><div class="faq-chevron">▾</div></div>
+        <div class="faq-answer"><p>The Android app launches with V1.0 in Q2 2026. iOS follows in Q3 2026. Both apps support camera scanning, file upload, search, and push reminders.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ CTA ══════════════ -->
+<section id="cta">
+  <div class="cta-blobs">
+    <div class="cta-blob cta-blob-1"></div>
+    <div class="cta-blob cta-blob-2"></div>
+    <div class="cta-blob cta-blob-3"></div>
+  </div>
+  <div class="cta-inner">
+    <div class="cta-badge reveal">EARLY ACCESS</div>
+    <h2 class="cta-title reveal" style="transition-delay:0.1s;">Be the first to experience intelligent file management.</h2>
+    <p class="cta-sub reveal" style="transition-delay:0.2s;">Join the waitlist. Get 3 months of Pro free at launch.</p>
+    <div class="email-form reveal" style="transition-delay:0.3s;">
+      <input type="email" placeholder="Enter your email address…" aria-label="Email address" />
+      <button type="button">Join Waitlist</button>
+    </div>
+    <p class="cta-fine reveal" style="transition-delay:0.4s;">No credit card required · Free plan available · Cancel anytime</p>
+  </div>
+</section>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer>
+  <div class="container">
+    <div class="footer-top"></div>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">
+          <div class="nav-logo-dot"></div>
+          SORTIFY
+        </div>
+        <p class="footer-tagline">Intelligent File Management, Reimagined</p>
+        <p class="footer-copy">© 2026 Sortify. All rights reserved.</p>
+        <p class="footer-location">📍 Pune, India</p>
+      </div>
+      <div class="footer-col">
+        <h5>Product</h5>
+        <a href="#features">Features</a>
+        <a href="#how">How It Works</a>
+        <a href="#security">Security</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <a href="#cta">Early Access</a>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="mailto:founders@sortify.in" class="teal">founders@sortify.in</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- PREVIEW MODAL -->
+<div class="preview-modal" id="previewModal" style="display:none">
+  <div class="preview-backdrop" id="previewBackdrop"></div>
+  <div class="preview-box">
+    <div class="preview-header">
+      <span class="preview-filename" id="previewFilename"></span>
+      <div class="preview-header-actions">
+        <button class="preview-dl-btn" id="previewDlBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 4h14v-2H5v2z"/></svg>
+          Download
+        </button>
+        <button class="preview-close" id="previewClose">✕</button>
+      </div>
+    </div>
+    <div class="preview-body" id="previewBody"></div>
+  </div>
+</div>
+
+<script>
+  // ── NAV SCROLL ──
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 80);
+  }, { passive: true });
+
+  // ── HAMBURGER ──
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+
+  // ── INTERSECTION OBSERVER: REVEAL ──
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        revealObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal, .reveal-scale').forEach(el => revealObs.observe(el));
+
+  // ── STAT COUNTER ──
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function animateCount(el) {
+    const target   = parseFloat(el.dataset.count);
+    const decimals = parseInt(el.dataset.decimals || '0');
+    const prefix   = el.dataset.prefix || '';
+    const suffix   = el.dataset.suffix || '';
+    const duration = 1500;
+    const start    = performance.now();
+
+    function update(now) {
+      const t       = Math.min((now - start) / duration, 1);
+      const current = target * easeOut(t);
+      el.textContent = prefix + current.toFixed(decimals) + suffix;
+      if (t < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  }
+
+  const counterObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        animateCount(e.target);
+        counterObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.4 });
+
+  document.querySelectorAll('.problem-stat').forEach(el => counterObs.observe(el));
+
+  // ── TERMINAL CARD ──
+  const terminalObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in-view');
+        terminalObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  const termCard = document.getElementById('terminalCard');
+  if (termCard) terminalObs.observe(termCard);
+
+  // ── ACTIVE NAV LINKS ──
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+
+  const activeObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id;
+        navLinks.forEach(a => {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { threshold: 0.4 });
+
+  sections.forEach(s => activeObs.observe(s));
+
+  // ── DARK MODE TOGGLE ──
+  const themeToggle = document.getElementById('themeToggle');
+  const html = document.documentElement;
+
+  // Apply saved preference or default to light
+  const savedTheme = localStorage.getItem('sortify-theme') || 'light';
+  html.setAttribute('data-theme', savedTheme);
+
+  themeToggle.addEventListener('click', () => {
+    const current = html.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('sortify-theme', next);
+  });
+
+  // ── SCROLL PROGRESS BAR ──
+  const scrollProgress = document.getElementById('scrollProgress');
+  function updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    scrollProgress.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+
+  // ── BACK TO TOP ──
+  const backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => {
+    backToTop.classList.toggle('visible', window.scrollY > 500);
+  }, { passive: true });
+  backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  // ── HAMBURGER X ANIMATION ──
+  hamburger.addEventListener('click', () => {
+    mobileMenu.classList.toggle('open');
+    hamburger.classList.toggle('open');
+    hamburger.setAttribute('aria-expanded', mobileMenu.classList.contains('open'));
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      mobileMenu.classList.remove('open');
+      hamburger.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  // ── HERO MOUSE PARALLAX ──
+  const heroBlob1 = document.querySelector('.hero-blob-1');
+  const heroBlob2 = document.querySelector('.hero-blob-2');
+  document.addEventListener('mousemove', (e) => {
+    const xPct = (e.clientX / window.innerWidth - 0.5) * 2;
+    const yPct = (e.clientY / window.innerHeight - 0.5) * 2;
+    if (heroBlob1) heroBlob1.style.transform = `translate(${xPct * 20}px, ${yPct * 20}px)`;
+    if (heroBlob2) heroBlob2.style.transform = `translate(${xPct * -14}px, ${yPct * -14}px)`;
+  });
+
+  // ── PRICING BILLING TOGGLE ──
+  const billingToggle = document.getElementById('billingToggle');
+  const lblMonthly   = document.getElementById('lblMonthly');
+  const lblYearly    = document.getElementById('lblYearly');
+  const saveBadge    = document.getElementById('saveBadge');
+  const proPeriod    = document.getElementById('proPeriod');
+  const teamPeriod   = document.getElementById('teamPeriod');
+  let isYearly = false;
+
+  billingToggle.addEventListener('click', () => {
+    isYearly = !isYearly;
+    billingToggle.classList.toggle('yearly', isYearly);
+    lblMonthly.classList.toggle('active', !isYearly);
+    lblYearly.classList.toggle('active', isYearly);
+    saveBadge.style.opacity = isYearly ? '1' : '0';
+    if (proPeriod)   proPeriod.textContent  = isYearly ? 'per month, billed yearly' : 'per month';
+    if (teamPeriod)  teamPeriod.textContent = isYearly ? 'per month billed yearly · 10 users' : 'per month · up to 10 users';
+    document.querySelectorAll('.price-val').forEach(el => {
+      const val = isYearly ? el.dataset.yearly : el.dataset.monthly;
+      el.textContent = parseInt(val).toLocaleString('en-IN');
+    });
+  });
+
+  // ── FAQ ACCORDION ──
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.querySelector('.faq-question').addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(o => o.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+    });
+  });
+
+  // ── SMOOTH SCROLL FOR ANCHORS ──
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // ── SEARCH AUTOCOMPLETE & FILE RESULTS ──
+  const SUGGESTIONS = [
+    { icon:'📄', label:'Show all invoices from last month',   tag:'Invoices · Finance' },
+    { icon:'📋', label:'Find contracts expiring this quarter', tag:'Contracts · Legal' },
+    { icon:'🏥', label:'Show health insurance documents',      tag:'Insurance · Health' },
+    { icon:'💰', label:'Find GST invoices from FY 2024-25',    tag:'GST · Tax' },
+    { icon:'⚖️', label:'Legal agreements pending renewal',     tag:'Legal · Agreements' },
+    { icon:'📊', label:'Show all PDF reports this year',       tag:'Reports · PDF' },
+    { icon:'🔔', label:'Files expiring in next 30 days',       tag:'Reminders · Expiry' },
+    { icon:'🏢', label:'Vendor agreements from 2025',          tag:'Vendors · Contracts' },
+    { icon:'🎓', label:'Research papers and references',       tag:'Research · Notes' },
+    { icon:'🩺', label:'Patient records updated recently',     tag:'Medical · Records' },
+    { icon:'📁', label:'Show all scanned documents',           tag:'Scanned · Archive' },
+    { icon:'💼', label:'Client project files by name',         tag:'Projects · Clients' },
+  ];
+
+  const MOCK_FILES = [
+    { name:'Invoice_CloudHost_Mar2026.pdf',   type:'pdf', size:'142 KB', date:'2 Mar 2026',  tags:['Invoice','Finance','Cloud'],   content:'Paid invoice for cloud hosting services — ₹12,400.' },
+    { name:'Health_Insurance_Policy_2026.pdf',type:'pdf', size:'890 KB', date:'1 Jan 2026',  tags:['Insurance','Health','Renewal'], content:'Star Health — renewal due 14 March 2026.' },
+    { name:'GST_Invoice_Q4_FY2025.xlsx',      type:'xls', size:'68 KB',  date:'31 Mar 2025', tags:['GST','Tax','Finance'],          content:'Quarterly GST summary — output & input tax.' },
+    { name:'Vendor_Agreement_Acme.docx',      type:'doc', size:'234 KB', date:'12 Feb 2026', tags:['Vendor','Contract','Legal'],    content:'Service agreement with Acme Supplies Pvt Ltd.' },
+    { name:'Employee_NDA_Rahul.pdf',          type:'pdf', size:'112 KB', date:'5 Jan 2026',  tags:['HR','NDA','Legal'],             content:'Non-disclosure agreement — valid till Dec 2027.' },
+    { name:'Q1_Sales_Report_2026.xlsx',       type:'xls', size:'310 KB', date:'28 Feb 2026', tags:['Sales','Report','Finance'],     content:'Revenue ₹34.2L — up 18% vs Q1 2025.' },
+  ];
+
+  const searchInput  = document.getElementById('demoSearchInput');
+  const searchBtn    = document.getElementById('demoSearchBtn');
+  const dropdown     = document.getElementById('autocompleteDropdown');
+  const acItems      = document.getElementById('acItems');
+  const filesResults = document.getElementById('filesResults');
+  const filesGrid    = document.getElementById('filesGrid');
+  const resultsLabel = document.getElementById('filesResultsLabel');
+
+  let focusedIdx = -1;
+  let currentSuggs = [];
+
+  function highlight(text, query) {
+    if (!query) return text;
+    const re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+    return text.replace(re, '<mark>$1</mark>');
+  }
+
+  function renderSuggestions(query) {
+    if (!query.trim()) { closeDropdown(); return; }
+    currentSuggs = SUGGESTIONS.filter(s => s.label.toLowerCase().includes(query.toLowerCase()));
+    if (!currentSuggs.length) { closeDropdown(); return; }
+
+    acItems.innerHTML = currentSuggs.map((s, i) => `
+      <div class="autocomplete-item" data-idx="${i}">
+        <div class="ac-icon">${s.icon}</div>
+        <div class="ac-text">
+          <strong>${highlight(s.label, query)}</strong>
+          <span>${s.tag}</span>
+        </div>
+      </div>`).join('');
+
+    focusedIdx = -1;
+    dropdown.classList.add('open');
+
+    acItems.querySelectorAll('.autocomplete-item').forEach(item => {
+      item.addEventListener('mousedown', e => {
+        e.preventDefault();
+        selectSuggestion(parseInt(item.dataset.idx));
+      });
+    });
+  }
+
+  function closeDropdown() { dropdown.classList.remove('open'); focusedIdx = -1; }
+
+  function selectSuggestion(idx) {
+    if (currentSuggs[idx]) {
+      searchInput.value = currentSuggs[idx].label;
+      closeDropdown();
+      runSearch(currentSuggs[idx].label);
+    }
+  }
+
+  function setFocus(idx) {
+    const items = acItems.querySelectorAll('.autocomplete-item');
+    items.forEach(i => i.classList.remove('focused'));
+    if (idx >= 0 && idx < items.length) {
+      items[idx].classList.add('focused');
+      items[idx].scrollIntoView({ block:'nearest' });
+    }
+    focusedIdx = idx;
+  }
+
+  searchInput.addEventListener('input', () => renderSuggestions(searchInput.value));
+  searchInput.addEventListener('keydown', e => {
+    const len = currentSuggs.length;
+    if (e.key === 'ArrowDown')  { e.preventDefault(); setFocus((focusedIdx + 1) % len); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setFocus((focusedIdx - 1 + len) % len); }
+    else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (focusedIdx >= 0) selectSuggestion(focusedIdx);
+      else { closeDropdown(); runSearch(searchInput.value); }
+    }
+    else if (e.key === 'Escape') closeDropdown();
+  });
+  searchInput.addEventListener('blur', () => setTimeout(closeDropdown, 150));
+  searchBtn.addEventListener('click', () => { closeDropdown(); runSearch(searchInput.value); });
+
+  // ── UPLOADED FILES STORE ──
+  let UPLOADED_FILES = [];  // [{file: File, url: string, idx: number}]
+  let PREVIEW_IDX    = -1;
+
+  function getTypeClass(filename) {
+    const ext = (filename.split('.').pop() || '').toLowerCase();
+    if (ext === 'pdf') return 'pdf';
+    if (['doc','docx'].includes(ext)) return 'doc';
+    if (['xls','xlsx','csv'].includes(ext)) return 'xls';
+    if (['jpg','jpeg','png','gif','webp','bmp','svg'].includes(ext)) return 'img';
+    return 'txt';
+  }
+  function fmtSize(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(0) + ' KB';
+    return (b/1048576).toFixed(1) + ' MB';
+  }
+  function fmtDate(ts) {
+    return new Date(ts).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+  }
+
+  // Render uploaded files
+  function renderUploadedGrid(files) {
+    resultsLabel.textContent = `${files.length} uploaded file${files.length !== 1 ? 's' : ''}`;
+    filesGrid.innerHTML = files.map((uf, i) => {
+      const t   = getTypeClass(uf.file.name);
+      const ext = (uf.file.name.split('.').pop() || 'FILE').toUpperCase().slice(0, 4);
+      return `
+        <div class="file-card" style="animation-delay:${i * 0.06}s">
+          <div class="file-card-top">
+            <div class="file-type-icon ${t}">${ext}</div>
+            <div class="file-card-info">
+              <div class="file-card-name" title="${uf.file.name}">${uf.file.name}</div>
+              <div class="file-card-meta">${fmtSize(uf.file.size)} &middot; ${fmtDate(uf.file.lastModified)}</div>
+            </div>
+          </div>
+          <div class="file-card-tags"><span class="file-tag">${ext}</span><span class="file-tag">Uploaded</span></div>
+          <div class="file-card-actions">
+            <button class="btn-download" onclick="downloadUploadedFile(${uf.idx})">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 4h14v-2H5v2z"/></svg>
+              Download
+            </button>
+            <button class="btn-preview" onclick="openPreview(${uf.idx})" title="View in browser">👁 View</button>
+          </div>
+        </div>`;
+    }).join('');
+    filesResults.classList.add('visible');
+  }
+
+  // Download a real uploaded file
+  function downloadUploadedFile(idx) {
+    const uf = UPLOADED_FILES[idx];
+    if (!uf) return;
+    const a = document.createElement('a');
+    a.href = uf.url; a.download = uf.file.name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    showToast(uf.file.name);
+  }
+
+  // Open preview modal
+  function openPreview(idx) {
+    const uf = UPLOADED_FILES[idx];
+    if (!uf) return;
+    PREVIEW_IDX = idx;
+    document.getElementById('previewFilename').textContent = uf.file.name;
+    const body = document.getElementById('previewBody');
+    const ext  = (uf.file.name.split('.').pop() || '').toLowerCase();
+    if (['jpg','jpeg','png','gif','webp','bmp'].includes(ext)) {
+      body.innerHTML = `<img src="${uf.url}" alt="${uf.file.name}">`;
+    } else if (ext === 'pdf') {
+      body.innerHTML = `<iframe src="${uf.url}#toolbar=1" title="${uf.file.name}"></iframe>`;
+    } else if (['txt','md','log','json','xml','js','ts','css','csv','html'].includes(ext)) {
+      body.innerHTML = '<pre style="padding:28px;color:var(--text-secondary)">Loading…</pre>';
+      const reader = new FileReader();
+      reader.onload = e => {
+        body.innerHTML = `<pre>${e.target.result.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`;
+      };
+      reader.readAsText(uf.file);
+    } else {
+      body.innerHTML = `<div class="preview-no-support"><strong>${uf.file.name}</strong>This file type cannot be previewed in the browser.<br>Use the Download button to save it.</div>`;
+    }
+    document.getElementById('previewDlBtn').onclick = () => downloadUploadedFile(PREVIEW_IDX);
+    document.getElementById('previewModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePreview() {
+    document.getElementById('previewModal').style.display = 'none';
+    document.getElementById('previewBody').innerHTML = '';
+    document.body.style.overflow = '';
+    PREVIEW_IDX = -1;
+  }
+  document.getElementById('previewClose').addEventListener('click', closePreview);
+  document.getElementById('previewBackdrop').addEventListener('click', closePreview);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && PREVIEW_IDX !== -1) closePreview(); });
+
+  // ── UPLOAD ZONE ──
+  const uploadZone = document.getElementById('uploadZone');
+  const fileInput  = document.getElementById('fileInput');
+
+  uploadZone.addEventListener('click', e => {
+    if (!e.target.classList.contains('upload-browse')) fileInput.click();
+  });
+  ['dragenter','dragover'].forEach(ev =>
+    uploadZone.addEventListener(ev, e => { e.preventDefault(); uploadZone.classList.add('drag-over'); })
+  );
+  ['dragleave','dragend','drop'].forEach(ev =>
+    uploadZone.addEventListener(ev, e => { e.preventDefault(); uploadZone.classList.remove('drag-over'); })
+  );
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    handleUploadedFiles(Array.from(e.dataTransfer.files));
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) handleUploadedFiles(Array.from(fileInput.files));
+    fileInput.value = '';
+  });
+
+  function handleUploadedFiles(newFiles) {
+    UPLOADED_FILES.forEach(uf => URL.revokeObjectURL(uf.url));
+    UPLOADED_FILES = newFiles.map((file, i) => ({ file, url: URL.createObjectURL(file), idx: i }));
+    document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('active'));
+    searchInput.value = '';
+    renderUploadedGrid(UPLOADED_FILES);
+  }
+
+  // ── FILE RESULTS (mock search) ──
+  function runSearch(query) {
+    if (!query.trim()) return;
+    // If user has uploaded real files, search those instead
+    if (UPLOADED_FILES.length > 0) {
+      const q = query.toLowerCase();
+      const hits = UPLOADED_FILES.filter(uf => uf.file.name.toLowerCase().includes(q));
+      renderUploadedGrid(hits.length ? hits : UPLOADED_FILES);
+      filesResults.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      return;
+    }
+    // Otherwise search mock files
+    const q = query.toLowerCase();
+    const matches = MOCK_FILES.filter(f =>
+      f.name.toLowerCase().includes(q) ||
+      f.tags.some(t => t.toLowerCase().includes(q)) ||
+      f.content.toLowerCase().includes(q) ||
+      q.split(' ').some(w => f.tags.some(t => t.toLowerCase().includes(w)) || f.content.toLowerCase().includes(w))
+    );
+    const show = matches.length ? matches : MOCK_FILES.slice(0, 3);
+    resultsLabel.textContent = `${show.length} file${show.length !== 1 ? 's' : ''} found`;
+    filesGrid.innerHTML = show.map((f, i) => `
+      <div class="file-card" style="animation-delay:${i * 0.07}s">
+        <div class="file-card-top">
+          <div class="file-type-icon ${f.type}">${f.type.toUpperCase()}</div>
+          <div class="file-card-info">
+            <div class="file-card-name" title="${f.name}">${f.name}</div>
+            <div class="file-card-meta">${f.size} &middot; ${f.date}</div>
+          </div>
+        </div>
+        <div class="file-card-tags">${f.tags.map(t => `<span class="file-tag">${t}</span>`).join('')}</div>
+        <div class="file-card-actions">
+          <button class="btn-download" onclick="downloadMockFile('${f.name}','${f.content}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 4h14v-2H5v2z"/></svg>
+            Download
+          </button>
+          <button class="btn-preview" title="Preview">👁 View</button>
+        </div>
+      </div>`).join('');
+    filesResults.classList.add('visible');
+    filesResults.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+
+  // Download mock file (creates a demo .txt)
+  function downloadMockFile(name, content) {
+    const blob = new Blob([`Sortify — File Demo\n\nFilename: ${name}\n\n${content}\n\n---\nDownloaded via Sortify on ${new Date().toLocaleDateString('en-IN')}`], { type:'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = name.replace(/\.[^.]+$/, '') + '_sortify.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    showToast(name);
+  }
+
+  // ── TOAST ──
+  const toastContainer = document.createElement('div');
+  toastContainer.className = 'toast-container';
+  document.body.appendChild(toastContainer);
+
+  function showToast(filename) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = `
+      <div class="toast-icon">⬇️</div>
+      <div class="toast-text">
+        <strong>Downloading…</strong>
+        <span>${filename.length > 36 ? filename.slice(0,33)+'…' : filename}</span>
+      </div>
+      <div class="toast-progress" style="position:absolute;bottom:0;left:0;height:3px;background:var(--bright-teal);border-radius:0 0 12px 12px;width:100%;transform-origin:left;animation:toastProgress 2.8s linear forwards;"></div>`;
+    toastContainer.appendChild(t);
+    requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+    setTimeout(() => {
+      t.classList.add('hide');
+      setTimeout(() => t.remove(), 400);
+    }, 2900);
+  }
+
+  // ── QUICK CHIPS ──
+  document.querySelectorAll('.quick-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const q = chip.dataset.q;
+      searchInput.value = q;
+      closeDropdown();
+      document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      runSearch(q);
+    });
+  });
+
+  // ── PRE-POPULATE FILES ON LOAD ──
+  (function initFileGrid() {
+    resultsLabel.textContent = `${MOCK_FILES.length} sample files — or upload your own above`;
+    filesGrid.innerHTML = MOCK_FILES.map((f, i) => `
+      <div class="file-card" style="animation-delay:${i * 0.07}s">
+        <div class="file-card-top">
+          <div class="file-type-icon ${f.type}">${f.type.toUpperCase()}</div>
+          <div class="file-card-info">
+            <div class="file-card-name" title="${f.name}">${f.name}</div>
+            <div class="file-card-meta">${f.size} &middot; ${f.date}</div>
+          </div>
+        </div>
+        <div class="file-card-tags">${f.tags.map(t => `<span class="file-tag">${t}</span>`).join('')}</div>
+        <div class="file-card-actions">
+          <button class="btn-download" onclick="downloadMockFile('${f.name}','${f.content}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 4h14v-2H5v2z"/></svg>
+            Download
+          </button>
+          <button class="btn-preview" onclick="previewMockFile('${f.name}','${f.content}')" title="View file">👁 View</button>
+        </div>
+      </div>`).join('');
+  })();
+
+  // Preview a mock file in the modal
+  function previewMockFile(name, content) {
+    document.getElementById('previewFilename').textContent = name;
+    const body = document.getElementById('previewBody');
+    body.innerHTML = `<pre>${content}\n\n---\nThis is a demo file summary generated by Sortify AI.\nActual file content is available after uploading.</pre>`;
+    document.getElementById('previewDlBtn').onclick = () => downloadMockFile(name, content);
+    PREVIEW_IDX = -99; // flag: mock preview open, no upload idx
+    document.getElementById('previewModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+</script>
+</body>
+</html>
