@@ -121,7 +121,7 @@ const SearchPage = () => {
   const results = useMemo(() => {
     const scored = (files || [])
       .map((f) => {
-        const score = scoreFile(f, parsedQuery.tokens, parsedQuery.dateFilter, parsedQuery.entityFilter);
+        const score = scoreFile(f, parsedQuery.tokens, parsedQuery.dateFilter, parsedQuery.entityFilter, parsedQuery.cleanQuery);
         const matchesTags = selectedTags.length === 0 || f.tags.some((t) => selectedTags.includes(t.name));
         const ft = mapFileType(f.file_type);
         const matchesType = selectedTypes.length === 0 || selectedTypes.includes(ft);
