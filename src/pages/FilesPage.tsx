@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Grid3X3, List, Loader2, Download } from "lucide-react";
-import { downloadFile } from "@/lib/fileUrl";
+import { Grid3X3, List, Loader2, Download, Eye } from "lucide-react";
+import { downloadFile, viewFile } from "@/lib/fileUrl";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { useFiles } from "@/hooks/useFiles";
@@ -228,18 +228,32 @@ const FilesPage = () => {
                                 <p className="text-xs text-muted-foreground/80">{detail.size} · {detail.uploadDate}</p>
                               </div>
                               {file.file_url && (
-                                <motion.button
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.95 }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    downloadFile(file.file_url, file.file_name);
-                                  }}
-                                  title="Download"
-                                  className="shrink-0 p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
-                                >
-                                  <Download className="w-4 h-4" />
-                                </motion.button>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      viewFile(file.file_url);
+                                    }}
+                                    title="View"
+                                    className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </motion.button>
+                                  <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      downloadFile(file.file_url, file.file_name);
+                                    }}
+                                    title="Download"
+                                    className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </motion.button>
+                                </div>
                               )}
                             </div>
                             <motion.p
@@ -323,18 +337,32 @@ const FilesPage = () => {
                             <span className="text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.size}</span>
                             <span className="text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.uploadDate}</span>
                             {file.file_url && (
-                              <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  downloadFile(file.file_url, file.file_name);
-                                }}
-                                title="Download"
-                                className="shrink-0 p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
-                              >
-                                <Download className="w-4 h-4" />
-                              </motion.button>
+                              <div className="flex items-center gap-0.5 shrink-0">
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    viewFile(file.file_url);
+                                  }}
+                                  title="View"
+                                  className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </motion.button>
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    downloadFile(file.file_url, file.file_name);
+                                  }}
+                                  title="Download"
+                                  className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+                                >
+                                  <Download className="w-4 h-4" />
+                                </motion.button>
+                              </div>
                             )}
                           </motion.div>
                         );

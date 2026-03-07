@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getFileIcon, getFileColor, tagColors } from "@/data/mockFiles";
-import { Download } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import type { FileWithTags } from "@/hooks/useFiles";
-import { downloadFile } from "@/lib/fileUrl";
+import { downloadFile, viewFile } from "@/lib/fileUrl";
 
 interface SearchResultCardProps {
   file: FileWithTags;
@@ -52,13 +52,22 @@ const SearchResultCard = ({ file, detail, snippet, isSelected, index, onClick }:
           </div>
         </div>
         {file.file_url && (
-          <button
-            onClick={(e) => { e.stopPropagation(); downloadFile(file.file_url, file.file_name); }}
-            title="Download"
-            className="shrink-0 p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors self-center"
-          >
-            <Download className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1 shrink-0 self-center">
+            <button
+              onClick={(e) => { e.stopPropagation(); viewFile(file.file_url); }}
+              title="View"
+              className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); downloadFile(file.file_url, file.file_name); }}
+              title="Download"
+              className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          </div>
         )}
       </div>
     </motion.div>
