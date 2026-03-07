@@ -34,31 +34,37 @@ serve(async (req) => {
       .from("files")
       .download(filePath);
 
+    const isImage = fileType?.startsWith("image/");
     let fileContent = "";
+    let imageBase64 = "";
+
     if (!downloadError && fileData) {
-      if (fileType === "application/pdf" || fileType?.includes("text") || fileType?.includes("document")) {
+      if (isImage) {
+        // Convert image to base64 for vision model
+        try {
+          const arrayBuffer = await fileData.arrayBuffer();
+          const bytes = new Uint8Array(arrayBuffer);
+          let binary = "";
+          for (let i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          imageBase64 = btoa(binary);
+          console.log(`Image converted to base64, size: ${imageBase64.length} chars`);
+        } catch (e) {
+          console.error("Image base64 conversion error:", e);
+        }
+      } else if (fileType === "application/pdf" || fileType?.includes("text") || fileType?.includes("document")) {
         try {
           fileContent = await fileData.text();
-          fileContent = fileContent.substring(0, 5000); // Increased limit for better extraction
+          fileContent = fileContent.substring(0, 8000);
         } catch {
           fileContent = `[Binary file: ${fileName}]`;
         }
       }
     }
 
-    // Enhanced AI prompt for deep metadata extraction
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          {
-            role: "system",
-            content: `You are an expert document analysis AI for Sortify, a smart file management system. Your job is to extract MAXIMUM useful metadata from every document. Be thorough and creative in your analysis.
+    // Build messages based on file type
+    const systemPrompt = `You are an expert document analysis AI for Sortify, a smart file management system. Your job is to extract MAXIMUM useful metadata from every document and image.
 
 CRITICAL RULES:
 1. Generate a COMPREHENSIVE summary (5-8 sentences) that captures ALL key information. Include specific numbers, names, dates, amounts found in the document.
@@ -67,24 +73,62 @@ CRITICAL RULES:
 4. For the AI description, write a natural language sentence that someone might use to search for this document. Think: "What would a user type to find this?"
 5. Detect expiry dates, renewal dates, due dates - any future date that matters.
 6. Tags should cover ALL relevant categories. Be generous with tags.
-7. The extracted_text should contain the most important text snippets, key phrases, and unique identifiers from the document.`,
+7. **extracted_text is CRITICAL for search**: Extract EVERY readable word, line, number, and text fragment from the document or image. For images, perform thorough OCR - capture ALL text visible in the image including headers, body text, captions, watermarks, stamps, handwritten text, numbers, dates, and any text in any language. This field is the PRIMARY source for in-text search. Include the raw text as-is without paraphrasing.`;
+
+    const userMessages: any[] = [];
+
+    if (isImage && imageBase64) {
+      // Use vision model for images
+      userMessages.push({
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: `Analyze this image thoroughly. Extract ALL text visible in the image using OCR. Capture every word, number, date, name, address, and any text content you can see - even partial or handwritten text. This is critical for search functionality.
+
+File Name: ${fileName}
+MIME Type: ${fileType}
+
+IMPORTANT: The "extracted_text" field must contain EVERY piece of text visible in this image, line by line, exactly as it appears. Do not summarize or paraphrase - extract the raw text. This is the most important field for search.`,
           },
           {
-            role: "user",
-            content: `Analyze this file thoroughly:
+            type: "image_url",
+            image_url: {
+              url: `data:${fileType};base64,${imageBase64}`,
+            },
+          },
+        ],
+      });
+    } else {
+      userMessages.push({
+        role: "user",
+        content: `Analyze this file thoroughly:
 Name: ${fileName}
 MIME Type: ${fileType}
-Content (first 5000 chars): ${fileContent || "[No text content available - analyze based on filename and type]"}
+Content (first 8000 chars): ${fileContent || "[No text content available - analyze based on filename and type]"}
 
-Extract ALL possible metadata. Be exhaustive. Include every name, number, date, amount you can find.`,
-          },
+IMPORTANT: The "extracted_text" field must contain ALL key text from this document verbatim - every heading, paragraph opener, key phrases, names, numbers, dates, and identifiers. Users will search by typing remembered lines of text, so include as much raw text as possible. Do not summarize - extract the actual text.`,
+      });
+    }
+
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lovableApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: isImage ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...userMessages,
         ],
         tools: [
           {
             type: "function",
             function: {
               name: "extract_metadata",
-              description: "Extract comprehensive structured metadata from a document",
+              description: "Extract comprehensive structured metadata from a document or image",
               parameters: {
                 type: "object",
                 properties: {
@@ -94,7 +138,7 @@ Extract ALL possible metadata. Be exhaustive. Include every name, number, date, 
                     items: {
                       type: "object",
                       properties: {
-                        name: { type: "string", description: "Tag name from: Invoice, Contract, Travel, Insurance, Work, Personal, Finance, Health, Legal, Tax, ID Document, Medical, Receipt, Agreement, Report, Letter, Certificate, License, Warranty, Subscription, Bill, Statement, Memo, Policy" },
+                        name: { type: "string", description: "Tag name from: Invoice, Contract, Travel, Insurance, Work, Personal, Finance, Health, Legal, Tax, ID Document, Medical, Receipt, Agreement, Report, Letter, Certificate, License, Warranty, Subscription, Bill, Statement, Memo, Policy, Photo, Screenshot, Scan, Handwritten" },
                         confidence: { type: "number", minimum: 0, maximum: 1 },
                       },
                       required: ["name", "confidence"],
@@ -103,7 +147,7 @@ Extract ALL possible metadata. Be exhaustive. Include every name, number, date, 
                   },
                   summary: { 
                     type: "string", 
-                    description: "Comprehensive 5-8 sentence summary. Include ALL key details: names, dates, amounts, ID numbers, key terms. Add synonyms and related search terms at the end. This is the PRIMARY search field." 
+                    description: "Comprehensive 5-8 sentence summary. Include ALL key details: names, dates, amounts, ID numbers, key terms. Add synonyms and related search terms at the end." 
                   },
                   ai_description: { 
                     type: "string", 
@@ -112,15 +156,15 @@ Extract ALL possible metadata. Be exhaustive. Include every name, number, date, 
                   expiry_date: { 
                     type: "string", 
                     nullable: true, 
-                    description: "ISO date string of any expiry/renewal/due date found, or null. Check for: expiry date, renewal date, valid until, due date, deadline." 
+                    description: "ISO date string of any expiry/renewal/due date found, or null." 
                   },
                   extracted_text: { 
                     type: "string", 
-                    description: "Key text snippets, important phrases, unique identifiers, and searchable content extracted from the document. Include headers, key values, ID numbers." 
+                    description: "ALL readable text from the document or image, extracted verbatim line by line. For images: every word visible via OCR. For documents: key text passages, headings, identifiers, numbers. This is the PRIMARY field for in-text search - users will search by typing remembered lines. Maximum detail." 
                   },
                   entities: {
                     type: "array",
-                    description: "ALL entities found in the document",
+                    description: "ALL entities found in the document or image",
                     items: {
                       type: "object",
                       properties: {
@@ -130,7 +174,7 @@ Extract ALL possible metadata. Be exhaustive. Include every name, number, date, 
                           description: "Entity type" 
                         },
                         value: { type: "string", description: "The entity value as found in the document" },
-                        label: { type: "string", description: "Human readable label e.g. 'Policy Holder', 'Total Amount', 'Invoice Date'" },
+                        label: { type: "string", description: "Human readable label" },
                       },
                       required: ["type", "value", "label"],
                       additionalProperties: false,
@@ -169,7 +213,7 @@ Extract ALL possible metadata. Be exhaustive. Include every name, number, date, 
 
     const metadata = JSON.parse(toolCall.function.arguments);
 
-    // Update the file record with AI metadata including entities
+    // Update the file record with AI metadata
     const { error: updateError } = await supabase
       .from("files")
       .update({

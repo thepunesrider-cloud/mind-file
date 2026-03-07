@@ -60,13 +60,6 @@ const NL_DATE_PATTERNS: { pattern: RegExp; getRange: () => { from: Date; to: Dat
     },
   },
   {
-    pattern: /\b(?:from|in)\s+(\d{4})\b/i,
-    getRange: () => {
-      // Will be handled specially
-      return { from: new Date(), to: new Date() };
-    },
-  },
-  {
     pattern: /\bexpir(?:ing|es?)\s+(?:this|next)\s+(?:month|quarter)\b/i,
     getRange: () => {
       const now = new Date();
@@ -77,7 +70,6 @@ const NL_DATE_PATTERNS: { pattern: RegExp; getRange: () => { from: Date; to: Dat
 
 /** Extract natural language date intent from query */
 export function extractDateFilter(query: string): { from?: Date; to?: Date; cleanQuery: string } | null {
-  // Check for year mention like "from 2024" or "in 2024"
   const yearMatch = query.match(/\b(?:from|in|of)\s+(\d{4})\b/i);
   if (yearMatch) {
     const year = parseInt(yearMatch[1]);
@@ -91,81 +83,60 @@ export function extractDateFilter(query: string): { from?: Date; to?: Date; clea
   for (const { pattern, getRange } of NL_DATE_PATTERNS) {
     if (pattern.test(query)) {
       const { from, to } = getRange();
-      return {
-        from,
-        to,
-        cleanQuery: query.replace(pattern, "").trim(),
-      };
+      return { from, to, cleanQuery: query.replace(pattern, "").trim() };
     }
   }
 
-  // Check for "expiring before <month>"
   const expiryMatch = query.match(/\bexpir(?:ing|es?)\s+before\s+(\w+)\b/i);
   if (expiryMatch) {
     const months = ["january","february","march","april","may","june","july","august","september","october","november","december"];
     const monthIdx = months.findIndex(m => m.startsWith(expiryMatch[1].toLowerCase()));
     if (monthIdx >= 0) {
       const now = new Date();
-      return {
-        from: now,
-        to: new Date(now.getFullYear(), monthIdx + 1, 0),
-        cleanQuery: query.replace(expiryMatch[0], "").trim(),
-      };
+      return { from: now, to: new Date(now.getFullYear(), monthIdx + 1, 0), cleanQuery: query.replace(expiryMatch[0], "").trim() };
     }
   }
 
   return null;
 }
 
-/** Detect if the query is targeting entities specifically */
+/** Detect entity-specific queries */
 export function extractEntityQuery(query: string): { entityType?: string; value?: string; cleanQuery: string } | null {
-  // "invoices above ₹50,000" or "amount greater than 50000"
   const amountMatch = query.match(/\b(?:above|over|greater\s+than|more\s+than|exceeding)\s+[₹$€]?\s*([\d,]+)\b/i);
   if (amountMatch) {
-    return {
-      entityType: "amount",
-      value: amountMatch[1].replace(/,/g, ""),
-      cleanQuery: query.replace(amountMatch[0], "").trim(),
-    };
+    return { entityType: "amount", value: amountMatch[1].replace(/,/g, ""), cleanQuery: query.replace(amountMatch[0], "").trim() };
   }
 
-  // PAN number pattern
   const panMatch = query.match(/\b([A-Z]{5}\d{4}[A-Z])\b/);
-  if (panMatch) {
-    return { entityType: "pan", value: panMatch[1], cleanQuery: query.replace(panMatch[0], "").trim() };
-  }
+  if (panMatch) return { entityType: "pan", value: panMatch[1], cleanQuery: query.replace(panMatch[0], "").trim() };
 
-  // GST number pattern
   const gstMatch = query.match(/\b(\d{2}[A-Z]{5}\d{4}[A-Z]\d[A-Z\d]{2})\b/);
-  if (gstMatch) {
-    return { entityType: "gst", value: gstMatch[1], cleanQuery: query.replace(gstMatch[0], "").trim() };
-  }
+  if (gstMatch) return { entityType: "gst", value: gstMatch[1], cleanQuery: query.replace(gstMatch[0], "").trim() };
 
   return null;
 }
 
-/** Score how well a file matches the query. Higher = better match. Returns 0 for no match. */
+/** Score how well a file matches the query. Higher = better. 0 = no match. */
 export function scoreFile(
   file: FileWithTags,
   queryTokens: string[],
   dateFilter?: { from?: Date; to?: Date },
-  entityFilter?: { entityType?: string; value?: string }
+  entityFilter?: { entityType?: string; value?: string },
+  rawQuery?: string
 ): number {
   // Date filter check
   if (dateFilter?.from || dateFilter?.to) {
     const uploadDate = new Date(file.upload_date);
     const expiryDate = file.expiry_date ? new Date(file.expiry_date) : null;
-    
     const uploadInRange = (!dateFilter.from || uploadDate >= dateFilter.from) && (!dateFilter.to || uploadDate <= dateFilter.to);
     const expiryInRange = expiryDate && (!dateFilter.from || expiryDate >= dateFilter.from) && (!dateFilter.to || expiryDate <= dateFilter.to);
-    
     if (!uploadInRange && !expiryInRange) return 0;
   }
 
   // Entity filter check
   if (entityFilter?.entityType && entityFilter?.value) {
-    const entities = (file as any).entities || [];
-    const entityMatch = entities.some((e: any) => {
+    const entities = file.entities || [];
+    const entityMatch = entities.some((e) => {
       if (entityFilter.entityType === "amount") {
         const numValue = parseFloat(e.value?.replace(/[^\d.]/g, "") || "0");
         return e.type === "amount" && numValue >= parseFloat(entityFilter.value!);
@@ -175,10 +146,10 @@ export function scoreFile(
     if (!entityMatch && entities.length > 0) return 0;
   }
 
-  if (queryTokens.length === 0) return 1; // no query = show all
+  if (queryTokens.length === 0) return 1;
 
-  const entityText = ((file as any).entities || [])
-    .map((e: any) => `${e.label} ${e.value}`)
+  const entityText = (file.entities || [])
+    .map((e) => `${e.label} ${e.value}`)
     .join(" ")
     .toLowerCase();
 
@@ -191,45 +162,79 @@ export function scoreFile(
     entities: entityText,
   };
 
+  // Weights: extractedText boosted significantly for in-text search
   const weights: Record<string, number> = {
     fileName: 10,
     summary: 9,
+    entities: 8,
     description: 7,
     tags: 7,
-    entities: 8,
-    extractedText: 4,
+    extractedText: 8,
   };
 
   let totalScore = 0;
   let matchedTokens = 0;
 
+  // ── PHASE 1: Exact phrase match (huge bonus) ──
+  // If the raw query (multi-word) appears as a contiguous phrase in any field
+  const phraseQuery = (rawQuery || queryTokens.join(" ")).toLowerCase().trim();
+  if (phraseQuery.length > 3 && queryTokens.length >= 2) {
+    for (const [field, text] of Object.entries(fields)) {
+      if (!text) continue;
+      if (text.includes(phraseQuery)) {
+        const weight = weights[field] || 1;
+        // Massive bonus for exact phrase match
+        totalScore += weight * 5;
+        // Count of phrase occurrences
+        const count = text.split(phraseQuery).length - 1;
+        if (count > 1) totalScore += Math.min(count, 3) * weight;
+      }
+    }
+  }
+
+  // ── PHASE 2: Sliding n-gram phrase matching ──
+  // For queries with 3+ tokens, check contiguous subsequences
+  if (queryTokens.length >= 3) {
+    for (let n = queryTokens.length - 1; n >= 2; n--) {
+      for (let start = 0; start <= queryTokens.length - n; start++) {
+        const subPhrase = queryTokens.slice(start, start + n).join(" ");
+        for (const [field, text] of Object.entries(fields)) {
+          if (!text) continue;
+          if (text.includes(subPhrase)) {
+            totalScore += (weights[field] || 1) * (n / queryTokens.length) * 3;
+          }
+        }
+      }
+    }
+  }
+
+  // ── PHASE 3: Individual token matching with field weights ──
   for (const token of queryTokens) {
     let tokenScore = 0;
 
     for (const [field, text] of Object.entries(fields)) {
       if (!text) continue;
       
-      // Substring match
       if (text.includes(token)) {
         const weight = weights[field] || 1;
         const wordBoundary = new RegExp(`\\b${token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
         const exactMatch = wordBoundary.test(text) ? 1.5 : 1;
 
-        // Position bonus for summary (earlier = better)
-        if (field === "summary") {
+        // Position bonus for summary and extractedText
+        if (field === "summary" || field === "extractedText") {
           const pos = text.indexOf(token);
-          const posBonus = pos < 50 ? 1.3 : pos < 150 ? 1.1 : 1;
+          const posBonus = pos < 50 ? 1.3 : pos < 200 ? 1.1 : 1;
           tokenScore += weight * exactMatch * posBonus;
         } else {
           tokenScore += weight * exactMatch;
         }
 
-        // Frequency bonus — more occurrences = more relevant
+        // Frequency bonus
         const count = text.split(token).length - 1;
         if (count > 1) tokenScore += Math.min(count, 5) * 0.5;
       }
 
-      // Fuzzy: check if token is close to any word (1-char difference for tokens > 3 chars)
+      // Fuzzy match for typos (tokens > 3 chars)
       if (!text.includes(token) && token.length > 3) {
         const words = text.split(/\s+/);
         for (const word of words) {
@@ -247,18 +252,17 @@ export function scoreFile(
     }
   }
 
-  // Relaxed matching: allow partial token matches (OR logic) but penalize incompleteness
-  if (matchedTokens === 0) return 0;
+  // Relaxed OR matching: allow partial token matches but penalize incompleteness
+  if (matchedTokens === 0 && totalScore === 0) return 0;
   
-  const matchRatio = matchedTokens / queryTokens.length;
-  // If >50% tokens match, still show results but with penalty
-  if (matchRatio < 0.5) return 0;
+  const matchRatio = queryTokens.length > 0 ? matchedTokens / queryTokens.length : 1;
+  if (matchRatio < 0.4 && totalScore < 10) return 0;
   
-  const completenessBonus = matchRatio === 1 ? 2.5 : matchRatio >= 0.75 ? 1.5 : 0.8;
+  const completenessBonus = matchRatio === 1 ? 2.5 : matchRatio >= 0.75 ? 1.5 : matchRatio >= 0.5 ? 1 : 0.6;
   return totalScore * completenessBonus;
 }
 
-/** Simple Levenshtein distance for fuzzy matching */
+/** Simple Levenshtein distance */
 function levenshtein(a: string, b: string): number {
   const m = a.length, n = b.length;
   if (m === 0) return n;
@@ -276,7 +280,7 @@ function levenshtein(a: string, b: string): number {
   return dp[m][n];
 }
 
-/** Highlight matching terms in text and return best snippet */
+/** Find the best snippet window containing the most matches */
 export function highlightText(text: string, tokens: string[], maxLen = 180): string {
   if (!text || tokens.length === 0) return text?.slice(0, maxLen) || "";
 
@@ -284,8 +288,7 @@ export function highlightText(text: string, tokens: string[], maxLen = 180): str
   let bestPos = 0;
   let bestScore = 0;
 
-  // Find the snippet window with the most token matches
-  for (let pos = 0; pos < Math.min(text.length, 2000); pos += 20) {
+  for (let pos = 0; pos < Math.min(text.length, 3000); pos += 15) {
     const window = lower.slice(pos, pos + maxLen);
     let score = 0;
     for (const token of tokens) {
