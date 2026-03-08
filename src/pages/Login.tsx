@@ -40,6 +40,11 @@ const Login = () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+      setDebugInfo(prev => ({
+        ...prev,
+        session: session ? `✅ ${session.user.email} (${session.user.id.slice(0, 8)}...)` : "❌ No session",
+        lastTime: new Date().toLocaleTimeString(),
+      }));
       if (session?.user?.id) {
         await redirectByOnboarding(session.user.id);
       }
@@ -50,6 +55,12 @@ const Login = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setDebugInfo(prev => ({
+        ...prev,
+        lastEvent: `${event} @ ${new Date().toLocaleTimeString()}`,
+        session: session ? `✅ ${session.user.email}` : "❌ No session",
+        lastTime: new Date().toLocaleTimeString(),
+      }));
       if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user?.id) {
         await redirectByOnboarding(session.user.id);
       }
