@@ -133,7 +133,24 @@ CRITICAL RULES:
 5. Detect expiry dates, renewal dates, due dates - any future date that matters.
 6. Tags should cover ALL relevant categories. Be generous with tags.
 7. **extracted_text is THE MOST CRITICAL field**: Extract EVERY readable word, line, number, and text fragment from the document or image. For images, perform thorough OCR - capture ALL text visible in the image including headers, body text, captions, watermarks, stamps, handwritten text, numbers, dates, and any text in any language. For PDFs, extract EVERY line of text from EVERY page. This field is the PRIMARY source for in-text search. Include the raw text as-is without paraphrasing. Users will search by typing dates like "15/03/1999" or names or any text fragment - everything must be captured here.
-8. For dates found in documents (like date of birth, issue date, etc.), include them in EVERY format: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, "15 March 1999", "March 15, 1999", "15/03/99". This ensures date searches work regardless of format.`;
+8. For dates found in documents (like date of birth, issue date, etc.), include them in EVERY format: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, "15 March 1999", "March 15, 1999", "15/03/99". This ensures date searches work regardless of format.
+
+**PHOTO & IMAGE ANALYSIS (VERY IMPORTANT FOR PHOTOS):**
+9. For any photo/image containing PEOPLE, describe each person in detail:
+   - Apparent gender, age range, build, hair color/style, skin tone
+   - Clothing: color, type (shirt, dress, suit, traditional wear like saree, kurta, etc.)
+   - Facial features: glasses, beard, mustache, smile, expression
+   - Pose: standing, sitting, selfie, group photo, portrait, candid
+   - If the person's name appears in the filename (e.g., "shreyas_photo.jpg"), associate the name with the person description
+10. For EVERY photo/image, describe the SCENE and BACKGROUND exhaustively:
+   - Location type: indoor (office, home, restaurant, mall), outdoor (park, beach, mountains, hills, city street, temple, garden)
+   - Landscape: hills, mountains, ocean, river, lake, forest, desert, fields, sky, sunset, sunrise, clouds
+   - Weather/lighting: sunny, cloudy, rainy, golden hour, night, artificial lighting
+   - Setting elements: buildings, vehicles, trees, flowers, furniture, food, animals
+   - Event context: wedding, birthday, party, trip, vacation, picnic, graduation, festival (Diwali, Holi, etc.)
+   - Photo style: selfie, group photo, portrait, landscape, candid, professional, casual
+11. Include ALL scene/person descriptions in BOTH the summary AND semantic_keywords fields, using many synonyms. E.g. "hills" should also include "mountains, hillside, hilly terrain, pahad, mountain range, elevated terrain, highland".`;
+
 
     const userMessages: any[] = [];
     
@@ -150,13 +167,22 @@ CRITICAL RULES:
         content: [
           {
             type: "text",
-            text: `Analyze this ${isPdf ? "PDF document" : isDoc ? "document" : isImage ? "image" : "file"} thoroughly. Extract ALL text using OCR. Capture every word, number, date, name, address, and any text content you can see - even partial or handwritten text. This is critical for search functionality.
+            text: `Analyze this ${isPdf ? "PDF document" : isDoc ? "document" : isImage ? "image/photo" : "file"} thoroughly. Extract ALL text using OCR. Capture every word, number, date, name, address, and any text content you can see.
 
 File Name: ${fileName}
 MIME Type: ${fileType}
 ${supplementaryText}
 
-CRITICAL: The "extracted_text" field must contain EVERY piece of text from this ${isPdf ? "document (all pages)" : "image"}, line by line, exactly as it appears. Do not summarize or paraphrase - extract the raw text. Include ALL dates in multiple formats (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, written out). This is the most important field for search. Users might search for a date of birth, a name, an amount - everything must be captured.`,
+${isImage ? `**PHOTO ANALYSIS - THIS IS CRITICAL:**
+- Describe EVERY person visible: gender, age, clothing (color + type), hair, glasses, expression, pose
+- If the filename contains a name (like "shreyas" or "priya"), use that name when describing the person
+- Describe the BACKGROUND/SCENE in extreme detail: location type, landscape features (hills, beach, city, etc.), weather, lighting, objects, vegetation, buildings
+- Describe the photo type: selfie, group, portrait, candid, professional
+- Describe the EVENT/CONTEXT if identifiable: vacation, wedding, birthday, casual outing, office
+- Include all this in the summary, ai_description, extracted_text, and semantic_keywords fields
+- The user should be able to find this photo by searching "photo in hills" or "guy in red shirt at beach" or "wedding group photo"
+` : ""}
+CRITICAL: The "extracted_text" field must contain EVERY piece of text from this ${isPdf ? "document (all pages)" : "image"}, line by line, exactly as it appears. For photos, also include a detailed visual description of people and scenes. Include ALL dates in multiple formats.`,
           },
           {
             type: "image_url",
@@ -208,7 +234,7 @@ CRITICAL: The "extracted_text" field must contain ALL key text from this documen
                     items: {
                       type: "object",
                       properties: {
-                        name: { type: "string", description: "Tag name from: Invoice, Contract, Travel, Insurance, Work, Personal, Finance, Health, Legal, Tax, ID Document, Medical, Receipt, Agreement, Report, Letter, Certificate, License, Warranty, Subscription, Bill, Statement, Memo, Policy, Photo, Screenshot, Scan, Handwritten" },
+                        name: { type: "string", description: "Tag name from: Invoice, Contract, Travel, Insurance, Work, Personal, Finance, Health, Legal, Tax, ID Document, Medical, Receipt, Agreement, Report, Letter, Certificate, License, Warranty, Subscription, Bill, Statement, Memo, Policy, Photo, Screenshot, Scan, Handwritten, Selfie, Group Photo, Portrait, Landscape, Nature, Beach, Mountains, Wedding, Festival, Family, Friends, Vacation, Office, Food" },
                         confidence: { type: "number", minimum: 0, maximum: 1 },
                       },
                       required: ["name", "confidence"],
@@ -217,11 +243,11 @@ CRITICAL: The "extracted_text" field must contain ALL key text from this documen
                   },
                   summary: { 
                     type: "string", 
-                    description: "Comprehensive 5-8 sentence summary. Include ALL key details: names, dates, amounts, ID numbers, key terms. Add synonyms and related search terms at the end." 
+                    description: "Comprehensive 5-8 sentence summary. For PHOTOS: describe who is in the photo (appearance, clothing, expression), the background/scene (hills, beach, city, indoor), the event/context, and the photo style. Include ALL key details. Add synonyms and related search terms at the end." 
                   },
                   ai_description: { 
                     type: "string", 
-                    description: "Natural language description written as a search query someone would use to find this document. Include alternative phrasings." 
+                    description: "Natural language description written as a search query someone would use to find this. For photos: 'photo of young man in blue shirt standing in front of hills at sunset'. Include alternative phrasings like 'mountains photo', 'outdoor portrait'. Include names from filename." 
                   },
                   expiry_date: { 
                     type: "string", 
@@ -230,24 +256,24 @@ CRITICAL: The "extracted_text" field must contain ALL key text from this documen
                   },
                   extracted_text: { 
                     type: "string", 
-                    description: "ALL readable text from the document or image, extracted verbatim line by line. For images: every word visible via OCR. For PDFs: every line from every page. For documents: all text content. Include dates in multiple formats (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, written out). This is the PRIMARY field for in-text search - users will search by typing any remembered text. Maximum detail." 
+                    description: "ALL readable text from the document or image, extracted verbatim. For PHOTOS with no text: write a detailed visual description instead — describe every person (appearance, clothing, features), the scene, background, objects, colors, lighting, mood. Users search photos by description like 'photo in hills' or 'guy wearing red jacket'. This field MUST be rich for photos." 
                   },
                   semantic_keywords: {
                     type: "string",
-                    description: "Generate 30-50 semantic keywords, synonyms, related concepts, alternate phrasings, and category terms separated by commas. Include: synonyms in English and Hindi/regional languages, abbreviations and full forms, conceptual relatives, document category terms, date-related terms. E.g. for an Aadhaar card: 'aadhaar, aadhar, uid, unique identification, identity card, ID proof, government ID, date of birth, DOB, janam tithi, address proof, pata pramaan'. This powers meaning-based semantic search.",
+                    description: "Generate 40-60 semantic keywords separated by commas. For PHOTOS include: scene words (hills, mountains, pahad, beach, samundar, park, garden), person descriptors (man, woman, boy, girl, young, aadmi, ladka, ladki), clothing (shirt, dress, kurta, saree), event words (vacation, trip, wedding, shaadi, birthday, party, picnic), photo type (selfie, group photo, portrait, candid), mood (happy, smiling, serious), colors (red, blue, green). Also include English + Hindi synonyms for everything. This powers meaning-based search.",
                   },
                   entities: {
                     type: "array",
-                    description: "ALL entities found in the document or image. Extract every name, date, number, amount, ID, phone, email, address.",
+                    description: "ALL entities found. For photos: extract person names (from filename or visible text), location if identifiable, event type. For documents: names, dates, numbers, IDs, etc.",
                     items: {
                       type: "object",
                       properties: {
                         type: { 
                           type: "string", 
-                          enum: ["person", "company", "date", "amount", "id_number", "phone", "email", "address", "pan", "gst", "aadhaar", "passport", "policy_number", "invoice_number", "account_number", "dob", "issue_date", "expiry_date_entity"],
+                          enum: ["person", "company", "date", "amount", "id_number", "phone", "email", "address", "pan", "gst", "aadhaar", "passport", "policy_number", "invoice_number", "account_number", "dob", "issue_date", "expiry_date_entity", "location", "event"],
                           description: "Entity type" 
                         },
-                        value: { type: "string", description: "The entity value as found in the document" },
+                        value: { type: "string", description: "The entity value" },
                         label: { type: "string", description: "Human readable label" },
                       },
                       required: ["type", "value", "label"],
