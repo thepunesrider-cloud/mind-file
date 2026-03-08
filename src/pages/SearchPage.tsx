@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search as SearchIcon, SlidersHorizontal, Loader2, Sparkles, Wand2 } from "lucide-react";
+import { Search as SearchIcon, SlidersHorizontal, Loader2, Sparkles, Wand2, RefreshCw } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { useFiles } from "@/hooks/useFiles";
@@ -13,6 +13,7 @@ import { SearchAutocomplete } from "@/components/search/SearchAutocomplete";
 import { cn } from "@/lib/utils";
 import { tokenize, scoreFile, highlightText, extractDateFilter, extractEntityQuery } from "@/lib/searchEngine";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 function mapFileType(mimeType: string): "pdf" | "image" | "docx" | "spreadsheet" {
