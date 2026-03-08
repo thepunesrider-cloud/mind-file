@@ -14,6 +14,7 @@ import RemindersPage from "./pages/RemindersPage";
 import ChatPage from "./pages/ChatPage";
 import SmartFoldersPage from "./pages/SmartFoldersPage";
 import ComparePage from "./pages/ComparePage";
+import SharedFilePage from "./pages/SharedFilePage";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 
