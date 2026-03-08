@@ -143,6 +143,11 @@ const Login = () => {
             onClick={async () => {
               const { error } = await lovable.auth.signInWithOAuth("google", {
                 redirect_uri: window.location.origin,
+                extraParams: {
+                  access_type: "offline",
+                  prompt: "consent",
+                  scope: "openid email profile https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly",
+                },
               });
               if (error) toast.error("Google sign-in failed");
             }}

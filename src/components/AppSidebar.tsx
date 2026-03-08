@@ -18,6 +18,7 @@ import {
   Smartphone,
   BarChart3,
   Users,
+  HardDrive,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -36,6 +37,7 @@ const navItems = [
   { to: "/reminders", icon: Bell, label: "Reminders" },
   { to: "/analytics", icon: BarChart3, label: "Analytics" },
   { to: "/teams", icon: Users, label: "Teams" },
+  { to: "/google-drive", icon: HardDrive, label: "Google Drive" },
   { to: "/whatsapp", icon: Smartphone, label: "WhatsApp" },
   { to: "/settings", icon: Settings, label: "Settings" },
 ];

@@ -24,6 +24,7 @@ import AdminPage from "./pages/AdminPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import TeamsPage from "./pages/TeamsPage";
+import GoogleDrivePage from "./pages/GoogleDrivePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
 import NotFound from "./pages/NotFound";
@@ -60,6 +61,7 @@ const App = () => (
               <Route path="/admin" element={<AuthGuard><AdminPage /></AuthGuard>} />
               <Route path="/analytics" element={<AuthGuard><AnalyticsPage /></AuthGuard>} />
               <Route path="/teams" element={<AuthGuard><TeamsPage /></AuthGuard>} />
+              <Route path="/google-drive" element={<AuthGuard><GoogleDrivePage /></AuthGuard>} />
               <Route path="/shared/:token" element={<SharedFilePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

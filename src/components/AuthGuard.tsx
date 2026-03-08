@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useGoogleDriveToken } from "@/hooks/useGoogleDriveToken";
 
 const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
@@ -9,6 +10,9 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const [onboarded, setOnboarded] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Auto-capture Google Drive token on sign-in
+  useGoogleDriveToken();
 
   useEffect(() => {
     const check = async () => {
