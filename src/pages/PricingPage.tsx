@@ -272,6 +272,8 @@ const PricingPage = () => {
           <p className="text-xs text-muted-foreground">© 2026 Sortify. AI-Powered File Intelligence.</p>
         </div>
       </footer>
+
+      <SupportChat />
     </div>
   );
 };
