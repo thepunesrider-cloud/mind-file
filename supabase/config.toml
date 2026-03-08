@@ -2,3 +2,6 @@ project_id = "dmmzlxeetlcsvyiaauna"
 
 [functions.analyze-file]
 verify_jwt = false
+
+[functions.semantic-search]
+verify_jwt = false

@@ -226,6 +226,7 @@ IMPORTANT: The "extracted_text" field must contain ALL key text from this docume
         extracted_text: metadata.extracted_text,
         expiry_date: metadata.expiry_date || null,
         entities: metadata.entities || [],
+        semantic_keywords: metadata.semantic_keywords || "",
       })
       .eq("id", fileId);
 
