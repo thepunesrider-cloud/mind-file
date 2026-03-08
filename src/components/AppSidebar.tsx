@@ -50,7 +50,7 @@ const AppSidebar = ({ onClose }: { onClose?: () => void }) => {
           </div>
         </div>
         {isMobile && onClose && (
-          <button onClick={onClose} className="p-2.5 rounded-xl hover:bg-secondary transition-colors active:scale-95" aria-label="Close menu">
+          <button onClick={onClose} className="p-2.5 rounded-xl hover:bg-secondary transition-colors active:scale-95 z-50" aria-label="Close menu">
             <X className="w-5 h-5" />
           </button>
         )}
