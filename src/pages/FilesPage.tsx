@@ -765,6 +765,14 @@ const FilesPage = () => {
                 transition={{ delay: 0.2, duration: 0.4 }}
                 className="flex items-center gap-2 sm:gap-3"
               >
+                {/* Sidebar toggle (desktop only) */}
+                <button
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="hidden md:flex p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                  title={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+                >
+                  {sidebarCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+                </button>
                 <div className="relative">
                   <Input
                     placeholder="Search files..."
