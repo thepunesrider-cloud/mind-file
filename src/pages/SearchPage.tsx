@@ -57,7 +57,10 @@ const SearchPage = () => {
   const [semanticLoading, setSemanticLoading] = useState(false);
   const [smartResults, setSmartResults] = useState<{ fileId: string; reason: string; confidence: number }[]>([]);
   const [smartLoading, setSmartLoading] = useState(false);
+  const [bulkReanalyzing, setBulkReanalyzing] = useState(false);
+  const [reanalyzeProgress, setReanalyzeProgress] = useState<{ done: number; total: number } | null>(null);
   const { data: files, isLoading } = useFiles();
+  const queryClient = useQueryClient();
 
   // Debounced semantic expansion
   const expandQuery = useCallback(async (q: string) => {
@@ -79,6 +82,57 @@ const SearchPage = () => {
       setSemanticLoading(false);
     }
   }, []);
+
+  const handleReanalyzeAll = useCallback(async () => {
+    const fileList = files || [];
+    if (fileList.length === 0) {
+      toast.error("No files found to re-analyze");
+      return;
+    }
+
+    setBulkReanalyzing(true);
+    setReanalyzeProgress({ done: 0, total: fileList.length });
+
+    let successCount = 0;
+    let failureCount = 0;
+
+    try {
+      for (let i = 0; i < fileList.length; i++) {
+        const file = fileList[i];
+        setReanalyzeProgress({ done: i, total: fileList.length });
+
+        const { error } = await supabase.functions.invoke("analyze-file", {
+          body: {
+            fileId: file.id,
+            fileName: file.file_name,
+            fileType: file.file_type,
+          },
+        });
+
+        if (error) {
+          failureCount++;
+          console.error(`Re-analyze failed for ${file.file_name}:`, error);
+        } else {
+          successCount++;
+        }
+      }
+
+      setReanalyzeProgress({ done: fileList.length, total: fileList.length });
+      await queryClient.invalidateQueries({ queryKey: ["files"] });
+
+      if (failureCount === 0) {
+        toast.success(`Re-analyzed ${successCount} files successfully`);
+      } else {
+        toast.warning(`Re-analyzed ${successCount} files, ${failureCount} failed`);
+      }
+    } catch (e) {
+      console.error("Bulk re-analyze error:", e);
+      toast.error("Bulk re-analyze failed");
+    } finally {
+      setBulkReanalyzing(false);
+      setTimeout(() => setReanalyzeProgress(null), 1200);
+    }
+  }, [files, queryClient]);
 
   const allTags = Array.from(new Set((files || []).flatMap((f) => f.tags.map((t) => t.name))));
 
