@@ -109,60 +109,160 @@ serve(async (req) => {
       const results = (session.session_data as any)?.results || [];
       if (pickNum >= 1 && pickNum <= results.length) {
         const picked = results[pickNum - 1];
-        // Get signed URL and send file
         const { data: signedData } = await supabase.storage
           .from("files")
           .createSignedUrl(picked.file_url, 300);
 
         if (signedData?.signedUrl) {
-          // Send file summary first
           await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
             `📄 *${picked.file_name}*\n\n${picked.ai_summary || "No summary available"}\n\n📎 Download: ${signedData.signedUrl}`);
         } else {
           await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
-            `📄 *${picked.file_name}*\n\n${picked.ai_summary || "No summary available"}\n\n⚠️ Could not generate download link. Please access from the web app.`);
+            `📄 *${picked.file_name}*\n\n${picked.ai_summary || "No summary available"}\n\n⚠️ Could not generate download link.`);
         }
 
-        // Reset session
         await supabase
           .from("whatsapp_sessions")
           .update({ session_type: "idle", session_data: {}, updated_at: new Date().toISOString() })
           .eq("phone_number", cleanPhone);
-
         return jsonOk({ ok: true });
       }
     }
 
-    // --- Handle help command ---
-    if (messageText.toLowerCase() === "help") {
-      await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
-        "🤖 *Sortify WhatsApp Commands*\n\n" +
-        "🔍 *Search* — just type what you're looking for\n" +
-        "   Example: _insurance policy_, _tax bill_, _PAN card_\n\n" +
-        "📤 *Upload* — send any document, image, or file\n" +
-        "   AI will auto-categorize it\n\n" +
-        "📊 *stats* — see your file statistics\n\n" +
-        "❓ *help* — show this message");
-      return jsonOk({ ok: true });
-    }
+    // --- Handle search input (when awaiting_search) ---
+    if (session?.session_type === "awaiting_search" && messageText) {
+      // Reset session first, then search
+      await supabase
+        .from("whatsapp_sessions")
+        .update({ session_type: "idle", session_data: {}, updated_at: new Date().toISOString() })
+        .eq("phone_number", cleanPhone);
 
-    // --- Handle stats command ---
-    if (messageText.toLowerCase() === "stats") {
-      const { count } = await supabase
-        .from("files")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId);
-
-      await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
-        `📊 *Your Sortify Stats*\n\nTotal files: ${count || 0}`);
-      return jsonOk({ ok: true });
-    }
-
-    // --- Default: Search ---
-    if (messageText) {
       await handleSearch(supabase, msg91Key, integratedNumber, cleanPhone, userId, messageText);
       return jsonOk({ ok: true });
     }
+
+    const msgLower = messageText.toLowerCase();
+
+    // --- "sort" command: Show main menu ---
+    if (msgLower === "sort" || msgLower === "hi" || msgLower === "hello" || msgLower === "start") {
+      await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
+        "👋 *Welcome to Sortify!*\n\n" +
+        "What would you like to do?\n\n" +
+        "*1.* 🔍 Search files\n" +
+        "*2.* 📤 Upload a file (send document/image next)\n" +
+        "*3.* 📊 View my stats\n" +
+        "*4.* 📂 Recent files\n" +
+        "*5.* ❓ Help\n\n" +
+        "📌 *Reply with a number* to select an option");
+
+      await supabase
+        .from("whatsapp_sessions")
+        .upsert({
+          phone_number: cleanPhone,
+          session_type: "awaiting_menu",
+          session_data: {},
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "phone_number" });
+
+      return jsonOk({ ok: true });
+    }
+
+    // --- Handle menu selection (when awaiting_menu) ---
+    if (session?.session_type === "awaiting_menu" && /^\d$/.test(messageText)) {
+      const choice = parseInt(messageText, 10);
+
+      if (choice === 1) {
+        // Search - ask for query
+        await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
+          "🔍 *Search Mode*\n\nType what you're looking for:\n\n_Examples: insurance policy, tax bill, PAN card, invoice from Amazon_");
+
+        await supabase
+          .from("whatsapp_sessions")
+          .update({ session_type: "awaiting_search", session_data: {}, updated_at: new Date().toISOString() })
+          .eq("phone_number", cleanPhone);
+        return jsonOk({ ok: true });
+      }
+
+      if (choice === 2) {
+        // Upload - ask for file
+        await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
+          "📤 *Upload Mode*\n\nSend me any document, image, or file.\nAI will automatically categorize and tag it.");
+
+        await supabase
+          .from("whatsapp_sessions")
+          .update({ session_type: "awaiting_upload", session_data: {}, updated_at: new Date().toISOString() })
+          .eq("phone_number", cleanPhone);
+        return jsonOk({ ok: true });
+      }
+
+      if (choice === 3) {
+        // Stats
+        const { count } = await supabase
+          .from("files")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId);
+
+        await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
+          `📊 *Your Sortify Stats*\n\nTotal files: ${count || 0}\n\nType *sort* to go back to menu.`);
+
+        await supabase
+          .from("whatsapp_sessions")
+          .update({ session_type: "idle", session_data: {}, updated_at: new Date().toISOString() })
+          .eq("phone_number", cleanPhone);
+        return jsonOk({ ok: true });
+      }
+
+      if (choice === 4) {
+        // Recent files
+        const { data: recentFiles } = await supabase
+          .from("files")
+          .select("file_name, ai_summary, upload_date")
+          .eq("user_id", userId)
+          .order("upload_date", { ascending: false })
+          .limit(5);
+
+        if (!recentFiles || recentFiles.length === 0) {
+          await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
+            "📂 No files yet. Send a document to upload it!\n\nType *sort* for menu.");
+        } else {
+          let msg = "📂 *Your Recent Files*\n\n";
+          recentFiles.forEach((f: any, i: number) => {
+            const brief = f.ai_summary ? f.ai_summary.substring(0, 50) + "..." : "";
+            msg += `*${i + 1}.* ${f.file_name}\n   _${brief}_\n\n`;
+          });
+          msg += "Type *sort* for menu or *1* to search.";
+          await sendWhatsApp(msg91Key, integratedNumber, cleanPhone, msg);
+        }
+
+        await supabase
+          .from("whatsapp_sessions")
+          .update({ session_type: "idle", session_data: {}, updated_at: new Date().toISOString() })
+          .eq("phone_number", cleanPhone);
+        return jsonOk({ ok: true });
+      }
+
+      if (choice === 5) {
+        // Help
+        await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
+          "🤖 *Sortify WhatsApp Help*\n\n" +
+          "Type *sort* anytime to see the main menu.\n\n" +
+          "🔍 *Search* — Select option 1, then type your query\n" +
+          "📤 *Upload* — Select option 2, then send a file\n" +
+          "📊 *Stats* — Select option 3\n" +
+          "📂 *Recent* — Select option 4\n\n" +
+          "You can also send a file anytime to upload it!");
+
+        await supabase
+          .from("whatsapp_sessions")
+          .update({ session_type: "idle", session_data: {}, updated_at: new Date().toISOString() })
+          .eq("phone_number", cleanPhone);
+        return jsonOk({ ok: true });
+      }
+    }
+
+    // --- Fallback: unrecognized message ---
+    await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
+      "Type *sort* to see the menu and get started! 🚀");
 
     return jsonOk({ ok: true });
   } catch (e) {
