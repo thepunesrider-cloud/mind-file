@@ -667,12 +667,13 @@ const FilesPage = () => {
           transition={{ duration: 0.5 }}
           className="flex-1 min-w-0"
         >
-          <div className="mb-8">
+          <div className="mb-6 md:mb-8">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.4 }}
-              className="flex items-center justify-between mb-6"
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6"
+            >
             >
               <div>
                 {activeFolder ? (
