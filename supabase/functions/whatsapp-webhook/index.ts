@@ -215,14 +215,15 @@ async function sendMoreMenu(authKey: string, intNum: string, phone: string) {
 
 async function sendInteractive(authKey: string, payload: any, logLabel: string): Promise<boolean> {
   try {
-    const resp = await fetch(`${MSG91_API}/whatsapp-outbound-message/`, {
+    // MSG91 interactive works on bulk endpoint with JSON payload
+    const resp = await fetch(`${MSG91_API}/whatsapp-outbound-message/bulk/`, {
       method: "POST",
       headers: { accept: "application/json", authkey: authKey, "content-type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     const data = await resp.json();
-    console.log(`${logLabel}:`, JSON.stringify(data));
+    console.log(`${logLabel} [${resp.status}]:`, JSON.stringify(data));
 
     return resp.ok && !data?.hasError && data?.status !== "fail" && data?.type !== "error";
   } catch (e) {
