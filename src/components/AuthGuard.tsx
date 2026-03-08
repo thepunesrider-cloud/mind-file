@@ -7,7 +7,6 @@ import { useGoogleDriveToken } from "@/hooks/useGoogleDriveToken";
 const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const [onboarded, setOnboarded] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -15,43 +14,59 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   useGoogleDriveToken();
 
   useEffect(() => {
+    let mounted = true;
+
+    const redirectToLogin = () => {
+      navigate("/login", { replace: true });
+    };
+
     const check = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/", { replace: true });
-        setLoading(false);
-        return;
-      }
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-      setAuthenticated(true);
-
-      // Check onboarding status (skip if already on onboarding page)
-      if (location.pathname !== "/onboarding") {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("onboarding_completed")
-          .eq("user_id", session.user.id)
-          .maybeSingle();
-
-        if (!profile || !profile.onboarding_completed) {
-          setOnboarded(false);
-          navigate("/onboarding", { replace: true });
-          setLoading(false);
+        if (!session) {
+          setAuthenticated(false);
+          redirectToLogin();
           return;
         }
-      }
 
-      setLoading(false);
+        setAuthenticated(true);
+
+        // Check onboarding status (skip if already on onboarding page)
+        if (location.pathname !== "/onboarding") {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("onboarding_completed")
+            .eq("user_id", session.user.id)
+            .maybeSingle();
+
+          if (!profile || !profile.onboarding_completed) {
+            navigate("/onboarding", { replace: true });
+            return;
+          }
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
     };
+
     check();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate("/", { replace: true });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || !session) {
+        setAuthenticated(false);
+        redirectToLogin();
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate, location.pathname]);
 
   if (loading) {
@@ -66,3 +81,4 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default AuthGuard;
+
