@@ -43,6 +43,7 @@ const App = () => (
             <Route path="/smart-folders" element={<AuthGuard><SmartFoldersPage /></AuthGuard>} />
             <Route path="/compare" element={<AuthGuard><ComparePage /></AuthGuard>} />
             <Route path="/settings" element={<AuthGuard><SettingsPage /></AuthGuard>} />
+            <Route path="/whatsapp" element={<AuthGuard><WhatsAppPage /></AuthGuard>} />
             <Route path="/shared/:token" element={<SharedFilePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
