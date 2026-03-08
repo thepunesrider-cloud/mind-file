@@ -1,0 +1,1 @@
+ALTER TABLE public.whatsapp_sessions ADD CONSTRAINT whatsapp_sessions_phone_number_key UNIQUE (phone_number);
