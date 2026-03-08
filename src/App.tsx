@@ -15,6 +15,7 @@ import ChatPage from "./pages/ChatPage";
 import SmartFoldersPage from "./pages/SmartFoldersPage";
 import ComparePage from "./pages/ComparePage";
 import SettingsPage from "./pages/SettingsPage";
+import WhatsAppPage from "./pages/WhatsAppPage";
 import SharedFilePage from "./pages/SharedFilePage";
 import PricingPage from "./pages/PricingPage";
 import NotFound from "./pages/NotFound";
