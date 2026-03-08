@@ -52,7 +52,40 @@ const typeColors: Record<string, string> = {
 const Dashboard = () => {
   const { data: files, isLoading } = useFiles();
   const navigate = useNavigate();
+  const { showGuide, setShowGuide, completedSteps, completeStep, dismiss } = useOnboardingGuide();
+  const [guideOpen, setGuideOpen] = useState(false);
   const allFiles = files || [];
+
+  const onboardingSteps: Step[] = [
+    {
+      id: "search",
+      title: "Try the Search Bar",
+      description: "Use the smart search bar to find files instantly by name, tag, or content.",
+      targetSelector: "[data-onboard='search-bar']",
+      completed: completedSteps.includes("search"),
+    },
+    {
+      id: "upload",
+      title: "Upload Your First File",
+      description: "Click Upload to add your first document. We'll auto-categorize it for you.",
+      targetSelector: "[data-onboard='upload-action']",
+      completed: completedSteps.includes("upload"),
+    },
+    {
+      id: "browse",
+      title: "Browse Your Files",
+      description: "View all your organized files with smart tags and filters.",
+      targetSelector: "[data-onboard='browse-action']",
+      completed: completedSteps.includes("browse"),
+    },
+    {
+      id: "stats",
+      title: "Check Your Stats",
+      description: "Monitor your storage usage, file counts, and expiring documents at a glance.",
+      targetSelector: "[data-onboard='stats-section']",
+      completed: completedSteps.includes("stats"),
+    },
+  ];
 
   // Compute stats
   const totalFiles = allFiles.length;
