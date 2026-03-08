@@ -145,9 +145,14 @@ const SearchPage = () => {
   }, [query, dateFrom, dateTo]);
 
   const results = useMemo(() => {
+    // Combine original tokens with semantic expansion terms
+    const allTokens = semanticEnabled && semanticTerms.length > 0
+      ? [...parsedQuery.tokens, ...semanticTerms.flatMap(t => tokenize(t))]
+      : parsedQuery.tokens;
+
     const scored = (files || [])
       .map((f) => {
-        const score = scoreFile(f, parsedQuery.tokens, parsedQuery.dateFilter, parsedQuery.entityFilter, parsedQuery.cleanQuery);
+        const score = scoreFile(f, allTokens, parsedQuery.dateFilter, parsedQuery.entityFilter, parsedQuery.cleanQuery);
         const matchesTags = selectedTags.length === 0 || f.tags.some((t) => selectedTags.includes(t.name));
         const ft = mapFileType(f.file_type);
         const matchesType = selectedTypes.length === 0 || selectedTypes.includes(ft);
@@ -157,7 +162,7 @@ const SearchPage = () => {
 
     scored.sort((a, b) => b.score - a.score);
     return scored;
-  }, [files, parsedQuery, selectedTags, selectedTypes]);
+  }, [files, parsedQuery, selectedTags, selectedTypes, semanticEnabled, semanticTerms]);
 
   const toggleTag = (tag: string) => setSelectedTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
   const toggleType = (type: string) => setSelectedTypes((prev) => prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]);
