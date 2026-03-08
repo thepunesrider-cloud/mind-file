@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MessageCircle, Phone, Loader2, CheckCircle, XCircle, Send, Unlink } from "lucide-react";
+import { MessageCircle, Phone, Loader2, CheckCircle, Send, Unlink, RefreshCw } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,6 +81,34 @@ const SettingsPage = () => {
     }
   };
 
+  const regenerateCode = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not logged in");
+
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+
+      const { error } = await supabase
+        .from("whatsapp_users")
+        .update({ verification_code: code, verified: false })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      setVerified(false);
+      setCodeSent(true);
+      toast.success(`New verification code: ${code}`, {
+        description: "Send this code to Sortify on WhatsApp",
+        duration: 15000,
+      });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to regenerate code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const unlinkWhatsApp = async () => {
     setLoading(true);
     try {
@@ -151,10 +179,16 @@ const SettingsPage = () => {
                   <li>❓ <strong>Help:</strong> Type "help" for all commands</li>
                 </ul>
               </div>
-              <Button onClick={unlinkWhatsApp} variant="outline" size="sm" className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10" disabled={loading}>
-                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Unlink className="w-3.5 h-3.5" />}
-                Unlink WhatsApp
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={regenerateCode} variant="outline" size="sm" className="gap-2" disabled={loading}>
+                  {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                  Regenerate Code
+                </Button>
+                <Button onClick={unlinkWhatsApp} variant="outline" size="sm" className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10" disabled={loading}>
+                  {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Unlink className="w-3.5 h-3.5" />}
+                  Unlink
+                </Button>
+              </div>
             </div>
           ) : linked && codeSent ? (
             <div className="space-y-4">
@@ -167,10 +201,16 @@ const SettingsPage = () => {
                   </p>
                 </div>
               </div>
-              <Button onClick={checkWhatsAppLink} variant="outline" size="sm" className="gap-2">
-                <Loader2 className="w-3.5 h-3.5" />
-                Check Status
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={regenerateCode} variant="outline" size="sm" className="gap-2" disabled={loading}>
+                  {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                  Regenerate Code
+                </Button>
+                <Button onClick={checkWhatsAppLink} variant="outline" size="sm" className="gap-2">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  Check Status
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
