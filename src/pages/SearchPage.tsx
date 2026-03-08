@@ -166,37 +166,47 @@ const SearchPage = () => {
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto">
-          {/* Filters & Deep Search Toggle */}
-          <div className="flex justify-end mb-2 gap-2">
-            <button
-              className={cn(
-                "inline-flex items-center gap-2 px-3 py-1.5 rounded-md border transition text-sm font-medium",
-                semanticEnabled
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card text-foreground border-border hover:bg-primary/10"
-              )}
-              onClick={() => {
-                const next = !semanticEnabled;
-                setSemanticEnabled(next);
-                if (next && query.trim().length >= 3) {
-                  expandQuery(query);
-                }
-                if (!next) setSemanticTerms([]);
-              }}
-              aria-label="Toggle deep search"
-            >
-              <Wand2 className="w-4 h-4" />
-              {semanticLoading ? "Thinking..." : "Deep Search"}
-            </button>
-            <button
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-card text-foreground border border-border hover:bg-primary/10 transition text-sm font-medium"
-              onClick={() => setShowFilters((v) => !v)}
-              aria-label="Toggle filters"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              Filters
-            </button>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h1 className="text-2xl font-bold">Smart Search</h1>
+              <p className="text-muted-foreground text-sm mt-1">
+                Search by name, content, tags, or just describe what you're looking for
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                className={cn(
+                  "inline-flex items-center gap-2 px-3 py-1.5 rounded-md border transition text-sm font-medium",
+                  semanticEnabled
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-foreground border-border hover:bg-primary/10"
+                )}
+                onClick={() => {
+                  const next = !semanticEnabled;
+                  setSemanticEnabled(next);
+                  if (next && query.trim().length >= 3) {
+                    expandQuery(query);
+                  }
+                  if (!next) setSemanticTerms([]);
+                }}
+                aria-label="Toggle deep search"
+              >
+                <Wand2 className="w-4 h-4" />
+                {semanticLoading ? "Thinking..." : "Deep Search"}
+              </button>
+              <button
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-card text-foreground border border-border hover:bg-primary/10 transition text-sm font-medium"
+                onClick={() => setShowFilters((v) => !v)}
+                aria-label="Toggle filters"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                Filters
+              </button>
+            </div>
           </div>
+        </motion.div>
+
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <SearchAutocomplete
             value={query}
