@@ -564,7 +564,6 @@ const FilesPage = () => {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="hidden md:block w-52 flex-shrink-0 sticky top-6 h-fit space-y-4"
         >
-        >
           {/* Folders Section */}
           <div className="bg-gradient-to-br from-card to-card/80 rounded-3xl p-6 shadow-sm backdrop-blur-sm border border-border/30">
             <div className="flex items-center justify-between mb-4">
