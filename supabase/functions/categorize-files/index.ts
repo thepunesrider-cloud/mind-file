@@ -50,11 +50,11 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You organize files into a hierarchical folder structure. Create logical categories based on file content and types."
+            content: "You organize files into a hierarchical folder structure. Create logical categories based on file content and types. IMPORTANT: Use the exact file IDs (UUID format) provided in square brackets [ID: ...] when assigning files to subfolders. Every file must appear in at least one subfolder."
           },
           {
             role: "user",
-            content: `Organize these files into smart folders:\n${fileSummaries}`
+            content: `Organize these ${files.length} files into smart folders. Use the exact IDs shown in brackets:\n${fileSummaries}`
           }
         ],
         tools: [{
