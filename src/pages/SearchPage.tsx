@@ -213,6 +213,44 @@ const SearchPage = () => {
     return scored;
   }, [files, parsedQuery, selectedTags, selectedTypes, semanticEnabled, semanticTerms]);
 
+  // Auto-trigger AI smart search when zero results and query is present
+  const smartSearchTriggeredRef = useRef<string>("");
+  useEffect(() => {
+    if (
+      results.length === 0 &&
+      query.trim().length >= 2 &&
+      !isLoading &&
+      !smartLoading &&
+      smartResults.length === 0 &&
+      files && files.length > 0 &&
+      smartSearchTriggeredRef.current !== query
+    ) {
+      smartSearchTriggeredRef.current = query;
+      const timer = setTimeout(async () => {
+        setSmartLoading(true);
+        try {
+          const fileSummaries = files.map(f => ({
+            id: f.id,
+            name: f.file_name,
+            summary: (f.ai_summary || "").substring(0, 200),
+            tags: f.tags.map(t => t.name).join(", "),
+            entities: (f.entities || []).map((e: any) => `${e.label}: ${e.value}`).join(", ").substring(0, 200),
+          }));
+          const { data, error } = await supabase.functions.invoke("smart-search", {
+            body: { query, fileSummaries },
+          });
+          if (error) throw error;
+          setSmartResults(data?.suggestions || []);
+        } catch (e) {
+          console.error("Smart search error:", e);
+        } finally {
+          setSmartLoading(false);
+        }
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [results.length, query, isLoading, smartLoading, smartResults.length, files]);
+
   const toggleTag = (tag: string) => setSelectedTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
   const toggleType = (type: string) => setSelectedTypes((prev) => prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]);
 
