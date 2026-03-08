@@ -154,87 +154,80 @@ serve(async (req) => {
 // ===================== MENU =====================
 
 async function sendMainMenu(authKey: string, intNum: string, phone: string) {
-  try {
-    const payload = {
-      integrated_number: intNum,
-      content_type: "interactive",
-      payload: {
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to: phone,
-        type: "interactive",
-        interactive: {
-          type: "button",
-          body: { text: "👋 *Welcome to Sortify!*\n\nWhat would you like to do?" },
-          action: {
-            buttons: [
-              { type: "reply", reply: { id: "search", title: "🔍 Search Files" } },
-              { type: "reply", reply: { id: "upload", title: "📤 Upload File" } },
-              { type: "reply", reply: { id: "more", title: "📋 More Options" } },
-            ]
-          }
-        }
-      }
-    };
+  const ok = await sendInteractive(authKey, {
+    integrated_number: intNum,
+    recipient_number: phone,
+    content_type: "interactive",
+    payload: {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: phone,
+      type: "interactive",
+      interactive: {
+        type: "button",
+        body: { text: "👋 *Welcome to Sortify!*\n\nWhat would you like to do?" },
+        action: {
+          buttons: [
+            { type: "reply", reply: { id: "search", title: "🔍 Search Files" } },
+            { type: "reply", reply: { id: "upload", title: "📤 Upload File" } },
+            { type: "reply", reply: { id: "more", title: "📋 More Options" } },
+          ],
+        },
+      },
+    },
+  }, "Menu buttons response");
 
-    const resp = await fetch(`${MSG91_API}/whatsapp-outbound-message/`, {
-      method: "POST",
-      headers: { accept: "application/json", authkey: authKey, "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await resp.json();
-    console.log("Menu buttons response:", JSON.stringify(data));
-
-    if (!resp.ok || data.type === "error") {
-      // Fallback to text
-      await sendText(authKey, intNum, phone,
-        "👋 *Welcome to Sortify!*\n\n*1.* 🔍 Search files\n*2.* 📤 Upload a file\n*3.* 📊 View stats\n*4.* 📂 Recent files\n*5.* ❓ Help\n\n📌 *Reply with a number*");
-    }
-  } catch {
+  if (!ok) {
     await sendText(authKey, intNum, phone,
       "👋 *Welcome to Sortify!*\n\n*1.* 🔍 Search files\n*2.* 📤 Upload a file\n*3.* 📊 View stats\n*4.* 📂 Recent files\n*5.* ❓ Help\n\n📌 *Reply with a number*");
   }
 }
 
 async function sendMoreMenu(authKey: string, intNum: string, phone: string) {
-  try {
-    const payload = {
-      integrated_number: intNum,
-      content_type: "interactive",
-      payload: {
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to: phone,
-        type: "interactive",
-        interactive: {
-          type: "button",
-          body: { text: "📋 *More Options*" },
-          action: {
-            buttons: [
-              { type: "reply", reply: { id: "stats", title: "📊 My Stats" } },
-              { type: "reply", reply: { id: "recent", title: "📂 Recent Files" } },
-              { type: "reply", reply: { id: "help", title: "❓ Help" } },
-            ]
-          }
-        }
-      }
-    };
+  const ok = await sendInteractive(authKey, {
+    integrated_number: intNum,
+    recipient_number: phone,
+    content_type: "interactive",
+    payload: {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: phone,
+      type: "interactive",
+      interactive: {
+        type: "button",
+        body: { text: "📋 *More Options*" },
+        action: {
+          buttons: [
+            { type: "reply", reply: { id: "stats", title: "📊 My Stats" } },
+            { type: "reply", reply: { id: "recent", title: "📂 Recent Files" } },
+            { type: "reply", reply: { id: "help", title: "❓ Help" } },
+          ],
+        },
+      },
+    },
+  }, "More menu response");
 
+  if (!ok) {
+    await sendText(authKey, intNum, phone,
+      "📋 *More Options*\n\n*3.* 📊 View stats\n*4.* 📂 Recent files\n*5.* ❓ Help\n\n📌 *Reply with a number*");
+  }
+}
+
+async function sendInteractive(authKey: string, payload: any, logLabel: string): Promise<boolean> {
+  try {
     const resp = await fetch(`${MSG91_API}/whatsapp-outbound-message/`, {
       method: "POST",
       headers: { accept: "application/json", authkey: authKey, "content-type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const data = await resp.json();
-    console.log("More menu response:", JSON.stringify(data));
 
-    if (!resp.ok || data.type === "error") {
-      await sendText(authKey, intNum, phone,
-        "📋 *More Options*\n\n*3.* 📊 View stats\n*4.* 📂 Recent files\n*5.* ❓ Help\n\n📌 *Reply with a number*");
-    }
-  } catch {
-    await sendText(authKey, intNum, phone,
-      "📋 *More Options*\n\n*3.* 📊 View stats\n*4.* 📂 Recent files\n*5.* ❓ Help\n\n📌 *Reply with a number*");
+    const data = await resp.json();
+    console.log(`${logLabel}:`, JSON.stringify(data));
+
+    return resp.ok && !data?.hasError && data?.status !== "fail" && data?.type !== "error";
+  } catch (e) {
+    console.error(`${logLabel} error:`, e);
+    return false;
   }
 }
 
