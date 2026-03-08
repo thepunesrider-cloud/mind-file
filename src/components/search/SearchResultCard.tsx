@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getFileIcon, getFileColor, tagColors } from "@/data/mockFiles";
-import { Download, Eye } from "lucide-react";
+import { Download, Eye, MessageCircle } from "lucide-react";
 import type { FileWithTags } from "@/hooks/useFiles";
 import { downloadFile, viewFile } from "@/lib/fileUrl";
+import { useNavigate } from "react-router-dom";
 
 interface SearchResultCardProps {
   file: FileWithTags;
@@ -18,6 +19,7 @@ const SearchResultCard = ({ file, detail, snippet, isSelected, index, onClick }:
   const Icon = getFileIcon(detail.type);
   const color = getFileColor(detail.type);
   const entities = (file as any).entities || [];
+  const navigate = useNavigate();
 
   return (
     <motion.div
@@ -51,24 +53,33 @@ const SearchResultCard = ({ file, detail, snippet, isSelected, index, onClick }:
             )}
           </div>
         </div>
-        {file.file_url && (
-          <div className="flex items-center gap-1 shrink-0 self-center">
-            <button
-              onClick={(e) => { e.stopPropagation(); viewFile(file.file_url); }}
-              title="View"
-              className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); downloadFile(file.file_url, file.file_name); }}
-              title="Download"
-              className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-1 shrink-0 self-center">
+          <button
+            onClick={(e) => { e.stopPropagation(); navigate(`/chat?fileId=${file.id}`); }}
+            title="Chat with document"
+            className="p-2 rounded-lg text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </button>
+          {file.file_url && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); viewFile(file.file_url); }}
+                title="View"
+                className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); downloadFile(file.file_url, file.file_name); }}
+                title="Download"
+                className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </motion.div>
   );
