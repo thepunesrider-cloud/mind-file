@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.semantic-search]
 verify_jwt = false
+
+[functions.doc-chat]
+verify_jwt = false
+
+[functions.categorize-files]
+verify_jwt = false
