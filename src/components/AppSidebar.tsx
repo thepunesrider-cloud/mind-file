@@ -18,6 +18,7 @@ import {
   Smartphone,
   BarChart3,
   Users,
+  HardDrive,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
