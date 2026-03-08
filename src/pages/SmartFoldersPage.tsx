@@ -372,10 +372,16 @@ const SmartFoldersPage = () => {
               <h1 className="text-2xl sm:text-3xl font-bold">Smart Folders</h1>
               <p className="text-muted-foreground text-sm mt-1">AI organizes your files · drag to move · ⭐ to pin</p>
             </div>
-            <Button onClick={categorize} disabled={loading} className="rounded-xl gap-2">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              {hasNewFiles ? `Sync ${currentFileCount - savedFileCount} new` : "Sync"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={deepCategorizeAll} disabled={deepAllLoading || folders.length === 0} variant="outline" className="rounded-xl gap-2">
+                {deepAllLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
+                Deep Categorize
+              </Button>
+              <Button onClick={categorize} disabled={loading} className="rounded-xl gap-2">
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                {hasNewFiles ? `Sync ${currentFileCount - savedFileCount} new` : "Sync"}
+              </Button>
+            </div>
           </div>
           {hasNewFiles && (
             <motion.p
