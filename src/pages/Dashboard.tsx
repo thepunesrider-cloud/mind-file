@@ -236,6 +236,7 @@ const Dashboard = () => {
                   key={action.label}
                   onClick={() => navigate(action.to)}
                   className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary transition-colors text-left group"
+                  {...(action.onboard ? { "data-onboard": action.onboard } : {})}
                 >
                   <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${action.gradient} flex items-center justify-center`}>
                     <action.icon className="w-4 h-4 text-primary-foreground" />
