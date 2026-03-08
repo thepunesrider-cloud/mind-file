@@ -491,7 +491,7 @@ const LANDING_HTML = `
   <div class="hero-inner">
     <div class="hero-badge">✦&nbsp;&nbsp;NOW LIVE — AI-POWERED FILE INTELLIGENCE</div>
     <h1 class="hero-h1">Your Files,<br>Finally <span class="gradient-text">Intelligent.</span></h1>
-    <p class="hero-sub">Sortify reads, understands, and organises every document you own — automatically. Search by meaning, get reminded before deadlines, and never lose a file again.</p>
+    <p class="hero-sub">Sortify reads, understands, and organises every document you own — automatically. Search by meaning, chat with your docs, get reminded before deadlines, and never lose a file again. <strong>Your data stays private — always.</strong></p>
     <div class="hero-ctas">
       <a href="/login" class="btn-primary">Get Started Free →</a>
       <a href="#features" class="btn-secondary">Explore Features ↓</a>
@@ -526,7 +526,7 @@ const LANDING_HTML = `
       <div class="reveal" style="transition-delay:0.1s;">
         <h2 class="solution-title">Sortify doesn't store files.<br>It understands them.</h2>
         <p class="solution-body">The moment you upload a document, Sortify's AI reads it — extracts names, dates, amounts, and context — then makes it instantly findable by meaning, not just filename.</p>
-        <div class="feature-pills"><span class="feature-pill">✓ Auto-tagging</span><span class="feature-pill">✓ Smart summaries</span><span class="feature-pill">✓ Expiry reminders</span><span class="feature-pill">✓ Semantic search</span></div>
+        <div class="feature-pills"><span class="feature-pill">✓ Auto-tagging</span><span class="feature-pill">✓ Smart summaries</span><span class="feature-pill">✓ Expiry reminders</span><span class="feature-pill">✓ Semantic search</span><span class="feature-pill">✓ Doc Chat</span><span class="feature-pill">✓ Secure sharing</span></div>
       </div>
       <div class="reveal" style="transition-delay:0.25s;">
         <div class="terminal-card" id="terminalCard">
@@ -551,12 +551,15 @@ const LANDING_HTML = `
   <div class="container">
     <div class="features-header reveal"><div class="section-label">CORE FEATURES</div><h2 class="section-title">Everything your files need.<br>Nothing you don't.</h2></div>
     <div class="features-grid">
-      <div class="feature-card reveal-scale" style="transition-delay:0.05s;"><div class="feature-icon">🔍</div><h3>AI Metadata Extraction</h3><p>Upload any file — Sortify reads the content, extracts key information, and stores it as searchable metadata.</p></div>
-      <div class="feature-card reveal-scale" style="transition-delay:0.17s;"><div class="feature-icon">🏷️</div><h3>Smart Auto-Tagging</h3><p>AI assigns intelligent labels the moment a file lands. Invoice, Contract, Medical, Legal — organised automatically.</p></div>
-      <div class="feature-card reveal-scale" style="transition-delay:0.29s;"><div class="feature-icon">⚡</div><h3>Summary-Based Search</h3><p>Search inside AI-generated summaries. Find files by what they mean, not what they're named.</p></div>
-      <div class="feature-card reveal-scale" style="transition-delay:0.41s;"><div class="feature-icon">⏰</div><h3>Auto-Reminder System</h3><p>Sortify reads expiry dates inside your documents and sets reminders automatically — 90, 30, and 7 days before renewal.</p></div>
-      <div class="feature-card reveal-scale" style="transition-delay:0.53s;"><div class="feature-icon">🔐</div><h3>End-to-End Encryption</h3><p>AES-256 encryption on every file. Role-based access, PII detection alerts, and full audit logs.</p></div>
-      <div class="feature-card reveal-scale" style="transition-delay:0.65s;"><div class="feature-icon">☁️</div><h3>Google Drive Import</h3><p>Connect Google Drive and import files directly. Browse, select, and bring your documents into Sortify with one click.</p></div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.05s;"><div class="feature-icon">🔍</div><h3>AI Metadata Extraction</h3><p>Upload any file — Sortify reads the content, extracts names, dates, amounts, and key entities — all stored as searchable metadata. Your files are processed securely and never shared.</p></div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.17s;"><div class="feature-icon">💬</div><h3>Chat With Your Documents</h3><p>Ask questions about your files in natural language. "What's the renewal date on my insurance?" — Sortify answers instantly from your own documents.</p></div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.29s;"><div class="feature-icon">📊</div><h3>Document Comparison</h3><p>Compare two documents side-by-side with AI-powered diff analysis. Spot changes in contracts, policies, and agreements instantly.</p></div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.41s;"><div class="feature-icon">⏰</div><h3>Smart Expiry Reminders</h3><p>AI reads expiry dates inside your documents and sets reminders automatically. Never miss a renewal, deadline, or compliance date.</p></div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.53s;"><div class="feature-icon">👥</div><h3>Team Collaboration</h3><p>Create teams, shared folders, and collaborate on documents with role-based access. Every team member sees only what they should.</p></div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.65s;"><div class="feature-icon">🔗</div><h3>Secure File Sharing</h3><p>Share files with time-limited links that auto-expire. Set view-once mode for sensitive documents. You control who sees what, and for how long.</p></div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.77s;"><div class="feature-icon">📁</div><h3>Smart Folders & Auto-Tagging</h3><p>AI organises files into smart categories — invoices, legal, medical, personal. Custom tags and smart folders keep everything in its place.</p></div>
+      <div class="feature-card reveal-scale" style="transition-delay:0.89s;"><div class="feature-icon">☁️</div><h3>Google Drive Import & Export</h3><p>Connect Google Drive to import and export files seamlessly. Your existing documents, now with Sortify intelligence.</p></div>
+      <div class="feature-card reveal-scale" style="transition-delay:1.01s;"><div class="feature-icon">🔐</div><h3>Privacy-First Security</h3><p>AES-256 encryption at rest, TLS 1.3 in transit. Zero-knowledge architecture — our team cannot access your files. Your data never trains any AI model.</p></div>
     </div>
   </div>
 </section>
@@ -611,18 +614,23 @@ const LANDING_HTML = `
     <div class="reveal" style="margin-bottom:8px;"><div class="section-label">SECURITY &amp; PRIVACY</div></div>
     <div class="security-grid">
       <div class="reveal" style="transition-delay:0.08s;">
-        <h2 class="security-title">Your files are yours.<br>Always.</h2>
-        <p class="security-body">Sortify is built with security as the foundation. Every file is encrypted end-to-end. Every access is logged.</p>
-        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>AES-256 Encryption</h4><p>End-to-end on every file.</p></div></div>
-        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>Role-Based Access</h4><p>Control who sees, edits, and shares.</p></div></div>
-        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>PII Detection Alerts</h4><p>Warned when sensitive data is uploaded.</p></div></div>
-        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>DPDP Act Compliant</h4><p>India's Data Protection law ready from day one.</p></div></div>
+        <h2 class="security-title">Your data is sacred.<br>We treat it that way.</h2>
+        <p class="security-body">Sortify is built privacy-first from the ground up. We don't sell your data, we don't share it with advertisers, and we never use your files to train AI models. Your documents belong to you — period.</p>
+        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>AES-256 Encryption at Rest</h4><p>Every file encrypted with military-grade standards. TLS 1.3 in transit.</p></div></div>
+        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>Zero-Knowledge Architecture</h4><p>Our team physically cannot access your file contents. Only you hold the keys.</p></div></div>
+        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>No Data Selling. Ever.</h4><p>Your data is never sold, shared with third parties, or used for advertising.</p></div></div>
+        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>AI Stays Private</h4><p>AI processes your files in real-time for metadata only. Your content never trains any model.</p></div></div>
+        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>Delete Anytime, Completely</h4><p>Delete your account and all data is permanently wiped within 30 days. No hidden copies.</p></div></div>
+        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>DPDP Act Compliant</h4><p>Built for India's Digital Personal Data Protection Act 2023 from day one.</p></div></div>
       </div>
       <div class="reveal" style="transition-delay:0.22s;">
         <div class="badge-cards">
-          <div class="badge-card"><div class="badge-icon">🔒</div><div><h4>AES-256</h4><p>Military-grade encryption standard</p></div></div>
-          <div class="badge-card"><div class="badge-icon">🇮🇳</div><div><h4>DPDP Ready</h4><p>India Data Protection compliant</p></div></div>
-          <div class="badge-card"><div class="badge-icon">🛡️</div><div><h4>Zero Knowledge</h4><p>We cannot read your files</p></div></div>
+          <div class="badge-card"><div class="badge-icon">🔒</div><div><h4>AES-256 + TLS 1.3</h4><p>Military-grade encryption at rest and in transit</p></div></div>
+          <div class="badge-card"><div class="badge-icon">🚫</div><div><h4>No Data Trading</h4><p>We never sell, share, or monetise your data</p></div></div>
+          <div class="badge-card"><div class="badge-icon">🛡️</div><div><h4>Zero Knowledge</h4><p>We cannot read your files — by design</p></div></div>
+          <div class="badge-card"><div class="badge-icon">🤖</div><div><h4>AI Privacy</h4><p>Your files never train any AI model</p></div></div>
+          <div class="badge-card"><div class="badge-icon">🇮🇳</div><div><h4>DPDP 2023 Ready</h4><p>India's Data Protection law compliant</p></div></div>
+          <div class="badge-card"><div class="badge-icon">🗑️</div><div><h4>Right to Delete</h4><p>Full data erasure on account deletion</p></div></div>
         </div>
       </div>
     </div>
@@ -684,14 +692,14 @@ const LANDING_HTML = `
   <div class="container">
     <div class="faq-header reveal"><div class="section-label">FAQ</div><h2 class="section-title">Questions, answered.</h2></div>
     <div class="faq-grid">
-      <div class="faq-item reveal" style="transition-delay:0.05s;"><div class="faq-question"><h4>Does Sortify store my actual files?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>Sortify stores encrypted copies on secure Indian cloud infrastructure. AES-256 encryption and Zero Knowledge policy.</p></div></div>
-      <div class="faq-item reveal" style="transition-delay:0.1s;"><div class="faq-question"><h4>What file types does Sortify support?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>PDFs, Word, Excel, JPGs, PNGs (with OCR), scanned documents, and text files. More formats added monthly.</p></div></div>
-      <div class="faq-item reveal" style="transition-delay:0.15s;"><div class="faq-question"><h4>How does the AI read my documents?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>Our AI runs OCR then NLP to extract entities. Processed on secure servers — your data never trains public models.</p></div></div>
-      <div class="faq-item reveal" style="transition-delay:0.2s;"><div class="faq-question"><h4>Is Sortify compliant with India's DPDP Act?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>Yes. Built from the ground up for DPDP 2023. Data stored in India, consent records maintained, full deletion on request.</p></div></div>
-      <div class="faq-item reveal" style="transition-delay:0.25s;"><div class="faq-question"><h4>Can I use Sortify offline?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>Desktop agent (coming Q3 2026) supports offline access. Web app requires internet.</p></div></div>
-      <div class="faq-item reveal" style="transition-delay:0.3s;"><div class="faq-question"><h4>How do reminders work?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>AI reads expiry dates from documents and schedules notifications at 90, 30, and 7 days before deadlines.</p></div></div>
-      <div class="faq-item reveal" style="transition-delay:0.35s;"><div class="faq-question"><h4>What if I exceed the free plan limit?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>You'll be notified. Existing files stay accessible. New uploads pause until you upgrade — nothing deleted.</p></div></div>
-      <div class="faq-item reveal" style="transition-delay:0.4s;"><div class="faq-question"><h4>Is there a mobile app?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>Android launches Q2 2026, iOS Q3 2026. Both support camera scanning, upload, search, and push reminders.</p></div></div>
+      <div class="faq-item reveal" style="transition-delay:0.05s;"><div class="faq-question"><h4>Is my data safe with Sortify?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>Absolutely. Every file is encrypted with AES-256 at rest and TLS 1.3 in transit. We operate on a zero-knowledge architecture — our team physically cannot access your file contents. We never sell, share, or monetise your data. Period.</p></div></div>
+      <div class="faq-item reveal" style="transition-delay:0.1s;"><div class="faq-question"><h4>Does Sortify use my files to train AI?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>No. Your files are processed in real-time to extract metadata (summaries, tags, entities) and then the content is not retained by any AI provider. Your documents never train any model — public or private.</p></div></div>
+      <div class="faq-item reveal" style="transition-delay:0.15s;"><div class="faq-question"><h4>Can I delete all my data?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>Yes. You can delete individual files or your entire account at any time. Upon account deletion, all files, metadata, and personal information are permanently wiped within 30 days. No hidden backups, no retained copies.</p></div></div>
+      <div class="faq-item reveal" style="transition-delay:0.2s;"><div class="faq-question"><h4>What file types does Sortify support?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>PDFs, Word documents, Excel sheets, images (JPG, PNG with OCR), scanned documents, and text files. More formats added regularly.</p></div></div>
+      <div class="faq-item reveal" style="transition-delay:0.25s;"><div class="faq-question"><h4>What can I do with the AI chat feature?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>Ask questions about your documents in natural language. "When does my insurance expire?", "Summarise the lease agreement" — Sortify answers from your own files, privately.</p></div></div>
+      <div class="faq-item reveal" style="transition-delay:0.3s;"><div class="faq-question"><h4>How does file sharing work?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>Generate time-limited links (5 min to 24 hours) or view-once links for sensitive files. Links auto-expire — you stay in full control of who sees your documents.</p></div></div>
+      <div class="faq-item reveal" style="transition-delay:0.35s;"><div class="faq-question"><h4>Is Sortify compliant with India's DPDP Act?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>Yes. Built from the ground up for DPDP 2023. Consent records maintained, full data portability, and complete deletion on request. Read our <a href="/privacy" style="color:var(--teal);text-decoration:underline;">Privacy Policy</a> for details.</p></div></div>
+      <div class="faq-item reveal" style="transition-delay:0.4s;"><div class="faq-question"><h4>Can I connect Google Drive?</h4><div class="faq-chevron">▾</div></div><div class="faq-answer"><p>Yes! Connect your Google Drive to import files directly into Sortify, or export Sortify files back to Drive. Your Drive credentials are stored securely and can be revoked anytime.</p></div></div>
     </div>
   </div>
 </section>
@@ -719,11 +727,11 @@ const LANDING_HTML = `
   <div class="cta-inner">
     <div class="cta-badge reveal">NOW LIVE</div>
     <h2 class="cta-title reveal" style="transition-delay:0.1s;">Start managing your documents intelligently — for free.</h2>
-    <p class="cta-sub reveal" style="transition-delay:0.2s;">Join thousands of Indian professionals using Sortify.</p>
+    <p class="cta-sub reveal" style="transition-delay:0.2s;">Join thousands of Indian professionals using Sortify. Your data stays private — always.</p>
     <div class="reveal" style="transition-delay:0.3s;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;">
       <a href="/login" class="btn-primary" style="font-size:17px;padding:16px 40px;">Create Free Account →</a>
     </div>
-    <p class="cta-fine reveal" style="transition-delay:0.4s;">No credit card required · Free plan available · Cancel anytime</p>
+    <p class="cta-fine reveal" style="transition-delay:0.4s;">No credit card required · Free plan available · Cancel anytime · <a href="/privacy" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Privacy Policy</a></p>
   </div>
 </section>
 
@@ -733,7 +741,7 @@ const LANDING_HTML = `
     <div class="footer-grid">
       <div><div class="footer-logo"><div class="nav-logo-dot"></div>SORTIFY</div><p class="footer-tagline">Intelligent File Management, Reimagined</p><p class="footer-copy">© 2026 Sortify. All rights reserved.</p><p class="footer-location">📍 Pune, India</p></div>
       <div class="footer-col"><h5>Product</h5><a href="#features">Features</a><a href="#how">How It Works</a><a href="#security">Security</a><a href="#roadmap">Roadmap</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></div>
-      <div class="footer-col"><h5>Support</h5><a href="#faq">FAQ</a><a href="#support">Help & Support</a><a href="mailto:founders@sortify.in" class="teal">founders@sortify.in</a><a href="https://twitter.com/sortifyapp" target="_blank" rel="noopener">Twitter / X</a></div>
+      <div class="footer-col"><h5>Legal & Support</h5><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="#faq">FAQ</a><a href="#support">Help & Support</a><a href="mailto:founders@sortify.in" class="teal">founders@sortify.in</a><a href="https://twitter.com/sortifyapp" target="_blank" rel="noopener">Twitter / X</a></div>
     </div>
   </div>
 </footer>
