@@ -741,7 +741,7 @@ const LANDING_HTML = `
     <div class="footer-grid">
       <div><div class="footer-logo"><div class="nav-logo-dot"></div>SORTIFY</div><p class="footer-tagline">Intelligent File Management, Reimagined</p><p class="footer-copy">© 2026 Sortify. All rights reserved.</p><p class="footer-location">📍 Pune, India</p></div>
       <div class="footer-col"><h5>Product</h5><a href="#features">Features</a><a href="#how">How It Works</a><a href="#security">Security</a><a href="#roadmap">Roadmap</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></div>
-      <div class="footer-col"><h5>Support</h5><a href="#faq">FAQ</a><a href="#support">Help & Support</a><a href="mailto:founders@sortify.in" class="teal">founders@sortify.in</a><a href="https://twitter.com/sortifyapp" target="_blank" rel="noopener">Twitter / X</a></div>
+      <div class="footer-col"><h5>Legal & Support</h5><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="#faq">FAQ</a><a href="#support">Help & Support</a><a href="mailto:founders@sortify.in" class="teal">founders@sortify.in</a><a href="https://twitter.com/sortifyapp" target="_blank" rel="noopener">Twitter / X</a></div>
     </div>
   </div>
 </footer>
