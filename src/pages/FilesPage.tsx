@@ -498,9 +498,9 @@ const FilesPage = () => {
           >
             <Icon className="w-4 h-4" />
           </motion.div>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 overflow-hidden">
             <p className="text-sm font-semibold truncate text-foreground">{file.file_name}</p>
-            <p className="text-xs text-muted-foreground/70 sm:hidden">{detail.size} · {detail.uploadDate}</p>
+            <p className="text-xs text-muted-foreground/70 truncate sm:hidden">{detail.size} · {detail.uploadDate}</p>
           </div>
           <div className="hidden sm:flex gap-2 shrink-0">
             {file.tags.slice(0, 2).map((tag) => (
