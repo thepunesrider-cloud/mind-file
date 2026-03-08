@@ -380,8 +380,41 @@ const Dashboard = () => {
           )}
         </motion.div>
       </div>
+
+      {/* Onboarding Guide */}
+      <InteractiveOnboardingChecklist
+        steps={onboardingSteps}
+        open={guideOpen}
+        onOpenChange={setGuideOpen}
+        onCompleteStep={completeStep}
+        onFinish={() => {
+          dismiss();
+          setGuideOpen(false);
+        }}
+      />
+
+      {/* FAB to open guide */}
+      {showGuide && !guideOpen && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          onClick={() => setGuideOpen(true)}
+          className="fixed bottom-6 right-6 z-[9990] h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all flex items-center justify-center group"
+          aria-label="Open onboarding guide"
+        >
+          {completedSteps.length > 0 && completedSteps.length < onboardingSteps.length ? (
+            <div className="relative">
+              <PlayCircle className="w-6 h-6" />
+              <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                {completedSteps.length}
+              </span>
+            </div>
+          ) : (
+            <PlayCircle className="w-6 h-6" />
+          )}
+        </motion.button>
+      )}
     </AppLayout>
-  );
 };
 
 export default Dashboard;
