@@ -751,6 +751,16 @@ async function resetSession(supabase: any, phone: string) {
 
 // ===================== UTILS =====================
 
+function getFileTypeEmoji(mimeType: string): string {
+  if (!mimeType) return "📄";
+  if (mimeType.includes("pdf")) return "📕";
+  if (mimeType.includes("image")) return "🖼️";
+  if (mimeType.includes("video")) return "🎬";
+  if (mimeType.includes("word") || mimeType.includes("document")) return "📘";
+  if (mimeType.includes("sheet") || mimeType.includes("excel")) return "📗";
+  return "📄";
+}
+
 function getExtension(mimeType: string): string {
   const map: Record<string, string> = {
     "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
