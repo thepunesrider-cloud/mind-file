@@ -53,29 +53,8 @@ serve(async (req) => {
       .single();
 
     if (!waUser || !waUser.verified) {
-      // Check if this is a verification code
-      if (messageText.length === 6 && /^\d{6}$/.test(messageText)) {
-        const { data: pending } = await supabase
-          .from("whatsapp_users")
-          .select("id, user_id")
-          .eq("phone_number", cleanPhone)
-          .eq("verification_code", messageText)
-          .single();
-
-        if (pending) {
-          await supabase
-            .from("whatsapp_users")
-            .update({ verified: true, verification_code: null })
-            .eq("id", pending.id);
-
-          await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
-            "✅ WhatsApp linked successfully!\n\nYou can now:\n• *Search files* — just type what you're looking for\n• *Upload files* — send any document or image\n• Type *help* for all commands");
-          return jsonOk({ ok: true });
-        }
-      }
-
       await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
-        "👋 Welcome to Sortify!\n\nTo use WhatsApp features, please link your account first:\n1. Open Sortify app → Settings → WhatsApp\n2. Enter your number and get a verification code\n3. Send the 6-digit code here");
+        "👋 Welcome to Sortify!\n\nTo use WhatsApp features, please link your account:\n1. Open Sortify app → Settings → WhatsApp\n2. Enter your number and verify the code sent here");
       return jsonOk({ ok: true });
     }
 
