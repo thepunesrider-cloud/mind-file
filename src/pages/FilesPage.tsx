@@ -770,7 +770,7 @@ const FilesPage = () => {
                 >
                   {sidebarCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
                 </button>
-                <div className="relative">
+                <div className="relative flex-1 sm:flex-none min-w-0">
                   <Input
                     placeholder="Search files..."
                     value={filter}
