@@ -17,6 +17,31 @@ interface Props {
 const FileDetailPanel = ({ file, onClose }: Props) => {
   const Icon = getFileIcon(file.type);
   const color = getFileColor(file.type);
+  const [reanalyzing, setReanalyzing] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleReanalyze = async () => {
+    if (!file.id) return;
+    setReanalyzing(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-file`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ fileId: file.id, fileName: file.name, fileType: file.fileType || file.type }),
+      });
+      if (!resp.ok) throw new Error("Failed");
+      await queryClient.invalidateQueries({ queryKey: ["files"] });
+      toast.success("File re-analyzed successfully!");
+    } catch {
+      toast.error("Failed to re-analyze file");
+    } finally {
+      setReanalyzing(false);
+    }
+  };
 
   return (
     <motion.div
