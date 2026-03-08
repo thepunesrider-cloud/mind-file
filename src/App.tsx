@@ -16,6 +16,7 @@ import SmartFoldersPage from "./pages/SmartFoldersPage";
 import ComparePage from "./pages/ComparePage";
 import SettingsPage from "./pages/SettingsPage";
 import SharedFilePage from "./pages/SharedFilePage";
+import PricingPage from "./pages/PricingPage";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 
@@ -30,6 +31,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/pricing" element={<PricingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<AuthGuard><Dashboard /></AuthGuard>} />
             <Route path="/upload" element={<AuthGuard><UploadPage /></AuthGuard>} />

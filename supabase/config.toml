@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.get-shared-file]
 verify_jwt = false
+
+[functions.support-chat]
+verify_jwt = false
