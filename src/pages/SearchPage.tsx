@@ -364,36 +364,46 @@ const SearchPage = () => {
                   <div className="text-center py-16">
                     <SearchIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
                     <p className="text-muted-foreground text-sm">No exact matches found.</p>
-                    <p className="text-muted-foreground/60 text-xs mt-1 mb-4">Let AI find related files for you.</p>
-                    <button
-                      onClick={async () => {
-                        if (!files || files.length === 0) return;
-                        setSmartLoading(true);
-                        try {
-                          const fileSummaries = files.map(f => ({
-                            id: f.id,
-                            name: f.file_name,
-                            summary: (f.ai_summary || "").substring(0, 200),
-                            tags: f.tags.map(t => t.name).join(", "),
-                            entities: (f.entities || []).map((e: any) => `${e.label}: ${e.value}`).join(", ").substring(0, 200),
-                          }));
-                          const { data, error } = await supabase.functions.invoke("smart-search", {
-                            body: { query, fileSummaries },
-                          });
-                          if (error) throw error;
-                          setSmartResults(data?.suggestions || []);
-                        } catch (e) {
-                          console.error("Smart search error:", e);
-                          toast.error("AI search failed");
-                        } finally {
-                          setSmartLoading(false);
-                        }
-                      }}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition"
-                    >
-                      <Wand2 className="w-4 h-4" />
-                      Find Related Files with AI
-                    </button>
+                    <p className="text-muted-foreground/60 text-xs mt-1 mb-4">Try re-analyzing all files to apply the latest OCR extraction.</p>
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      <button
+                        onClick={handleReanalyzeAll}
+                        disabled={bulkReanalyzing || !files?.length}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-card text-foreground border border-border text-sm font-medium hover:bg-primary/10 transition disabled:opacity-60"
+                      >
+                        {bulkReanalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                        {bulkReanalyzing ? "Re-analyzing files..." : "Re-analyze All Files"}
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!files || files.length === 0) return;
+                          setSmartLoading(true);
+                          try {
+                            const fileSummaries = files.map(f => ({
+                              id: f.id,
+                              name: f.file_name,
+                              summary: (f.ai_summary || "").substring(0, 200),
+                              tags: f.tags.map(t => t.name).join(", "),
+                              entities: (f.entities || []).map((e: any) => `${e.label}: ${e.value}`).join(", ").substring(0, 200),
+                            }));
+                            const { data, error } = await supabase.functions.invoke("smart-search", {
+                              body: { query, fileSummaries },
+                            });
+                            if (error) throw error;
+                            setSmartResults(data?.suggestions || []);
+                          } catch (e) {
+                            console.error("Smart search error:", e);
+                            toast.error("AI search failed");
+                          } finally {
+                            setSmartLoading(false);
+                          }
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition"
+                      >
+                        <Wand2 className="w-4 h-4" />
+                        Find Related Files with AI
+                      </button>
+                    </div>
                   </div>
                 )}
                 {smartLoading && (
