@@ -54,6 +54,37 @@ const storageMethods = [
 
 const teamSizes = ["Just me", "2-5", "6-15", "16-50", "50+"];
 
+const designations = [
+  "Founder / Owner",
+  "CA / Accountant",
+  "Lawyer / Advocate",
+  "Manager",
+  "Director",
+  "CEO / CTO",
+  "Freelancer",
+  "Student",
+  "Other",
+];
+
+const indianStates = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
+  "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura",
+  "Uttar Pradesh", "Uttarakhand", "West Bengal",
+  "Delhi", "Chandigarh", "Other",
+];
+
+const majorCities = [
+  "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Ahmedabad",
+  "Chennai", "Kolkata", "Pune", "Jaipur", "Lucknow",
+  "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal",
+  "Visakhapatnam", "Patna", "Vadodara", "Ghaziabad", "Ludhiana",
+  "Agra", "Nashik", "Surat", "Chandigarh", "Coimbatore",
+  "Other",
+];
+
 const referralSources = [
   "Google Search",
   "Social Media",
