@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Grid3X3, List, Loader2, Download, Eye, FolderPlus, Folder, ChevronRight, MessageCircle, ArrowLeft } from "lucide-react";
+import { Grid3X3, List, Loader2, Download, Eye, FolderPlus, Folder, ChevronRight, MessageCircle, ArrowLeft, Trash2, FolderInput, RefreshCw, FileText, ArrowLeftRight, Info } from "lucide-react";
 import { downloadFile, viewFile } from "@/lib/fileUrl";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,20 @@ import { getFileIcon, getFileColor, tagColors } from "@/data/mockFiles";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuLabel,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 function mapFileType(mimeType: string): "pdf" | "image" | "docx" | "spreadsheet" {
   if (mimeType.includes("pdf")) return "pdf";
@@ -64,6 +78,7 @@ const FilesPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const { data: files, isLoading } = useFiles();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Folder management
   const [folders, setFolders] = useState<UserFolder[]>(loadFolders);
@@ -71,6 +86,8 @@ const FilesPage = () => {
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
+  const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   const createFolder = () => {
     if (!newFolderName.trim()) return;
@@ -89,6 +106,7 @@ const FilesPage = () => {
     );
     setFolders(updated);
     saveFolders(updated);
+    toast.success(`Added to "${folderName}"`);
   };
 
   const removeFileFromFolder = (folderName: string, fileId: string) => {
@@ -97,6 +115,7 @@ const FilesPage = () => {
     );
     setFolders(updated);
     saveFolders(updated);
+    toast.success(`Removed from "${folderName}"`);
   };
 
   const deleteFolder = (folderName: string) => {
@@ -104,6 +123,48 @@ const FilesPage = () => {
     setFolders(updated);
     saveFolders(updated);
     if (activeFolder === folderName) setActiveFolder(null);
+    toast.success(`Folder "${folderName}" deleted`);
+  };
+
+  const renameFolder = (oldName: string, newName: string) => {
+    if (!newName.trim() || newName === oldName) { setRenamingFolder(null); return; }
+    const updated = folders.map(f => f.name === oldName ? { ...f, name: newName.trim() } : f);
+    setFolders(updated);
+    saveFolders(updated);
+    if (activeFolder === oldName) setActiveFolder(newName.trim());
+    setRenamingFolder(null);
+    toast.success(`Renamed to "${newName.trim()}"`);
+  };
+
+  const handleDeleteFile = async (fileId: string, fileName: string) => {
+    try {
+      const { error } = await supabase.from("files").delete().eq("id", fileId);
+      if (error) throw error;
+      // Remove from all folders
+      const updated = folders.map(f => ({ ...f, fileIds: f.fileIds.filter(id => id !== fileId) }));
+      setFolders(updated);
+      saveFolders(updated);
+      queryClient.invalidateQueries({ queryKey: ["files"] });
+      if (selectedFile?.id === fileId) setSelectedFile(null);
+      toast.success(`"${fileName}" deleted`);
+    } catch {
+      toast.error("Failed to delete file");
+    }
+  };
+
+  const handleReanalyze = async (fileId: string, fileName: string, fileType: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-file`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ fileId, fileName, fileType }),
+      });
+      queryClient.invalidateQueries({ queryKey: ["files"] });
+      toast.success("Re-analysis started!");
+    } catch {
+      toast.error("Failed to re-analyze");
+    }
   };
 
   // Get unique categories/tags
@@ -112,7 +173,6 @@ const FilesPage = () => {
   const activeFolderData = folders.find(f => f.name === activeFolder);
 
   const filtered = (files || []).filter((f) => {
-    // If viewing a folder, only show files in that folder
     if (activeFolder && activeFolderData) {
       if (!activeFolderData.fileIds.includes(f.id)) return false;
     }
@@ -123,42 +183,304 @@ const FilesPage = () => {
     return matchesSearch && matchesCategory;
   });
 
+  // Context menu wrapper for file items
+  const FileContextMenu = ({ file, children }: { file: FileWithTags; children: React.ReactNode }) => {
+    const detail = toDetailFile(file);
+    const fileFolders = folders.filter(f => f.fileIds.includes(file.id));
+    const availableFolders = folders.filter(f => !f.fileIds.includes(file.id));
+
+    return (
+      <ContextMenu>
+        <ContextMenuContent className="w-56">
+          <ContextMenuLabel className="flex items-center gap-2 text-xs truncate">
+            <FileText className="w-3 h-3" />
+            {file.file_name}
+          </ContextMenuLabel>
+          <ContextMenuSeparator />
+
+          <ContextMenuItem onClick={() => setSelectedFile(detail)} className="gap-2 cursor-pointer">
+            <Info className="w-4 h-4" />
+            Open Details
+          </ContextMenuItem>
+
+          {file.file_url && (
+            <>
+              <ContextMenuItem onClick={() => viewFile(file.file_url)} className="gap-2 cursor-pointer">
+                <Eye className="w-4 h-4" />
+                Preview
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => downloadFile(file.file_url, file.file_name)} className="gap-2 cursor-pointer">
+                <Download className="w-4 h-4" />
+                Download
+              </ContextMenuItem>
+            </>
+          )}
+
+          <ContextMenuSeparator />
+
+          <ContextMenuItem onClick={() => navigate(`/chat?fileId=${file.id}`)} className="gap-2 cursor-pointer">
+            <MessageCircle className="w-4 h-4" />
+            Chat with Document
+          </ContextMenuItem>
+
+          <ContextMenuItem onClick={() => navigate(`/compare?fileA=${file.id}`)} className="gap-2 cursor-pointer">
+            <ArrowLeftRight className="w-4 h-4" />
+            Compare with...
+          </ContextMenuItem>
+
+          <ContextMenuItem onClick={() => handleReanalyze(file.id, file.file_name, file.file_type)} className="gap-2 cursor-pointer">
+            <RefreshCw className="w-4 h-4" />
+            Re-analyze with AI
+          </ContextMenuItem>
+
+          <ContextMenuSeparator />
+
+          {/* Move to folder sub-menu */}
+          {availableFolders.length > 0 && (
+            <ContextMenuSub>
+              <ContextMenuSubTrigger className="gap-2 cursor-pointer">
+                <FolderInput className="w-4 h-4" />
+                Move to Folder
+              </ContextMenuSubTrigger>
+              <ContextMenuSubContent className="w-48">
+                {availableFolders.map(folder => (
+                  <ContextMenuItem
+                    key={folder.name}
+                    onClick={() => addFileToFolder(folder.name, file.id)}
+                    className="gap-2 cursor-pointer"
+                  >
+                    <Folder className="w-3.5 h-3.5" />
+                    {folder.name}
+                  </ContextMenuItem>
+                ))}
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+          )}
+
+          {/* Remove from current folder */}
+          {activeFolder && (
+            <ContextMenuItem
+              onClick={() => removeFileFromFolder(activeFolder, file.id)}
+              className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+            >
+              <Folder className="w-4 h-4" />
+              Remove from Folder
+            </ContextMenuItem>
+          )}
+
+          {fileFolders.length > 0 && !activeFolder && (
+            <ContextMenuSub>
+              <ContextMenuSubTrigger className="gap-2 cursor-pointer text-destructive focus:text-destructive">
+                <Folder className="w-4 h-4" />
+                Remove from...
+              </ContextMenuSubTrigger>
+              <ContextMenuSubContent className="w-48">
+                {fileFolders.map(folder => (
+                  <ContextMenuItem
+                    key={folder.name}
+                    onClick={() => removeFileFromFolder(folder.name, file.id)}
+                    className="gap-2 cursor-pointer"
+                  >
+                    <Folder className="w-3.5 h-3.5" />
+                    {folder.name}
+                  </ContextMenuItem>
+                ))}
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+          )}
+
+          <ContextMenuSeparator />
+
+          <ContextMenuItem
+            onClick={() => handleDeleteFile(file.id, file.file_name)}
+            className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete
+          </ContextMenuItem>
+        </ContextMenuContent>
+        <ContextMenuTrigger className="contents">
+          {children}
+        </ContextMenuTrigger>
+      </ContextMenu>
+    );
+  };
+
+  // Folder context menu
+  const FolderContextMenu = ({ folder, children }: { folder: UserFolder; children: React.ReactNode }) => (
+    <ContextMenu>
+      <ContextMenuContent className="w-48">
+        <ContextMenuLabel className="text-xs">{folder.name}</ContextMenuLabel>
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          onClick={() => { setRenamingFolder(folder.name); setRenameValue(folder.name); }}
+          className="gap-2 cursor-pointer"
+        >
+          <FileText className="w-4 h-4" />
+          Rename
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => deleteFolder(folder.name)}
+          className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+        >
+          <Trash2 className="w-4 h-4" />
+          Delete Folder
+        </ContextMenuItem>
+      </ContextMenuContent>
+      <ContextMenuTrigger className="contents">
+        {children}
+      </ContextMenuTrigger>
+    </ContextMenu>
+  );
+
   const renderFileCard = (file: FileWithTags, i: number) => {
     const detail = toDetailFile(file);
     const Icon = getFileIcon(detail.type);
     const color = getFileColor(detail.type);
     return (
-      <motion.div
-        key={file.id}
-        layout
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.3 }}
-        whileHover={{ y: -8, transition: { duration: 0.2 } }}
-        draggable
-        onDragStart={(e: any) => { e.dataTransfer?.setData?.("text/plain", file.id); }}
-        onClick={() => setSelectedFile(detail)}
-        className={cn(
-          "group relative bg-gradient-to-br from-card to-card/80 rounded-3xl p-5 cursor-pointer border border-border/30 backdrop-blur-sm transition-all duration-300",
-          selectedFile?.id === file.id
-            ? "border-primary/50 shadow-xl shadow-primary/10 bg-primary/5"
-            : "hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
-        )}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/0 to-primary/0 group-hover:to-primary/5 rounded-3xl transition-all duration-500 pointer-events-none" />
-        <div className="relative flex items-start gap-3 mb-3">
-          <motion.div
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            className={cn("w-11 h-11 rounded-2xl flex items-center justify-center bg-gradient-to-br flex-shrink-0", color)}
+      <FileContextMenu key={file.id} file={file}>
+        <motion.div
+          layout
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.3 }}
+          whileHover={{ y: -8, transition: { duration: 0.2 } }}
+          draggable
+          onDragStart={(e: any) => { e.dataTransfer?.setData?.("text/plain", file.id); }}
+          onClick={() => setSelectedFile(detail)}
+          className={cn(
+            "group relative bg-gradient-to-br from-card to-card/80 rounded-3xl p-5 cursor-pointer border border-border/30 backdrop-blur-sm transition-all duration-300",
+            selectedFile?.id === file.id
+              ? "border-primary/50 shadow-xl shadow-primary/10 bg-primary/5"
+              : "hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+          )}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/0 to-primary/0 group-hover:to-primary/5 rounded-3xl transition-all duration-500 pointer-events-none" />
+          <div className="relative flex items-start gap-3 mb-3">
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              className={cn("w-11 h-11 rounded-2xl flex items-center justify-center bg-gradient-to-br flex-shrink-0", color)}
+            >
+              <Icon className="w-5 h-5" />
+            </motion.div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold truncate text-foreground">{file.file_name}</p>
+              <p className="text-xs text-muted-foreground/80">{detail.size} · {detail.uploadDate}</p>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={(e) => { e.stopPropagation(); navigate(`/chat?fileId=${file.id}`); }}
+                title="Chat with document"
+                className="p-2 rounded-xl text-muted-foreground hover:text-accent hover:bg-accent/10 transition-all duration-200"
+              >
+                <MessageCircle className="w-4 h-4" />
+              </motion.button>
+              {file.file_url && (
+                <>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => { e.stopPropagation(); viewFile(file.file_url); }}
+                    title="View"
+                    className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => { e.stopPropagation(); downloadFile(file.file_url, file.file_name); }}
+                    title="Download"
+                    className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+                  >
+                    <Download className="w-4 h-4" />
+                  </motion.button>
+                </>
+              )}
+            </div>
+          </div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="text-xs text-muted-foreground/80 line-clamp-2 mb-3"
           >
-            <Icon className="w-5 h-5" />
+            {detail.summary}
+          </motion.p>
+          <div className="flex flex-wrap gap-2">
+            {file.tags.map((tag, idx) => (
+              <motion.span
+                key={tag.name}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.05 }}
+                className={cn(
+                  "text-[10px] px-2.5 py-1 rounded-full font-semibold transition-all",
+                  tagColors[tag.name] || "bg-secondary/60 text-muted-foreground"
+                )}
+              >
+                {tag.name}
+              </motion.span>
+            ))}
+          </div>
+        </motion.div>
+      </FileContextMenu>
+    );
+  };
+
+  const renderFileRow = (file: FileWithTags, i: number) => {
+    const detail = toDetailFile(file);
+    const Icon = getFileIcon(detail.type);
+    const color = getFileColor(detail.type);
+    return (
+      <FileContextMenu key={file.id} file={file}>
+        <motion.div
+          layout
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+          draggable
+          onDragStart={(e: any) => { e.dataTransfer?.setData?.("text/plain", file.id); }}
+          onClick={() => setSelectedFile(detail)}
+          whileHover={{ x: 8, transition: { duration: 0.2 } }}
+          className={cn(
+            "group relative bg-gradient-to-r from-card to-card/80 rounded-3xl px-5 py-3.5 flex items-center gap-4 cursor-pointer border border-border/30 transition-all duration-300",
+            selectedFile?.id === file.id
+              ? "border-primary/50 shadow-lg shadow-primary/10 bg-primary/5"
+              : "hover:border-primary/40 hover:shadow-md hover:shadow-primary/5"
+          )}
+        >
+          <motion.div
+            whileHover={{ scale: 1.1, rotate: -5 }}
+            className={cn("w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br", color)}
+          >
+            <Icon className="w-4 h-4" />
           </motion.div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold truncate text-foreground">{file.file_name}</p>
-            <p className="text-xs text-muted-foreground/80">{detail.size} · {detail.uploadDate}</p>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex gap-2 shrink-0">
+            {file.tags.slice(0, 2).map((tag) => (
+              <motion.span
+                key={tag.name}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className={cn(
+                  "text-[10px] px-2.5 py-1 rounded-xl font-semibold",
+                  tagColors[tag.name] || "bg-secondary/60 text-muted-foreground"
+                )}
+              >
+                {tag.name}
+              </motion.span>
+            ))}
+          </div>
+          <span className="text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.size}</span>
+          <span className="text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.uploadDate}</span>
+          <div className="flex items-center gap-0.5 shrink-0">
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
@@ -191,118 +513,8 @@ const FilesPage = () => {
               </>
             )}
           </div>
-        </div>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="text-xs text-muted-foreground/80 line-clamp-2 mb-3"
-        >
-          {detail.summary}
-        </motion.p>
-        <div className="flex flex-wrap gap-2">
-          {file.tags.map((tag, idx) => (
-            <motion.span
-              key={tag.name}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: idx * 0.05 }}
-              className={cn(
-                "text-[10px] px-2.5 py-1 rounded-full font-semibold transition-all",
-                tagColors[tag.name] || "bg-secondary/60 text-muted-foreground"
-              )}
-            >
-              {tag.name}
-            </motion.span>
-          ))}
-        </div>
-      </motion.div>
-    );
-  };
-
-  const renderFileRow = (file: FileWithTags, i: number) => {
-    const detail = toDetailFile(file);
-    const Icon = getFileIcon(detail.type);
-    const color = getFileColor(detail.type);
-    return (
-      <motion.div
-        key={file.id}
-        layout
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.3 }}
-        draggable
-        onDragStart={(e: any) => { e.dataTransfer?.setData?.("text/plain", file.id); }}
-        onClick={() => setSelectedFile(detail)}
-        whileHover={{ x: 8, transition: { duration: 0.2 } }}
-        className={cn(
-          "group relative bg-gradient-to-r from-card to-card/80 rounded-3xl px-5 py-3.5 flex items-center gap-4 cursor-pointer border border-border/30 transition-all duration-300",
-          selectedFile?.id === file.id
-            ? "border-primary/50 shadow-lg shadow-primary/10 bg-primary/5"
-            : "hover:border-primary/40 hover:shadow-md hover:shadow-primary/5"
-        )}
-      >
-        <motion.div
-          whileHover={{ scale: 1.1, rotate: -5 }}
-          className={cn("w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br", color)}
-        >
-          <Icon className="w-4 h-4" />
         </motion.div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold truncate text-foreground">{file.file_name}</p>
-        </div>
-        <div className="flex gap-2 shrink-0">
-          {file.tags.slice(0, 2).map((tag) => (
-            <motion.span
-              key={tag.name}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className={cn(
-                "text-[10px] px-2.5 py-1 rounded-xl font-semibold",
-                tagColors[tag.name] || "bg-secondary/60 text-muted-foreground"
-              )}
-            >
-              {tag.name}
-            </motion.span>
-          ))}
-        </div>
-        <span className="text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.size}</span>
-        <span className="text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.uploadDate}</span>
-        <div className="flex items-center gap-0.5 shrink-0">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={(e) => { e.stopPropagation(); navigate(`/chat?fileId=${file.id}`); }}
-            title="Chat with document"
-            className="p-2 rounded-xl text-muted-foreground hover:text-accent hover:bg-accent/10 transition-all duration-200"
-          >
-            <MessageCircle className="w-4 h-4" />
-          </motion.button>
-          {file.file_url && (
-            <>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={(e) => { e.stopPropagation(); viewFile(file.file_url); }}
-                title="View"
-                className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
-              >
-                <Eye className="w-4 h-4" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={(e) => { e.stopPropagation(); downloadFile(file.file_url, file.file_name); }}
-                title="Download"
-                className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
-              >
-                <Download className="w-4 h-4" />
-              </motion.button>
-            </>
-          )}
-        </div>
-      </motion.div>
+      </FileContextMenu>
     );
   };
 
@@ -331,7 +543,6 @@ const FilesPage = () => {
               </motion.button>
             </div>
 
-            {/* All Files button */}
             <motion.button
               whileHover={{ x: 4 }}
               onClick={() => setActiveFolder(null)}
@@ -346,33 +557,34 @@ const FilesPage = () => {
             </motion.button>
 
             {folders.map((folder) => (
-              <motion.button
-                key={folder.name}
-                whileHover={{ x: 4 }}
-                onDragOver={(e) => { e.preventDefault(); setDragOverFolder(folder.name); }}
-                onDragLeave={() => setDragOverFolder(null)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setDragOverFolder(null);
-                  const fileId = e.dataTransfer.getData("text/plain");
-                  if (fileId) addFileToFolder(folder.name, fileId);
-                }}
-                onClick={() => setActiveFolder(activeFolder === folder.name ? null : folder.name)}
-                className={cn(
-                  "w-full text-left px-4 py-2.5 rounded-2xl text-sm font-medium transition-all duration-300 flex items-center gap-2",
-                  activeFolder === folder.name
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
-                    : dragOverFolder === folder.name
-                    ? "bg-accent/20 border-2 border-dashed border-accent text-accent"
-                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-                )}
-              >
-                <Folder className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate flex-1">{folder.name}</span>
-                <span className={cn("text-xs px-1.5 rounded-lg", activeFolder === folder.name ? "bg-primary-foreground/20" : "bg-muted/50")}>
-                  {folder.fileIds.length}
-                </span>
-              </motion.button>
+              <FolderContextMenu key={folder.name} folder={folder}>
+                <motion.button
+                  whileHover={{ x: 4 }}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverFolder(folder.name); }}
+                  onDragLeave={() => setDragOverFolder(null)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragOverFolder(null);
+                    const fileId = e.dataTransfer.getData("text/plain");
+                    if (fileId) addFileToFolder(folder.name, fileId);
+                  }}
+                  onClick={() => setActiveFolder(activeFolder === folder.name ? null : folder.name)}
+                  className={cn(
+                    "w-full text-left px-4 py-2.5 rounded-2xl text-sm font-medium transition-all duration-300 flex items-center gap-2",
+                    activeFolder === folder.name
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                      : dragOverFolder === folder.name
+                      ? "bg-accent/20 border-2 border-dashed border-accent text-accent"
+                      : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                  )}
+                >
+                  <Folder className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate flex-1">{folder.name}</span>
+                  <span className={cn("text-xs px-1.5 rounded-lg", activeFolder === folder.name ? "bg-primary-foreground/20" : "bg-muted/50")}>
+                    {folder.fileIds.length}
+                  </span>
+                </motion.button>
+              </FolderContextMenu>
             ))}
 
             {folders.length === 0 && (
@@ -436,13 +648,13 @@ const FilesPage = () => {
                         <Folder className="w-5 h-5 text-primary" />
                         <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">{activeFolder}</h1>
                       </div>
-                      <p className="text-muted-foreground text-sm mt-1">{filtered.length} files · Drag files here to add</p>
+                      <p className="text-muted-foreground text-sm mt-1">{filtered.length} files · Right-click for more options</p>
                     </div>
                   </div>
                 ) : (
                   <>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Files</h1>
-                    <p className="text-muted-foreground text-sm mt-2">{filtered.length} files · AI processed</p>
+                    <p className="text-muted-foreground text-sm mt-2">{filtered.length} files · Right-click for more options</p>
                   </>
                 )}
               </div>
@@ -545,6 +757,26 @@ const FilesPage = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewFolder(false)}>Cancel</Button>
             <Button onClick={createFolder} disabled={!newFolderName.trim()}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rename Folder Dialog */}
+      <Dialog open={!!renamingFolder} onOpenChange={(open) => { if (!open) setRenamingFolder(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Rename Folder</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            placeholder="New folder name..."
+            onKeyDown={(e) => e.key === "Enter" && renamingFolder && renameFolder(renamingFolder, renameValue)}
+            autoFocus
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenamingFolder(null)}>Cancel</Button>
+            <Button onClick={() => renamingFolder && renameFolder(renamingFolder, renameValue)} disabled={!renameValue.trim()}>Rename</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
