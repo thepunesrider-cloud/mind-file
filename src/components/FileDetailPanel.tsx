@@ -47,13 +47,9 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
 
   return (
     <>
-      {/* Transparent click-away overlay (no blur on background) */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-40 bg-background/20"
+      {/* Click-away overlay */}
+      <div
+        className="fixed inset-0 z-40"
         onClick={onClose}
       />
 
@@ -62,13 +58,13 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
-        transition={{ type: "spring", damping: 30, stiffness: 300 }}
-        className="fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[360px] lg:w-[400px] border-l border-white/10 overflow-hidden"
+        transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
+        className="fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[360px] lg:w-[400px] border-l border-border/20 overflow-hidden"
         style={{
-          background: "hsl(var(--background) / 0.25)",
-          backdropFilter: "blur(40px) saturate(1.6)",
-          WebkitBackdropFilter: "blur(40px) saturate(1.6)",
-          boxShadow: "-12px 0 50px hsl(var(--primary) / 0.08), -2px 0 8px hsl(var(--border) / 0.2)",
+          background: "hsl(var(--background) / 0.55)",
+          backdropFilter: "blur(24px) saturate(1.3)",
+          WebkitBackdropFilter: "blur(24px) saturate(1.3)",
+          boxShadow: "-8px 0 30px hsl(var(--primary) / 0.05)",
         }}
       >
         <div className="p-5 sm:p-6 h-full overflow-y-auto">
