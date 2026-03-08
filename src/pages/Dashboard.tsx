@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Files,
@@ -23,7 +24,9 @@ import { downloadFile, viewFile } from "@/lib/fileUrl";
 import { getFileIcon, getFileColor } from "@/data/mockFiles";
 import { cn } from "@/lib/utils";
 import { ActionSearchbar } from "@/components/ui/action-searchbar";
-
+import { InteractiveOnboardingChecklist, type Step } from "@/components/ui/onboarding-checklist";
+import { useOnboardingGuide } from "@/hooks/useOnboardingGuide";
+import { PlayCircle } from "lucide-react";
 function mapType(mime: string) {
   if (mime.includes("pdf")) return "pdf" as const;
   if (mime.startsWith("image/")) return "image" as const;
@@ -49,7 +52,40 @@ const typeColors: Record<string, string> = {
 const Dashboard = () => {
   const { data: files, isLoading } = useFiles();
   const navigate = useNavigate();
+  const { showGuide, setShowGuide, completedSteps, completeStep, dismiss } = useOnboardingGuide();
+  const [guideOpen, setGuideOpen] = useState(false);
   const allFiles = files || [];
+
+  const onboardingSteps: Step[] = [
+    {
+      id: "search",
+      title: "Try the Search Bar",
+      description: "Use the smart search bar to find files instantly by name, tag, or content.",
+      targetSelector: "[data-onboard='search-bar']",
+      completed: completedSteps.includes("search"),
+    },
+    {
+      id: "upload",
+      title: "Upload Your First File",
+      description: "Click Upload to add your first document. We'll auto-categorize it for you.",
+      targetSelector: "[data-onboard='upload-action']",
+      completed: completedSteps.includes("upload"),
+    },
+    {
+      id: "browse",
+      title: "Browse Your Files",
+      description: "View all your organized files with smart tags and filters.",
+      targetSelector: "[data-onboard='browse-action']",
+      completed: completedSteps.includes("browse"),
+    },
+    {
+      id: "stats",
+      title: "Check Your Stats",
+      description: "Monitor your storage usage, file counts, and expiring documents at a glance.",
+      targetSelector: "[data-onboard='stats-section']",
+      completed: completedSteps.includes("stats"),
+    },
+  ];
 
   // Compute stats
   const totalFiles = allFiles.length;
@@ -88,9 +124,9 @@ const Dashboard = () => {
 
   // Quick actions
   const quickActions = [
-    { label: "Upload File", icon: Upload, to: "/upload", gradient: "from-primary to-accent" },
-    { label: "Browse Files", icon: FolderOpen, to: "/files", gradient: "from-primary to-info" },
-    { label: "Search", icon: Search, to: "/search", gradient: "from-accent to-primary" },
+    { label: "Upload File", icon: Upload, to: "/upload", gradient: "from-primary to-accent", onboard: "upload-action" },
+    { label: "Browse Files", icon: FolderOpen, to: "/files", gradient: "from-primary to-info", onboard: "browse-action" },
+    { label: "Search", icon: Search, to: "/search", gradient: "from-accent to-primary", onboard: "" },
   ];
 
   return (
@@ -104,7 +140,7 @@ const Dashboard = () => {
           <p className="text-muted-foreground text-sm mt-1 mb-5">Here's what's happening with your files</p>
 
           {/* Action Searchbar with gradient glow */}
-          <div className="relative max-w-xl">
+          <div className="relative max-w-xl" data-onboard="search-bar">
             <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 blur-lg opacity-70 pointer-events-none" />
             <div className="relative">
               <ActionSearchbar />
@@ -161,7 +197,7 @@ const Dashboard = () => {
         </motion.div>
 
         {/* Stat cards grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6" data-onboard="stats-section">
           {[
             { icon: Files, value: totalFiles, label: "Total Files", color: "text-primary", bg: "bg-primary/10" },
             { icon: Upload, value: thisMonth, label: "This Month", color: "text-accent", bg: "bg-accent/10" },
@@ -200,6 +236,7 @@ const Dashboard = () => {
                   key={action.label}
                   onClick={() => navigate(action.to)}
                   className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary transition-colors text-left group"
+                  {...(action.onboard ? { "data-onboard": action.onboard } : {})}
                 >
                   <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${action.gradient} flex items-center justify-center`}>
                     <action.icon className="w-4 h-4 text-primary-foreground" />
@@ -343,6 +380,40 @@ const Dashboard = () => {
           )}
         </motion.div>
       </div>
+
+      {/* Onboarding Guide */}
+      <InteractiveOnboardingChecklist
+        steps={onboardingSteps}
+        open={guideOpen}
+        onOpenChange={setGuideOpen}
+        onCompleteStep={completeStep}
+        onFinish={() => {
+          dismiss();
+          setGuideOpen(false);
+        }}
+      />
+
+      {/* FAB to open guide */}
+      {showGuide && !guideOpen && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          onClick={() => setGuideOpen(true)}
+          className="fixed bottom-6 right-6 z-[9990] h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all flex items-center justify-center group"
+          aria-label="Open onboarding guide"
+        >
+          {completedSteps.length > 0 && completedSteps.length < onboardingSteps.length ? (
+            <div className="relative">
+              <PlayCircle className="w-6 h-6" />
+              <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                {completedSteps.length}
+              </span>
+            </div>
+          ) : (
+            <PlayCircle className="w-6 h-6" />
+          )}
+        </motion.button>
+      )}
     </AppLayout>
   );
 };
