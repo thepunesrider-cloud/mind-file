@@ -483,7 +483,7 @@ Keywords: ${fileRecord.semantic_keywords || "N/A"}`;
 
   if (lovableApiKey) {
     try {
-      const resp = await fetch("https://ai-gateway.lovable.dev/v1/chat/completions", {
+      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
