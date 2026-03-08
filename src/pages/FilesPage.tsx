@@ -235,27 +235,63 @@ const FilesPage = () => {
 
           <ContextMenuSeparator />
 
-          {/* Move to folder sub-menu */}
-          {availableFolders.length > 0 && (
-            <ContextMenuSub>
-              <ContextMenuSubTrigger className="gap-2 cursor-pointer">
-                <FolderInput className="w-4 h-4" />
-                Move to Folder
-              </ContextMenuSubTrigger>
-              <ContextMenuSubContent className="w-48">
-                {availableFolders.map(folder => (
-                  <ContextMenuItem
-                    key={folder.name}
-                    onClick={() => addFileToFolder(folder.name, file.id)}
-                    className="gap-2 cursor-pointer"
-                  >
-                    <Folder className="w-3.5 h-3.5" />
-                    {folder.name}
-                  </ContextMenuItem>
-                ))}
-              </ContextMenuSubContent>
-            </ContextMenuSub>
-          )}
+          {/* Add to submenu */}
+          <ContextMenuSub>
+            <ContextMenuSubTrigger className="gap-2 cursor-pointer">
+              <FolderInput className="w-4 h-4" />
+              Add to
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="w-52">
+              {/* To a Folder - shows available folders */}
+              {availableFolders.length > 0 ? (
+                <ContextMenuSub>
+                  <ContextMenuSubTrigger className="gap-2 cursor-pointer">
+                    <Folder className="w-4 h-4" />
+                    To a Folder
+                  </ContextMenuSubTrigger>
+                  <ContextMenuSubContent className="w-48">
+                    {availableFolders.map(folder => (
+                      <ContextMenuItem
+                        key={folder.name}
+                        onClick={() => addFileToFolder(folder.name, file.id)}
+                        className="gap-2 cursor-pointer"
+                      >
+                        <Folder className="w-3.5 h-3.5" />
+                        {folder.name}
+                      </ContextMenuItem>
+                    ))}
+                    <ContextMenuSeparator />
+                    <ContextMenuItem
+                      onClick={() => setShowNewFolder(true)}
+                      className="gap-2 cursor-pointer text-primary"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      New Folder
+                    </ContextMenuItem>
+                  </ContextMenuSubContent>
+                </ContextMenuSub>
+              ) : (
+                <ContextMenuItem
+                  onClick={() => setShowNewFolder(true)}
+                  className="gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create a Folder first
+                </ContextMenuItem>
+              )}
+
+              <ContextMenuSeparator />
+
+              {/* Auto Categorize */}
+              <ContextMenuItem
+                onClick={() => navigate("/smart-folders")}
+                className="gap-2 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4" />
+                Auto Categorize
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
 
           {/* Remove from current folder */}
           {activeFolder && (
