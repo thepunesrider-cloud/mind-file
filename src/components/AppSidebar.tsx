@@ -15,6 +15,7 @@ import {
   FolderTree,
   ArrowLeftRight,
   RefreshCw,
+  Settings,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
