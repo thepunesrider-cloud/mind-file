@@ -47,8 +47,10 @@ serve(async (req) => {
     const mediaType = body.mime_type || body.media_type || body.mediaType || msgMedia?.mime_type || body.media?.[0]?.type || "";
     const mediaFileName = body.filename || body.media_filename || msgDoc?.filename || body.media?.[0]?.filename || "";
 
-    const interactiveReply = body.button_reply || body.interactive?.button_reply || null;
-    const listReply = body.list_reply || body.interactive?.list_reply || null;
+    // MSG91 sends button replies at messages[0].interactive.button_reply
+    const msgInteractive = body.messages?.[0]?.interactive;
+    const interactiveReply = body.button_reply || body.interactive?.button_reply || msgInteractive?.button_reply || null;
+    const listReply = body.list_reply || body.interactive?.list_reply || msgInteractive?.list_reply || null;
     const selectedId = interactiveReply?.id || listReply?.id || "";
 
     if (!senderPhone) {
@@ -71,8 +73,12 @@ serve(async (req) => {
     }
 
     if (!waUser || !waUser.verified) {
-      await sendText(msg91Key, integratedNumber, cleanPhone,
-        "👋 Welcome to Sortify!\n\nTo use WhatsApp features, please link your account:\n1. Open Sortify app → Settings → WhatsApp\n2. Enter your number and verify the code sent here");
+      // Only respond to unverified users if they send "sort"
+      const msgLower = messageText.toLowerCase();
+      if (msgLower === "sort") {
+        await sendText(msg91Key, integratedNumber, cleanPhone,
+          "👋 Welcome to Sortify!\n\nTo use WhatsApp features, please link your account:\n1. Open Sortify app → Settings → WhatsApp\n2. Enter your number and verify the code sent here");
+      }
       return jsonOk({ ok: true });
     }
 
@@ -92,19 +98,26 @@ serve(async (req) => {
       session = newSession;
     }
 
-    // --- Interactive button/list reply ---
+    // Check if session is expired (5 min timeout)
+    const SESSION_TIMEOUT_MS = 5 * 60 * 1000;
+    const sessionAge = session?.updated_at
+      ? Date.now() - new Date(session.updated_at).getTime()
+      : Infinity;
+    const sessionActive = session && session.session_type !== "idle" && sessionAge < SESSION_TIMEOUT_MS;
+
+    // --- Interactive button/list reply (always handle, buttons carry their own context) ---
     if (selectedId) {
       return await handleMenuChoice(selectedId, supabase, msg91Key, integratedNumber, cleanPhone, userId, session, lovableApiKey, supabaseUrl);
     }
 
-    // --- File/media upload ---
-    if (mediaUrl) {
+    // --- File/media upload (only if session is active or awaiting_upload) ---
+    if (mediaUrl && (sessionActive || session?.session_type === "awaiting_upload")) {
       await handleUpload(supabase, msg91Key, integratedNumber, cleanPhone, userId, mediaUrl, mediaType, mediaFileName, lovableApiKey, supabaseUrl);
       return jsonOk({ ok: true });
     }
 
     // --- Number pick (awaiting_pick) ---
-    if (session?.session_type === "awaiting_pick" && /^\d+$/.test(messageText)) {
+    if (sessionActive && session?.session_type === "awaiting_pick" && /^\d+$/.test(messageText)) {
       const pickNum = parseInt(messageText, 10);
       const results = (session.session_data as any)?.results || [];
       if (pickNum >= 1 && pickNum <= results.length) {
@@ -116,23 +129,14 @@ serve(async (req) => {
     }
 
     // --- Search input (awaiting_search) ---
-    if (session?.session_type === "awaiting_search" && messageText) {
+    if (sessionActive && session?.session_type === "awaiting_search" && messageText) {
       await resetSession(supabase, cleanPhone);
       await handleSearch(supabase, msg91Key, integratedNumber, cleanPhone, userId, messageText);
       return jsonOk({ ok: true });
     }
 
-    const msgLower = messageText.toLowerCase();
-
-    // --- Main menu triggers ---
-    if (["sort", "hi", "hello", "start", "menu"].includes(msgLower)) {
-      await sendMainMenu(msg91Key, integratedNumber, cleanPhone);
-      await setSession(supabase, cleanPhone, "awaiting_menu");
-      return jsonOk({ ok: true });
-    }
-
     // --- Fallback number menu selection ---
-    if (session?.session_type === "awaiting_menu" && /^\d$/.test(messageText)) {
+    if (sessionActive && session?.session_type === "awaiting_menu" && /^\d$/.test(messageText)) {
       const menuMap: Record<string, string> = { "1": "search", "2": "upload", "3": "stats", "4": "recent", "5": "help" };
       const choiceId = menuMap[messageText];
       if (choiceId) {
@@ -140,8 +144,16 @@ serve(async (req) => {
       }
     }
 
-    // --- Fallback ---
-    await sendText(msg91Key, integratedNumber, cleanPhone, "Type *sort* to see the menu and get started! 🚀");
+    const msgLower = messageText.toLowerCase();
+
+    // --- ONLY "sort" triggers the menu ---
+    if (msgLower === "sort") {
+      await sendMainMenu(msg91Key, integratedNumber, cleanPhone);
+      await setSession(supabase, cleanPhone, "awaiting_menu");
+      return jsonOk({ ok: true });
+    }
+
+    // --- Ignore all other messages silently (no fallback reply) ---
     return jsonOk({ ok: true });
   } catch (e) {
     console.error("whatsapp-webhook error:", e);
