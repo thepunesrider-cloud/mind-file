@@ -14,8 +14,8 @@ import {
   MessageCircle,
   FolderTree,
   ArrowLeftRight,
-  RefreshCw,
   Settings,
+  Smartphone,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
