@@ -201,10 +201,16 @@ const SettingsPage = () => {
                   </p>
                 </div>
               </div>
-              <Button onClick={checkWhatsAppLink} variant="outline" size="sm" className="gap-2">
-                <Loader2 className="w-3.5 h-3.5" />
-                Check Status
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={regenerateCode} variant="outline" size="sm" className="gap-2" disabled={loading}>
+                  {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                  Regenerate Code
+                </Button>
+                <Button onClick={checkWhatsAppLink} variant="outline" size="sm" className="gap-2">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  Check Status
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
