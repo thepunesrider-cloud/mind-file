@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MessageCircle, Phone, Loader2, CheckCircle, Send, Unlink, RefreshCw } from "lucide-react";
+import { MessageCircle, Phone, Loader2, CheckCircle, Send, Unlink, RefreshCw, ShieldCheck } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,9 @@ const SettingsPage = () => {
   const [linkedPhone, setLinkedPhone] = useState("");
   const [verified, setVerified] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
+  const [otpInput, setOtpInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [checkLoading, setCheckLoading] = useState(true);
 
   useEffect(() => {
@@ -35,10 +37,18 @@ const SettingsPage = () => {
         setLinked(true);
         setLinkedPhone(data.phone_number);
         setVerified(data.verified);
+        if (!data.verified) setCodeSent(true);
       }
     } finally {
       setCheckLoading(false);
     }
+  };
+
+  const sendOtpToWhatsApp = async (phoneNumber: string, code: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    await supabase.functions.invoke("send-whatsapp-otp", {
+      body: { phone: phoneNumber, code },
+    });
   };
 
   const linkWhatsApp = async () => {
@@ -52,10 +62,8 @@ const SettingsPage = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
-      // Generate 6-digit code
       const code = String(Math.floor(100000 + Math.random() * 900000));
 
-      // Upsert WhatsApp user
       const { error } = await supabase
         .from("whatsapp_users")
         .upsert({
@@ -67,17 +75,57 @@ const SettingsPage = () => {
 
       if (error) throw error;
 
+      // Send code to WhatsApp
+      await sendOtpToWhatsApp(cleanPhone, code);
+
       setLinked(true);
       setLinkedPhone(cleanPhone);
       setCodeSent(true);
-      toast.success(`Verification code: ${code}`, {
-        description: "Send this code to Sortify on WhatsApp to verify",
-        duration: 15000,
-      });
+      setOtpInput("");
+      toast.success("Verification code sent to your WhatsApp!");
     } catch (err: any) {
       toast.error(err.message || "Failed to link");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const verifyCode = async () => {
+    if (otpInput.length !== 6) {
+      toast.error("Enter the 6-digit code");
+      return;
+    }
+    setVerifying(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not logged in");
+
+      // Check code in DB
+      const { data } = await supabase
+        .from("whatsapp_users")
+        .select("id, verification_code")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!data || data.verification_code !== otpInput) {
+        toast.error("Invalid code. Please try again.");
+        return;
+      }
+
+      // Mark verified
+      await supabase
+        .from("whatsapp_users")
+        .update({ verified: true, verification_code: null })
+        .eq("id", data.id);
+
+      setVerified(true);
+      setCodeSent(false);
+      setOtpInput("");
+      toast.success("WhatsApp linked successfully! 🎉");
+    } catch (err: any) {
+      toast.error(err.message || "Verification failed");
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -96,12 +144,13 @@ const SettingsPage = () => {
 
       if (error) throw error;
 
+      // Send new code to WhatsApp
+      await sendOtpToWhatsApp(linkedPhone, code);
+
       setVerified(false);
       setCodeSent(true);
-      toast.success(`New verification code: ${code}`, {
-        description: "Send this code to Sortify on WhatsApp",
-        duration: 15000,
-      });
+      setOtpInput("");
+      toast.success("New code sent to your WhatsApp!");
     } catch (err: any) {
       toast.error(err.message || "Failed to regenerate code");
     } finally {
@@ -125,6 +174,7 @@ const SettingsPage = () => {
       setVerified(false);
       setCodeSent(false);
       setPhone("");
+      setOtpInput("");
       toast.success("WhatsApp unlinked");
     } finally {
       setLoading(false);
@@ -139,7 +189,6 @@ const SettingsPage = () => {
           <p className="text-muted-foreground text-sm mb-8">Manage your account and integrations</p>
         </motion.div>
 
-        {/* WhatsApp Integration Card */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -147,8 +196,8 @@ const SettingsPage = () => {
           className="bg-card border border-border rounded-2xl p-6"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-              <MessageCircle className="w-5 h-5 text-green-500" />
+            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 text-accent" />
             </div>
             <div>
               <h2 className="text-lg font-semibold">WhatsApp Integration</h2>
@@ -162,9 +211,10 @@ const SettingsPage = () => {
               Checking...
             </div>
           ) : linked && verified ? (
+            /* --- CONNECTED STATE --- */
             <div className="space-y-4">
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/5 border border-green-500/20">
-                <CheckCircle className="w-5 h-5 text-green-500" />
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-accent/5 border border-accent/20">
+                <CheckCircle className="w-5 h-5 text-accent" />
                 <div>
                   <p className="text-sm font-medium">Connected: +{linkedPhone}</p>
                   <p className="text-xs text-muted-foreground">You can search and upload files via WhatsApp</p>
@@ -173,16 +223,16 @@ const SettingsPage = () => {
               <div className="bg-secondary/30 rounded-xl p-4 space-y-2">
                 <p className="text-sm font-medium">How to use:</p>
                 <ul className="text-xs text-muted-foreground space-y-1.5">
-                  <li>🔍 <strong>Search:</strong> Just type what you're looking for</li>
+                  <li>💬 Type <strong>sort</strong> to see the menu</li>
+                  <li>🔍 <strong>Search:</strong> Select option 1, then type your query</li>
                   <li>📤 <strong>Upload:</strong> Send any document or image</li>
-                  <li>📊 <strong>Stats:</strong> Type "stats" for file count</li>
-                  <li>❓ <strong>Help:</strong> Type "help" for all commands</li>
+                  <li>📊 <strong>Stats:</strong> Select option 3</li>
                 </ul>
               </div>
               <div className="flex gap-2">
                 <Button onClick={regenerateCode} variant="outline" size="sm" className="gap-2" disabled={loading}>
                   {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-                  Regenerate Code
+                  Re-verify
                 </Button>
                 <Button onClick={unlinkWhatsApp} variant="outline" size="sm" className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10" disabled={loading}>
                   {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Unlink className="w-3.5 h-3.5" />}
@@ -191,31 +241,43 @@ const SettingsPage = () => {
               </div>
             </div>
           ) : linked && codeSent ? (
+            /* --- VERIFICATION PENDING STATE --- */
             <div className="space-y-4">
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
-                <Send className="w-5 h-5 text-yellow-500" />
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
+                <Send className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="text-sm font-medium">Verification pending</p>
+                  <p className="text-sm font-medium">Code sent to +{linkedPhone}</p>
                   <p className="text-xs text-muted-foreground">
-                    Send the 6-digit code shown above to Sortify's WhatsApp number to complete linking
+                    Check your WhatsApp and enter the 6-digit code below
                   </p>
                 </div>
               </div>
               <div className="flex gap-2">
+                <Input
+                  placeholder="Enter 6-digit code"
+                  value={otpInput}
+                  onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  className="flex-1 text-center text-lg tracking-[0.3em] font-mono"
+                  maxLength={6}
+                  onKeyDown={(e) => e.key === "Enter" && verifyCode()}
+                />
+                <Button onClick={verifyCode} disabled={verifying || otpInput.length !== 6} className="gap-2">
+                  {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                  Verify
+                </Button>
+              </div>
+              <div className="flex gap-2">
                 <Button onClick={regenerateCode} variant="outline" size="sm" className="gap-2" disabled={loading}>
                   {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-                  Regenerate Code
-                </Button>
-                <Button onClick={checkWhatsAppLink} variant="outline" size="sm" className="gap-2">
-                  <CheckCircle className="w-3.5 h-3.5" />
-                  Check Status
+                  Resend Code
                 </Button>
               </div>
             </div>
           ) : (
+            /* --- INITIAL LINK STATE --- */
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Link your WhatsApp number to search files, upload documents, and get instant access to your files — all from WhatsApp.
+                Link your WhatsApp number to search files, upload documents, and get instant access — all from WhatsApp.
               </p>
               <div className="flex gap-2">
                 <div className="relative flex-1">
