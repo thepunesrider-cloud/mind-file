@@ -17,7 +17,7 @@ const Login = () => {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [debugInfo, setDebugInfo] = useState({ session: "checking...", lastEvent: "none", lastTime: "" });
+  
   const navigate = useNavigate();
 
   const redirectByOnboarding = useCallback(async (userId: string) => {
