@@ -33,7 +33,7 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
           .eq("user_id", session.user.id)
           .maybeSingle();
 
-        if (profile && !profile.onboarding_completed) {
+        if (!profile || !profile.onboarding_completed) {
           setOnboarded(false);
           navigate("/onboarding", { replace: true });
           setLoading(false);
