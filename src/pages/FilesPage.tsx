@@ -824,23 +824,16 @@ const FilesPage = () => {
                 </div>
               </motion.div>
             ) : (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-6">
-                <div className="flex-1">
-                  {view === "grid" ? (
-                    <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                      {filtered.map((file, i) => renderFileCard(file, i))}
-                    </motion.div>
-                  ) : (
-                    <motion.div layout className="space-y-3">
-                      {filtered.map((file, i) => renderFileRow(file, i))}
-                    </motion.div>
-                  )}
-                </div>
-                <AnimatePresence>
-                  {selectedFile && (
-                    <FileDetailPanel file={selectedFile} onClose={() => setSelectedFile(null)} />
-                  )}
-                </AnimatePresence>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                {view === "grid" ? (
+                  <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {filtered.map((file, i) => renderFileCard(file, i))}
+                  </motion.div>
+                ) : (
+                  <motion.div layout className="space-y-3">
+                    {filtered.map((file, i) => renderFileRow(file, i))}
+                  </motion.div>
+                )}
               </motion.div>
             )}
           </div>
