@@ -65,10 +65,10 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
         className="fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[360px] lg:w-[400px] border-l border-white/10 overflow-hidden"
         style={{
-          background: "linear-gradient(165deg, hsl(var(--card) / 0.75), hsl(var(--background) / 0.65))",
-          backdropFilter: "blur(32px) saturate(1.5)",
-          WebkitBackdropFilter: "blur(32px) saturate(1.5)",
-          boxShadow: "-12px 0 50px hsl(var(--primary) / 0.06), -2px 0 8px hsl(var(--border) / 0.2)",
+          background: "hsl(var(--background) / 0.25)",
+          backdropFilter: "blur(40px) saturate(1.6)",
+          WebkitBackdropFilter: "blur(40px) saturate(1.6)",
+          boxShadow: "-12px 0 50px hsl(var(--primary) / 0.08), -2px 0 8px hsl(var(--border) / 0.2)",
         }}
       >
         <div className="p-5 sm:p-6 h-full overflow-y-auto">
