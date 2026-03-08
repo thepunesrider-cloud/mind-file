@@ -215,8 +215,9 @@ async function sendMoreMenu(authKey: string, intNum: string, phone: string) {
 
 async function sendInteractive(authKey: string, payload: any, logLabel: string): Promise<boolean> {
   try {
-    // MSG91 interactive works on bulk endpoint with JSON payload
-    const resp = await fetch(`${MSG91_API}/whatsapp-outbound-message/bulk/`, {
+    const url = `${MSG91_API}/whatsapp-outbound-message/?integrated_number=${encodeURIComponent(payload.integrated_number)}&recipient_number=${encodeURIComponent(payload.recipient_number)}&content_type=interactive`;
+
+    const resp = await fetch(url, {
       method: "POST",
       headers: { accept: "application/json", authkey: authKey, "content-type": "application/json" },
       body: JSON.stringify(payload),
