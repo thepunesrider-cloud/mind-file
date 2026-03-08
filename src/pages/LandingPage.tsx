@@ -491,7 +491,7 @@ const LANDING_HTML = `
   <div class="hero-inner">
     <div class="hero-badge">✦&nbsp;&nbsp;NOW LIVE — AI-POWERED FILE INTELLIGENCE</div>
     <h1 class="hero-h1">Your Files,<br>Finally <span class="gradient-text">Intelligent.</span></h1>
-    <p class="hero-sub">Sortify reads, understands, and organises every document you own — automatically. Search by meaning, get reminded before deadlines, and never lose a file again.</p>
+    <p class="hero-sub">Sortify reads, understands, and organises every document you own — automatically. Search by meaning, chat with your docs, get reminded before deadlines, and never lose a file again. <strong>Your data stays private — always.</strong></p>
     <div class="hero-ctas">
       <a href="/login" class="btn-primary">Get Started Free →</a>
       <a href="#features" class="btn-secondary">Explore Features ↓</a>
