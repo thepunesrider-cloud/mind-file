@@ -54,6 +54,37 @@ const storageMethods = [
 
 const teamSizes = ["Just me", "2-5", "6-15", "16-50", "50+"];
 
+const designations = [
+  "Founder / Owner",
+  "CA / Accountant",
+  "Lawyer / Advocate",
+  "Manager",
+  "Director",
+  "CEO / CTO",
+  "Freelancer",
+  "Student",
+  "Other",
+];
+
+const indianStates = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
+  "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura",
+  "Uttar Pradesh", "Uttarakhand", "West Bengal",
+  "Delhi", "Chandigarh", "Other",
+];
+
+const majorCities = [
+  "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Ahmedabad",
+  "Chennai", "Kolkata", "Pune", "Jaipur", "Lucknow",
+  "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal",
+  "Visakhapatnam", "Patna", "Vadodara", "Ghaziabad", "Ludhiana",
+  "Agra", "Nashik", "Surat", "Chandigarh", "Coimbatore",
+  "Other",
+];
+
 const referralSources = [
   "Google Search",
   "Social Media",
@@ -233,11 +264,14 @@ const OnboardingPage = () => {
                   </div>
                   <div>
                     <Label className="text-xs font-medium mb-1.5 block">Designation / Role</Label>
-                    <Input
-                      value={form.designation}
-                      onChange={(e) => update("designation", e.target.value)}
-                      placeholder="e.g., Founder, CA, Manager"
-                    />
+                    <Select value={form.designation} onValueChange={(v) => update("designation", v)}>
+                      <SelectTrigger><SelectValue placeholder="Select your role" /></SelectTrigger>
+                      <SelectContent>
+                        {designations.map((d) => (
+                          <SelectItem key={d} value={d}>{d}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </>
               )}
@@ -282,19 +316,25 @@ const OnboardingPage = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label className="text-xs font-medium mb-1.5 block">City</Label>
-                      <Input
-                        value={form.city}
-                        onChange={(e) => update("city", e.target.value)}
-                        placeholder="e.g., Mumbai"
-                      />
+                      <Select value={form.city} onValueChange={(v) => update("city", v)}>
+                        <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
+                        <SelectContent>
+                          {majorCities.map((c) => (
+                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label className="text-xs font-medium mb-1.5 block">State</Label>
-                      <Input
-                        value={form.state}
-                        onChange={(e) => update("state", e.target.value)}
-                        placeholder="e.g., Maharashtra"
-                      />
+                      <Select value={form.state} onValueChange={(v) => update("state", v)}>
+                        <SelectTrigger><SelectValue placeholder="Select state" /></SelectTrigger>
+                        <SelectContent>
+                          {indianStates.map((s) => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <div>
