@@ -84,18 +84,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // If user is visiting root path, check for Supabase session
-      if (window.location.pathname === '/') {
-        try {
-          var sb = JSON.parse(localStorage.getItem('sb-dmmzlxeetlcsvyiaauna-auth-token') || '{}');
-          if (!sb.access_token) {
-            window.location.href = '/landing.html';
-          }
-        } catch (e) {
-          window.location.href = '/landing.html';
-        }
-      }
-    </script>
   </body>
 </html>
