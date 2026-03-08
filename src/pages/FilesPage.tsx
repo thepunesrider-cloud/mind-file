@@ -684,7 +684,7 @@ const FilesPage = () => {
                     <div>
                       <div className="flex items-center gap-2">
                         <Folder className="w-5 h-5 text-primary" />
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">{activeFolder}</h1>
+                        <h1 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">{activeFolder}</h1>
                       </div>
                       <p className="text-muted-foreground text-sm mt-1">{filtered.length} files · Right-click for more options</p>
                     </div>
