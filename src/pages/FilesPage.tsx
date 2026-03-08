@@ -889,6 +889,14 @@ const FilesPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Share Dialog */}
+      <ShareDialog
+        open={!!shareFile}
+        onOpenChange={(open) => { if (!open) setShareFile(null); }}
+        fileId={shareFile?.id || ""}
+        fileName={shareFile?.name || ""}
+      />
     </AppLayout>
   );
 };
