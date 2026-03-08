@@ -18,26 +18,41 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Listen for auth state changes (handles Google OAuth redirect)
+  // Handle auth state and redirect after OAuth/email login
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === "SIGNED_IN" && session) {
-          // Check onboarding status
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("onboarding_completed")
-            .eq("user_id", session.user.id)
-            .maybeSingle();
+    const redirectByOnboarding = async (userId: string) => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-          if (profile && !profile.onboarding_completed) {
-            navigate("/onboarding", { replace: true });
-          } else {
-            navigate("/dashboard", { replace: true });
-          }
-        }
+      if (!profile || !profile.onboarding_completed) {
+        navigate("/onboarding", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
       }
-    );
+    };
+
+    const init = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        await redirectByOnboarding(session.user.id);
+      }
+    };
+
+    init();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user?.id) {
+        await redirectByOnboarding(session.user.id);
+      }
+    });
+
     return () => subscription.unsubscribe();
   }, [navigate]);
 
