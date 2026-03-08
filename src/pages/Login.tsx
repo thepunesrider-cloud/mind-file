@@ -50,12 +50,6 @@ const Login = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setDebugInfo(prev => ({
-        ...prev,
-        lastEvent: `${event} @ ${new Date().toLocaleTimeString()}`,
-        session: session ? `✅ ${session.user.email}` : "❌ No session",
-        lastTime: new Date().toLocaleTimeString(),
-      }));
       if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user?.id) {
         await redirectByOnboarding(session.user.id);
       }
