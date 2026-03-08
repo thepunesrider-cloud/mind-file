@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Bot, User, Loader2, FileText, X } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
