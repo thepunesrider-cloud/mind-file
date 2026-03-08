@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search as SearchIcon, SlidersHorizontal, Loader2, Sparkles, Wand2, RefreshCw } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
@@ -40,6 +40,7 @@ function toDetailFile(f: FileWithTags) {
     lastAccessed: new Date(f.updated_at).toLocaleDateString(),
     fileUrl: f.file_url,
     fileType: f.file_type,
+    entities: f.entities || [],
   };
 }
 
@@ -213,6 +214,44 @@ const SearchPage = () => {
     return scored;
   }, [files, parsedQuery, selectedTags, selectedTypes, semanticEnabled, semanticTerms]);
 
+  // Auto-trigger AI smart search when zero results and query is present
+  const smartSearchTriggeredRef = useRef<string>("");
+  useEffect(() => {
+    if (
+      results.length === 0 &&
+      query.trim().length >= 2 &&
+      !isLoading &&
+      !smartLoading &&
+      smartResults.length === 0 &&
+      files && files.length > 0 &&
+      smartSearchTriggeredRef.current !== query
+    ) {
+      smartSearchTriggeredRef.current = query;
+      const timer = setTimeout(async () => {
+        setSmartLoading(true);
+        try {
+          const fileSummaries = files.map(f => ({
+            id: f.id,
+            name: f.file_name,
+            summary: (f.ai_summary || "").substring(0, 200),
+            tags: f.tags.map(t => t.name).join(", "),
+            entities: (f.entities || []).map((e: any) => `${e.label}: ${e.value}`).join(", ").substring(0, 200),
+          }));
+          const { data, error } = await supabase.functions.invoke("smart-search", {
+            body: { query, fileSummaries },
+          });
+          if (error) throw error;
+          setSmartResults(data?.suggestions || []);
+        } catch (e) {
+          console.error("Smart search error:", e);
+        } finally {
+          setSmartLoading(false);
+        }
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [results.length, query, isLoading, smartLoading, smartResults.length, files]);
+
   const toggleTag = (tag: string) => setSelectedTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
   const toggleType = (type: string) => setSelectedTypes((prev) => prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]);
 
@@ -361,49 +400,17 @@ const SearchPage = () => {
                   {query && <span className="text-primary ml-1">· sorted by relevance</span>}
                 </p>
                 {results.length === 0 && query && !smartLoading && smartResults.length === 0 && (
-                  <div className="text-center py-16">
-                    <SearchIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-muted-foreground text-sm">No exact matches found.</p>
-                    <p className="text-muted-foreground/60 text-xs mt-1 mb-4">Try re-analyzing all files to apply the latest OCR extraction.</p>
-                    <div className="flex items-center justify-center gap-2 flex-wrap">
-                      <button
-                        onClick={handleReanalyzeAll}
-                        disabled={bulkReanalyzing || !files?.length}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-card text-foreground border border-border text-sm font-medium hover:bg-primary/10 transition disabled:opacity-60"
-                      >
-                        {bulkReanalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                        {bulkReanalyzing ? "Re-analyzing files..." : "Re-analyze All Files"}
-                      </button>
-                      <button
-                        onClick={async () => {
-                          if (!files || files.length === 0) return;
-                          setSmartLoading(true);
-                          try {
-                            const fileSummaries = files.map(f => ({
-                              id: f.id,
-                              name: f.file_name,
-                              summary: (f.ai_summary || "").substring(0, 200),
-                              tags: f.tags.map(t => t.name).join(", "),
-                              entities: (f.entities || []).map((e: any) => `${e.label}: ${e.value}`).join(", ").substring(0, 200),
-                            }));
-                            const { data, error } = await supabase.functions.invoke("smart-search", {
-                              body: { query, fileSummaries },
-                            });
-                            if (error) throw error;
-                            setSmartResults(data?.suggestions || []);
-                          } catch (e) {
-                            console.error("Smart search error:", e);
-                            toast.error("AI search failed");
-                          } finally {
-                            setSmartLoading(false);
-                          }
-                        }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition"
-                      >
-                        <Wand2 className="w-4 h-4" />
-                        Find Related Files with AI
-                      </button>
-                    </div>
+                  <div className="text-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+                    <p className="text-muted-foreground text-sm">AI is searching for related files...</p>
+                    <button
+                      onClick={handleReanalyzeAll}
+                      disabled={bulkReanalyzing || !files?.length}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 mt-4 rounded-lg bg-card text-foreground border border-border text-xs font-medium hover:bg-primary/10 transition disabled:opacity-60"
+                    >
+                      {bulkReanalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                      {bulkReanalyzing ? "Re-analyzing..." : "Re-analyze All Files"}
+                    </button>
                   </div>
                 )}
                 {smartLoading && (
