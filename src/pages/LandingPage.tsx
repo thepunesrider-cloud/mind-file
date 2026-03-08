@@ -614,18 +614,23 @@ const LANDING_HTML = `
     <div class="reveal" style="margin-bottom:8px;"><div class="section-label">SECURITY &amp; PRIVACY</div></div>
     <div class="security-grid">
       <div class="reveal" style="transition-delay:0.08s;">
-        <h2 class="security-title">Your files are yours.<br>Always.</h2>
-        <p class="security-body">Sortify is built with security as the foundation. Every file is encrypted end-to-end. Every access is logged.</p>
-        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>AES-256 Encryption</h4><p>End-to-end on every file.</p></div></div>
-        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>Role-Based Access</h4><p>Control who sees, edits, and shares.</p></div></div>
-        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>PII Detection Alerts</h4><p>Warned when sensitive data is uploaded.</p></div></div>
-        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>DPDP Act Compliant</h4><p>India's Data Protection law ready from day one.</p></div></div>
+        <h2 class="security-title">Your data is sacred.<br>We treat it that way.</h2>
+        <p class="security-body">Sortify is built privacy-first from the ground up. We don't sell your data, we don't share it with advertisers, and we never use your files to train AI models. Your documents belong to you — period.</p>
+        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>AES-256 Encryption at Rest</h4><p>Every file encrypted with military-grade standards. TLS 1.3 in transit.</p></div></div>
+        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>Zero-Knowledge Architecture</h4><p>Our team physically cannot access your file contents. Only you hold the keys.</p></div></div>
+        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>No Data Selling. Ever.</h4><p>Your data is never sold, shared with third parties, or used for advertising.</p></div></div>
+        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>AI Stays Private</h4><p>AI processes your files in real-time for metadata only. Your content never trains any model.</p></div></div>
+        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>Delete Anytime, Completely</h4><p>Delete your account and all data is permanently wiped within 30 days. No hidden copies.</p></div></div>
+        <div class="security-feature"><div class="sec-check"></div><div class="security-feature-text"><h4>DPDP Act Compliant</h4><p>Built for India's Digital Personal Data Protection Act 2023 from day one.</p></div></div>
       </div>
       <div class="reveal" style="transition-delay:0.22s;">
         <div class="badge-cards">
-          <div class="badge-card"><div class="badge-icon">🔒</div><div><h4>AES-256</h4><p>Military-grade encryption standard</p></div></div>
-          <div class="badge-card"><div class="badge-icon">🇮🇳</div><div><h4>DPDP Ready</h4><p>India Data Protection compliant</p></div></div>
-          <div class="badge-card"><div class="badge-icon">🛡️</div><div><h4>Zero Knowledge</h4><p>We cannot read your files</p></div></div>
+          <div class="badge-card"><div class="badge-icon">🔒</div><div><h4>AES-256 + TLS 1.3</h4><p>Military-grade encryption at rest and in transit</p></div></div>
+          <div class="badge-card"><div class="badge-icon">🚫</div><div><h4>No Data Trading</h4><p>We never sell, share, or monetise your data</p></div></div>
+          <div class="badge-card"><div class="badge-icon">🛡️</div><div><h4>Zero Knowledge</h4><p>We cannot read your files — by design</p></div></div>
+          <div class="badge-card"><div class="badge-icon">🤖</div><div><h4>AI Privacy</h4><p>Your files never train any AI model</p></div></div>
+          <div class="badge-card"><div class="badge-icon">🇮🇳</div><div><h4>DPDP 2023 Ready</h4><p>India's Data Protection law compliant</p></div></div>
+          <div class="badge-card"><div class="badge-icon">🗑️</div><div><h4>Right to Delete</h4><p>Full data erasure on account deletion</p></div></div>
         </div>
       </div>
     </div>
