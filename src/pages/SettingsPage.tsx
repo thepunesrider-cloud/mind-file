@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MessageCircle, Phone, Loader2, CheckCircle, XCircle, Send, Unlink } from "lucide-react";
+import { MessageCircle, Phone, Loader2, CheckCircle, Send, Unlink, RefreshCw } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
