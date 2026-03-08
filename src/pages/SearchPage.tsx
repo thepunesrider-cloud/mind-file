@@ -216,10 +216,18 @@ const SearchPage = () => {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <SearchAutocomplete
             value={query}
-            onChange={setQuery}
+            onChange={(val) => {
+              setQuery(val);
+              if (semanticEnabled && val.trim().length >= 3) {
+                // Debounce semantic expansion
+                clearTimeout((window as any).__semanticTimer);
+                (window as any).__semanticTimer = setTimeout(() => expandQuery(val), 600);
+              }
+            }}
             onSelect={(suggestion) => {
               setQuery(suggestion);
               setAutocompleteOpen(false);
+              if (semanticEnabled) expandQuery(suggestion);
             }}
             suggestions={filteredSuggestions}
             isOpen={autocompleteOpen && filteredSuggestions.length > 0}
@@ -227,19 +235,35 @@ const SearchPage = () => {
           />
 
           {/* Smart filter indicators */}
-          {(query || activeSmartFilters.length > 0) && (
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {query && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Sparkles className="w-3 h-3 text-primary" />
-                  <span>Searching names, summaries, content, tags & entities</span>
-                </div>
-              )}
-              {activeSmartFilters.map((f) => (
-                <span key={f} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{f}</span>
-              ))}
-            </div>
-          )}
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {query && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Sparkles className="w-3 h-3 text-primary" />
+                <span>Searching names, summaries, content, tags & entities</span>
+              </div>
+            )}
+            {semanticEnabled && semanticTerms.length > 0 && (
+              <div className="flex items-center gap-1.5 text-xs">
+                <Brain className="w-3 h-3 text-primary" />
+                <span className="text-muted-foreground">Semantic:</span>
+                {semanticTerms.slice(0, 8).map((t) => (
+                  <span key={t} className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[11px] font-medium">{t}</span>
+                ))}
+                {semanticTerms.length > 8 && (
+                  <span className="text-muted-foreground text-[11px]">+{semanticTerms.length - 8} more</span>
+                )}
+              </div>
+            )}
+            {semanticEnabled && semanticLoading && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span>Expanding query with AI…</span>
+              </div>
+            )}
+            {activeSmartFilters.map((f) => (
+              <span key={f} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{f}</span>
+            ))}
+          </div>
         </motion.div>
 
         <AnimatePresence>
