@@ -327,7 +327,7 @@ const FilesPage = () => {
           Delete Folder
         </ContextMenuItem>
       </ContextMenuContent>
-      <ContextMenuTrigger asChild>
+      <ContextMenuTrigger className="contents">
         {children}
       </ContextMenuTrigger>
     </ContextMenu>
