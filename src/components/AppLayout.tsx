@@ -3,6 +3,7 @@ import { Menu } from "lucide-react";
 import AppSidebar from "./AppSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import BottomNavBar from "@/components/ui/bottom-nav-bar";
+import { SupportChat } from "@/components/SupportChat";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const isMobile = useIsMobile();
@@ -50,6 +51,8 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
 
       {/* Mobile bottom nav */}
       {isMobile && <BottomNavBar />}
+
+      <SupportChat />
     </div>
   );
 };
