@@ -36,9 +36,16 @@ serve(async (req) => {
 
     const senderPhone = body.sender || body.from || body.mobile || body.waId || "";
     const messageText = (body.text || body.message || body.body || "").trim();
-    const mediaUrl = body.media_url || body.mediaUrl || body.media?.[0]?.url || "";
-    const mediaType = body.media_type || body.mediaType || body.media?.[0]?.type || "";
-    const mediaFileName = body.media_filename || body.media?.[0]?.filename || "";
+
+    // MSG91 sends file uploads with: url, filename at top level AND messages[0].document
+    const msgDoc = body.messages?.[0]?.document;
+    const msgImage = body.messages?.[0]?.image;
+    const msgVideo = body.messages?.[0]?.video;
+    const msgMedia = msgDoc || msgImage || msgVideo;
+
+    const mediaUrl = body.url || body.media_url || body.mediaUrl || msgMedia?.url || body.media?.[0]?.url || "";
+    const mediaType = body.mime_type || body.media_type || body.mediaType || msgMedia?.mime_type || body.media?.[0]?.type || "";
+    const mediaFileName = body.filename || body.media_filename || msgDoc?.filename || body.media?.[0]?.filename || "";
 
     const interactiveReply = body.button_reply || body.interactive?.button_reply || null;
     const listReply = body.list_reply || body.interactive?.list_reply || null;
