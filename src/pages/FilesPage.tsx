@@ -660,6 +660,63 @@ const FilesPage = () => {
           </div>
         </motion.div>
 
+        {/* Mobile: Horizontal folder/category scroller */}
+        <div className="md:hidden mb-4 space-y-3">
+          {/* Folders */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <button
+              onClick={() => setShowNewFolder(true)}
+              className="shrink-0 p-2 rounded-xl border border-dashed border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+            >
+              <FolderPlus className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setActiveFolder(null)}
+              className={cn(
+                "shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-all",
+                activeFolder === null
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground"
+              )}
+            >
+              All Files
+            </button>
+            {folders.map((folder) => (
+              <button
+                key={folder.name}
+                onClick={() => setActiveFolder(activeFolder === folder.name ? null : folder.name)}
+                className={cn(
+                  "shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5",
+                  activeFolder === folder.name
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground"
+                )}
+              >
+                <Folder className="w-3 h-3" />
+                {folder.name}
+                <span className="text-[10px] opacity-70">({folder.fileIds.length})</span>
+              </button>
+            ))}
+          </div>
+          {/* Categories */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={cn(
+                  "shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium capitalize transition-all",
+                  selectedCategory === cat
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-secondary/60 text-muted-foreground"
+                )}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Main Content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
