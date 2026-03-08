@@ -37,7 +37,7 @@ const AppSidebar = ({ onClose }: { onClose?: () => void }) => {
   const isMobile = useIsMobile();
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 flex flex-col bg-sidebar border-r border-sidebar-border">
+    <aside className={cn("h-screen w-64 flex flex-col bg-sidebar border-r border-sidebar-border", isMobile ? "relative" : "fixed left-0 top-0 z-40")}>
       {/* Logo */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
