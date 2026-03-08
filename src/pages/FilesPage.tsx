@@ -12,6 +12,7 @@ import { getFileIcon, getFileColor, tagColors } from "@/data/mockFiles";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import ShareDialog from "@/components/ShareDialog";
 import {
   ContextMenu,
   ContextMenuContent,
