@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search as SearchIcon, SlidersHorizontal, Loader2, Sparkles, Wand2, RefreshCw } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
