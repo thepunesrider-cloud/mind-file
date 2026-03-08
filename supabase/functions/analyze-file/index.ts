@@ -133,7 +133,24 @@ CRITICAL RULES:
 5. Detect expiry dates, renewal dates, due dates - any future date that matters.
 6. Tags should cover ALL relevant categories. Be generous with tags.
 7. **extracted_text is THE MOST CRITICAL field**: Extract EVERY readable word, line, number, and text fragment from the document or image. For images, perform thorough OCR - capture ALL text visible in the image including headers, body text, captions, watermarks, stamps, handwritten text, numbers, dates, and any text in any language. For PDFs, extract EVERY line of text from EVERY page. This field is the PRIMARY source for in-text search. Include the raw text as-is without paraphrasing. Users will search by typing dates like "15/03/1999" or names or any text fragment - everything must be captured here.
-8. For dates found in documents (like date of birth, issue date, etc.), include them in EVERY format: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, "15 March 1999", "March 15, 1999", "15/03/99". This ensures date searches work regardless of format.`;
+8. For dates found in documents (like date of birth, issue date, etc.), include them in EVERY format: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, "15 March 1999", "March 15, 1999", "15/03/99". This ensures date searches work regardless of format.
+
+**PHOTO & IMAGE ANALYSIS (VERY IMPORTANT FOR PHOTOS):**
+9. For any photo/image containing PEOPLE, describe each person in detail:
+   - Apparent gender, age range, build, hair color/style, skin tone
+   - Clothing: color, type (shirt, dress, suit, traditional wear like saree, kurta, etc.)
+   - Facial features: glasses, beard, mustache, smile, expression
+   - Pose: standing, sitting, selfie, group photo, portrait, candid
+   - If the person's name appears in the filename (e.g., "shreyas_photo.jpg"), associate the name with the person description
+10. For EVERY photo/image, describe the SCENE and BACKGROUND exhaustively:
+   - Location type: indoor (office, home, restaurant, mall), outdoor (park, beach, mountains, hills, city street, temple, garden)
+   - Landscape: hills, mountains, ocean, river, lake, forest, desert, fields, sky, sunset, sunrise, clouds
+   - Weather/lighting: sunny, cloudy, rainy, golden hour, night, artificial lighting
+   - Setting elements: buildings, vehicles, trees, flowers, furniture, food, animals
+   - Event context: wedding, birthday, party, trip, vacation, picnic, graduation, festival (Diwali, Holi, etc.)
+   - Photo style: selfie, group photo, portrait, landscape, candid, professional, casual
+11. Include ALL scene/person descriptions in BOTH the summary AND semantic_keywords fields, using many synonyms. E.g. "hills" should also include "mountains, hillside, hilly terrain, pahad, mountain range, elevated terrain, highland".`;
+
 
     const userMessages: any[] = [];
     
