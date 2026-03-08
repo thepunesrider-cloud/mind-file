@@ -140,7 +140,7 @@ const Dashboard = () => {
           <p className="text-muted-foreground text-sm mt-1 mb-5">Here's what's happening with your files</p>
 
           {/* Action Searchbar with gradient glow */}
-          <div className="relative max-w-xl">
+          <div className="relative max-w-xl" data-onboard="search-bar">
             <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 blur-lg opacity-70 pointer-events-none" />
             <div className="relative">
               <ActionSearchbar />
