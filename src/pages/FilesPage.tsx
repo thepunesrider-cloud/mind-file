@@ -498,8 +498,9 @@ const FilesPage = () => {
           </motion.div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold truncate text-foreground">{file.file_name}</p>
+            <p className="text-xs text-muted-foreground/70 sm:hidden">{detail.size} · {detail.uploadDate}</p>
           </div>
-          <div className="flex gap-2 shrink-0">
+          <div className="hidden sm:flex gap-2 shrink-0">
             {file.tags.slice(0, 2).map((tag) => (
               <motion.span
                 key={tag.name}
@@ -514,8 +515,8 @@ const FilesPage = () => {
               </motion.span>
             ))}
           </div>
-          <span className="text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.size}</span>
-          <span className="text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.uploadDate}</span>
+          <span className="hidden md:inline text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.size}</span>
+          <span className="hidden md:inline text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.uploadDate}</span>
           <div className="flex items-center gap-0.5 shrink-0">
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -556,13 +557,13 @@ const FilesPage = () => {
 
   return (
     <AppLayout>
-      <div className="max-w-7xl mx-auto flex gap-8">
-        {/* Left Sidebar - Categories & Folders */}
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-8">
+        {/* Left Sidebar - Categories & Folders (hidden on mobile, shown as collapsible) */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="w-52 flex-shrink-0 sticky top-6 h-fit space-y-4"
+          className="hidden md:block w-52 flex-shrink-0 sticky top-6 h-fit space-y-4"
         >
           {/* Folders Section */}
           <div className="bg-gradient-to-br from-card to-card/80 rounded-3xl p-6 shadow-sm backdrop-blur-sm border border-border/30">
@@ -659,6 +660,63 @@ const FilesPage = () => {
           </div>
         </motion.div>
 
+        {/* Mobile: Horizontal folder/category scroller */}
+        <div className="md:hidden mb-4 space-y-3">
+          {/* Folders */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <button
+              onClick={() => setShowNewFolder(true)}
+              className="shrink-0 p-2 rounded-xl border border-dashed border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+            >
+              <FolderPlus className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setActiveFolder(null)}
+              className={cn(
+                "shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-all",
+                activeFolder === null
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground"
+              )}
+            >
+              All Files
+            </button>
+            {folders.map((folder) => (
+              <button
+                key={folder.name}
+                onClick={() => setActiveFolder(activeFolder === folder.name ? null : folder.name)}
+                className={cn(
+                  "shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5",
+                  activeFolder === folder.name
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground"
+                )}
+              >
+                <Folder className="w-3 h-3" />
+                {folder.name}
+                <span className="text-[10px] opacity-70">({folder.fileIds.length})</span>
+              </button>
+            ))}
+          </div>
+          {/* Categories */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={cn(
+                  "shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium capitalize transition-all",
+                  selectedCategory === cat
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-secondary/60 text-muted-foreground"
+                )}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Main Content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -666,12 +724,12 @@ const FilesPage = () => {
           transition={{ duration: 0.5 }}
           className="flex-1 min-w-0"
         >
-          <div className="mb-8">
+          <div className="mb-6 md:mb-8">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.4 }}
-              className="flex items-center justify-between mb-6"
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6"
             >
               <div>
                 {activeFolder ? (
@@ -682,14 +740,14 @@ const FilesPage = () => {
                     <div>
                       <div className="flex items-center gap-2">
                         <Folder className="w-5 h-5 text-primary" />
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">{activeFolder}</h1>
+                        <h1 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">{activeFolder}</h1>
                       </div>
                       <p className="text-muted-foreground text-sm mt-1">{filtered.length} files · Right-click for more options</p>
                     </div>
                   </div>
                 ) : (
                   <>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Files</h1>
+                    <h1 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Files</h1>
                     <p className="text-muted-foreground text-sm mt-2">{filtered.length} files · Right-click for more options</p>
                   </>
                 )}
@@ -698,14 +756,14 @@ const FilesPage = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2, duration: 0.4 }}
-                className="flex items-center gap-3"
+                className="flex items-center gap-2 sm:gap-3"
               >
                 <div className="relative">
                   <Input
                     placeholder="Search files..."
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
-                    className="w-64 h-10 bg-secondary/50 border-border/40 rounded-2xl pl-4 text-sm placeholder:text-muted-foreground/60 focus:bg-secondary focus:border-primary/50 transition-all"
+                    className="w-full sm:w-64 h-10 bg-secondary/50 border-border/40 rounded-2xl pl-4 text-sm placeholder:text-muted-foreground/60 focus:bg-secondary focus:border-primary/50 transition-all"
                   />
                 </div>
                 <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-secondary/40 border border-border/30 backdrop-blur-sm">
