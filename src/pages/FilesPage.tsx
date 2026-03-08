@@ -691,7 +691,7 @@ const FilesPage = () => {
                   </div>
                 ) : (
                   <>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Files</h1>
+                    <h1 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Files</h1>
                     <p className="text-muted-foreground text-sm mt-2">{filtered.length} files · Right-click for more options</p>
                   </>
                 )}
