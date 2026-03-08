@@ -139,15 +139,6 @@ const Login = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Debug Banner */}
-      <div className="bg-yellow-500/90 text-black text-xs px-4 py-2 font-mono flex flex-wrap gap-4 items-center z-50">
-        <span>🔍 <strong>DEBUG</strong></span>
-        <span>Session: {debugInfo.session}</span>
-        <span>Last Event: {debugInfo.lastEvent}</span>
-        <span>Checked: {debugInfo.lastTime}</span>
-        <span>Origin: {window.location.origin}</span>
-        <span>Hash: {window.location.hash || "(none)"}</span>
-      </div>
       <div className="flex flex-1">
       {/* Left - Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center dot-pattern">
