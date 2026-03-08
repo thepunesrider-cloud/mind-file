@@ -96,12 +96,20 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
+        {/* Header + Command Search */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold">
             Welcome back
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Here's what's happening with your files</p>
+          <p className="text-muted-foreground text-sm mt-1 mb-5">Here's what's happening with your files</p>
+
+          {/* Action Searchbar with gradient glow */}
+          <div className="relative max-w-xl">
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 blur-lg opacity-70 pointer-events-none" />
+            <div className="relative">
+              <ActionSearchbar />
+            </div>
+          </div>
         </motion.div>
 
         {/* Storage overview bar */}
