@@ -1,8 +1,10 @@
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 2
 
 User-agent: Twitterbot
 Allow: /
@@ -12,3 +14,13 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /upload
+Disallow: /files
+Disallow: /search
+Disallow: /chat
+Disallow: /compare
+Disallow: /smart-folders
+Disallow: /reminders
+
+Sitemap: https://mind-file.lovable.app/sitemap.xml
