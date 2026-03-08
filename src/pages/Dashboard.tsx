@@ -129,7 +129,7 @@ const Dashboard = () => {
                 <p className="text-2xl font-bold">{formatSize(totalSize)}</p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-6">
+            <div className="flex flex-wrap gap-6 items-center">
               {typeData.map((t) => (
                 <div key={t.name} className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ background: t.color }} />
@@ -137,6 +137,12 @@ const Dashboard = () => {
                   <span className="text-xs font-semibold">{t.value}</span>
                 </div>
               ))}
+              <button
+                onClick={() => navigate("/pricing")}
+                className="ml-auto text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+              >
+                Get More Storage <TrendingUp className="w-3 h-3" />
+              </button>
             </div>
           </div>
           {/* Progress bar */}

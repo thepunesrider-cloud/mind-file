@@ -14,8 +14,8 @@ import {
   MessageCircle,
   FolderTree,
   ArrowLeftRight,
-  RefreshCw,
   Settings,
+  Smartphone,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -32,6 +32,7 @@ const navItems = [
   { to: "/smart-folders", icon: FolderTree, label: "Smart Folders" },
   { to: "/compare", icon: ArrowLeftRight, label: "Compare" },
   { to: "/reminders", icon: Bell, label: "Reminders" },
+  { to: "/whatsapp", icon: Smartphone, label: "WhatsApp" },
   { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
