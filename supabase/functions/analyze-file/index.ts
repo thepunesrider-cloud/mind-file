@@ -162,6 +162,10 @@ IMPORTANT: The "extracted_text" field must contain ALL key text from this docume
                     type: "string", 
                     description: "ALL readable text from the document or image, extracted verbatim line by line. For images: every word visible via OCR. For documents: key text passages, headings, identifiers, numbers. This is the PRIMARY field for in-text search - users will search by typing remembered lines. Maximum detail." 
                   },
+                  semantic_keywords: {
+                    type: "string",
+                    description: "Generate 30-50 semantic keywords, synonyms, related concepts, alternate phrasings, and category terms separated by commas. Include: synonyms in English and Hindi/regional languages, abbreviations and full forms, conceptual relatives, document category terms. E.g. for an insurance policy: 'insurance, policy, premium, coverage, claim, bima, surety, protection, indemnity, underwriting, renewal, health plan, medical coverage, life insurance, term plan'. This powers meaning-based semantic search.",
+                  },
                   entities: {
                     type: "array",
                     description: "ALL entities found in the document or image",
