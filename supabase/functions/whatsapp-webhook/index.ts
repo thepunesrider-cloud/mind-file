@@ -380,38 +380,27 @@ async function sendFileWithButtons(
 }
 
 async function sendButtonsAfterFile(authKey: string, intNum: string, phone: string) {
-  try {
-    const payload = {
-      integrated_number: intNum,
-      content_type: "interactive",
-      payload: {
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to: phone,
-        type: "interactive",
-        interactive: {
-          type: "button",
-          body: { text: "What would you like to do next?" },
-          action: {
-            buttons: [
-              { type: "reply", reply: { id: "search", title: "🔍 Search More" } },
-              { type: "reply", reply: { id: "back_menu", title: "📋 Main Menu" } },
-            ]
-          }
-        }
-      }
-    };
-
-    const resp = await fetch(`${MSG91_API}/whatsapp-outbound-message/`, {
-      method: "POST",
-      headers: { accept: "application/json", authkey: authKey, "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await resp.json();
-    console.log("Buttons after file response:", JSON.stringify(data));
-  } catch (e) {
-    console.error("Buttons after file error:", e);
-  }
+  await sendInteractive(authKey, {
+    integrated_number: intNum,
+    recipient_number: phone,
+    content_type: "interactive",
+    payload: {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: phone,
+      type: "interactive",
+      interactive: {
+        type: "button",
+        body: { text: "What would you like to do next?" },
+        action: {
+          buttons: [
+            { type: "reply", reply: { id: "search", title: "🔍 Search More" } },
+            { type: "reply", reply: { id: "back_menu", title: "📋 Main Menu" } },
+          ],
+        },
+      },
+    },
+  }, "Buttons after file response");
 }
 
 // ===================== SEARCH =====================
