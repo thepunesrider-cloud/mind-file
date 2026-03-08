@@ -551,39 +551,28 @@ async function sendText(authKey: string, intNum: string, recipient: string, text
 }
 
 async function sendTextWithMenuButton(authKey: string, intNum: string, phone: string, text: string) {
-  try {
-    const payload = {
-      integrated_number: intNum,
-      content_type: "interactive",
-      payload: {
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to: phone,
-        type: "interactive",
-        interactive: {
-          type: "button",
-          body: { text },
-          action: {
-            buttons: [
-              { type: "reply", reply: { id: "back_menu", title: "📋 Main Menu" } },
-            ]
-          }
-        }
-      }
-    };
+  const ok = await sendInteractive(authKey, {
+    integrated_number: intNum,
+    recipient_number: phone,
+    content_type: "interactive",
+    payload: {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: phone,
+      type: "interactive",
+      interactive: {
+        type: "button",
+        body: { text },
+        action: {
+          buttons: [
+            { type: "reply", reply: { id: "back_menu", title: "📋 Main Menu" } },
+          ],
+        },
+      },
+    },
+  }, "Text+button response");
 
-    const resp = await fetch(`${MSG91_API}/whatsapp-outbound-message/`, {
-      method: "POST",
-      headers: { accept: "application/json", authkey: authKey, "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await resp.json();
-    console.log("Text+button response:", JSON.stringify(data));
-
-    if (!resp.ok || data.type === "error") {
-      await sendText(authKey, intNum, phone, text);
-    }
-  } catch {
+  if (!ok) {
     await sendText(authKey, intNum, phone, text);
   }
 }
