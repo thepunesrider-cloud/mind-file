@@ -73,7 +73,7 @@ function saveFolders(folders: UserFolder[]) {
 }
 
 const FilesPage = () => {
-  const [view, setView] = useState<"grid" | "list">("grid");
+  const [view, setView] = useState<"grid" | "list">("list");
   const [selectedFile, setSelectedFile] = useState<any>(null);
   const [filter, setFilter] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
