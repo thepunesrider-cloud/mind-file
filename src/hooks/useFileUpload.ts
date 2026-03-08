@@ -160,6 +160,8 @@ export function useFileUpload() {
       }
 
       queryClient.invalidateQueries({ queryKey: ["files"] });
+      // Track upload event
+      trackEvent("upload", { fileName: uploadFile.file.name, fileSize: uploadFile.file.size, fileType: uploadFile.file.type });
     } catch (err: any) {
       console.error("Upload error:", err);
       setFiles((prev) => prev.map((f) => f.id === uploadFile.id ? {
