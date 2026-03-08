@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, ArrowRight, Zap, ArrowLeft } from "lucide-react";
@@ -17,6 +17,29 @@ const Login = () => {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Listen for auth state changes (handles Google OAuth redirect)
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === "SIGNED_IN" && session) {
+          // Check onboarding status
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("onboarding_completed")
+            .eq("user_id", session.user.id)
+            .maybeSingle();
+
+          if (profile && !profile.onboarding_completed) {
+            navigate("/onboarding", { replace: true });
+          } else {
+            navigate("/dashboard", { replace: true });
+          }
+        }
+      }
+    );
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
