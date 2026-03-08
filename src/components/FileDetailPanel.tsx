@@ -47,61 +47,61 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
 
   return (
     <>
-      {/* Blur backdrop overlay */}
+      {/* Transparent click-away overlay (no blur on background) */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-40 bg-background/40 backdrop-blur-sm"
+        className="fixed inset-0 z-40 bg-background/20"
         onClick={onClose}
       />
 
-      {/* Slide-in panel */}
+      {/* Slide-in glass panel */}
       <motion.div
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-        className="fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[360px] lg:w-[400px] border-l border-border/30 overflow-hidden"
+        className="fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[360px] lg:w-[400px] border-l border-white/10 overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, hsl(var(--card) / 0.85), hsl(var(--card) / 0.7))",
-          backdropFilter: "blur(24px) saturate(1.4)",
-          WebkitBackdropFilter: "blur(24px) saturate(1.4)",
-          boxShadow: "-8px 0 40px hsl(var(--primary) / 0.08), -2px 0 12px hsl(var(--background) / 0.3)",
+          background: "linear-gradient(165deg, hsl(var(--card) / 0.75), hsl(var(--background) / 0.65))",
+          backdropFilter: "blur(32px) saturate(1.5)",
+          WebkitBackdropFilter: "blur(32px) saturate(1.5)",
+          boxShadow: "-12px 0 50px hsl(var(--primary) / 0.06), -2px 0 8px hsl(var(--border) / 0.2)",
         }}
       >
-        <div className="p-4 sm:p-5 h-full overflow-y-auto">
+        <div className="p-5 sm:p-6 h-full overflow-y-auto">
           {/* Header */}
-          <div className="flex items-start justify-between mb-5">
+          <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-3 min-w-0">
-              <div className={cn("w-11 h-11 rounded-lg flex items-center justify-center bg-secondary shrink-0", color)}>
+              <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0", color)}>
                 <Icon className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold truncate">{file.name}</p>
-                <p className="text-xs text-muted-foreground">{file.size} · {file.type.toUpperCase()}</p>
+                <p className="text-sm font-bold truncate text-foreground">{file.name}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{file.size} · {file.type.toUpperCase()}</p>
               </div>
             </div>
-            <button onClick={onClose} className="text-muted-foreground hover:text-foreground shrink-0 p-1.5 rounded-lg hover:bg-secondary/80 transition-colors">
+            <button onClick={onClose} className="text-muted-foreground hover:text-foreground shrink-0 p-2 rounded-xl hover:bg-secondary/60 transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 mb-5 flex-wrap">
+          {/* Action Buttons — grid layout */}
+          <div className="grid grid-cols-2 gap-2 mb-6">
             {file.fileUrl && (
               <>
                 <button
                   onClick={() => downloadFile(file.fileUrl!, file.name)}
-                  className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Download
                 </button>
                 <button
                   onClick={() => viewFile(file.fileUrl!)}
-                  className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-secondary text-foreground text-xs font-semibold hover:bg-secondary/80 transition-colors"
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border/50 bg-secondary/40 text-foreground text-xs font-semibold hover:bg-secondary/70 transition-colors"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   View
@@ -112,7 +112,7 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
               <>
                 <button
                   onClick={() => navigate(`/chat?fileId=${file.id}`)}
-                  className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors"
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-accent/20 bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
                   Chat
@@ -120,7 +120,7 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
                 <button
                   onClick={handleReanalyze}
                   disabled={reanalyzing}
-                  className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border/50 bg-secondary/40 text-foreground text-xs font-semibold hover:bg-secondary/70 transition-colors disabled:opacity-50"
                 >
                   {reanalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
                   Re-analyze
@@ -171,7 +171,7 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
           {/* Extracted Text Preview */}
           {file.extractedText && (
             <Section icon={FileText} title="Extracted Text" color="text-muted-foreground">
-              <div className="p-3 rounded-lg bg-secondary/50 font-mono text-xs text-muted-foreground leading-relaxed max-h-32 overflow-hidden">
+              <div className="p-3 rounded-xl bg-secondary/30 border border-border/30 font-mono text-xs text-muted-foreground leading-relaxed max-h-32 overflow-hidden">
                 {file.extractedText}
               </div>
             </Section>
