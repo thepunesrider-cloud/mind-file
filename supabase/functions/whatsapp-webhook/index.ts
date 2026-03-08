@@ -47,8 +47,10 @@ serve(async (req) => {
     const mediaType = body.mime_type || body.media_type || body.mediaType || msgMedia?.mime_type || body.media?.[0]?.type || "";
     const mediaFileName = body.filename || body.media_filename || msgDoc?.filename || body.media?.[0]?.filename || "";
 
-    const interactiveReply = body.button_reply || body.interactive?.button_reply || null;
-    const listReply = body.list_reply || body.interactive?.list_reply || null;
+    // MSG91 sends button replies at messages[0].interactive.button_reply
+    const msgInteractive = body.messages?.[0]?.interactive;
+    const interactiveReply = body.button_reply || body.interactive?.button_reply || msgInteractive?.button_reply || null;
+    const listReply = body.list_reply || body.interactive?.list_reply || msgInteractive?.list_reply || null;
     const selectedId = interactiveReply?.id || listReply?.id || "";
 
     if (!senderPhone) {
