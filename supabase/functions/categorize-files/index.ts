@@ -37,7 +37,7 @@ serve(async (req) => {
       });
     }
 
-    const fileSummaries = files.map(f => `- ${f.file_name} (${f.file_type}): ${(f.ai_summary || '').substring(0, 100)}`).join("\n");
+    const fileSummaries = files.map(f => `- [ID: ${f.id}] ${f.file_name} (${f.file_type}): ${(f.ai_summary || '').substring(0, 100)}`).join("\n");
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
