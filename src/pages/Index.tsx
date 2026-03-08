@@ -304,10 +304,15 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="border-t border-border/50 py-8 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-primary" />
             <span className="text-sm font-bold gradient-text">Sortify</span>
+          </div>
+          <div className="flex items-center gap-6 text-xs text-muted-foreground">
+            <a href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</a>
+            <a href="/terms" className="hover:text-foreground transition-colors">Terms of Service</a>
+            <a href="mailto:founders@sortify.in" className="hover:text-foreground transition-colors">Contact</a>
           </div>
           <p className="text-xs text-muted-foreground">© 2026 Sortify. AI-Powered File Intelligence.</p>
         </div>
