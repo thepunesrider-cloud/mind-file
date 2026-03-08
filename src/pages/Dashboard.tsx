@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { downloadFile, viewFile } from "@/lib/fileUrl";
 import { getFileIcon, getFileColor } from "@/data/mockFiles";
 import { cn } from "@/lib/utils";
+import { ActionSearchbar } from "@/components/ui/action-searchbar";
 
 function mapType(mime: string) {
   if (mime.includes("pdf")) return "pdf" as const;
