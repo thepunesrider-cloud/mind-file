@@ -40,6 +40,7 @@ function toDetailFile(f: FileWithTags) {
     lastAccessed: new Date(f.updated_at).toLocaleDateString(),
     fileUrl: f.file_url,
     fileType: f.file_type,
+    entities: f.entities || [],
   };
 }
 
