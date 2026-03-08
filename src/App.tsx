@@ -46,6 +46,8 @@ const App = () => (
             <Route path="/compare" element={<AuthGuard><ComparePage /></AuthGuard>} />
             <Route path="/settings" element={<AuthGuard><SettingsPage /></AuthGuard>} />
             <Route path="/whatsapp" element={<AuthGuard><WhatsAppPage /></AuthGuard>} />
+            <Route path="/onboarding" element={<AuthGuard><OnboardingPage /></AuthGuard>} />
+            <Route path="/admin" element={<AuthGuard><AdminPage /></AuthGuard>} />
             <Route path="/shared/:token" element={<SharedFilePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
