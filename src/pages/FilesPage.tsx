@@ -33,6 +33,7 @@ function toDetailFile(f: FileWithTags) {
     versions: 1,
     lastAccessed: new Date(f.updated_at).toLocaleDateString(),
     fileUrl: f.file_url,
+    fileType: f.file_type,
   };
 }
 

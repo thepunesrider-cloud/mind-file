@@ -6,12 +6,15 @@ import {
   FolderOpen,
   Search,
   Bell,
-  Settings,
   Zap,
   LogOut,
   Moon,
   Sun,
   X,
+  MessageCircle,
+  FolderTree,
+  ArrowLeftRight,
+  RefreshCw,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -22,6 +25,9 @@ const navItems = [
   { to: "/upload", icon: Upload, label: "Upload" },
   { to: "/files", icon: FolderOpen, label: "Files" },
   { to: "/search", icon: Search, label: "Search" },
+  { to: "/chat", icon: MessageCircle, label: "AI Chat" },
+  { to: "/smart-folders", icon: FolderTree, label: "Smart Folders" },
+  { to: "/compare", icon: ArrowLeftRight, label: "Compare" },
   { to: "/reminders", icon: Bell, label: "Reminders" },
 ];
 
@@ -39,7 +45,7 @@ const AppSidebar = ({ onClose }: { onClose?: () => void }) => {
             <Zap className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-sm font-bold gradient-text">Smart Storage</h1>
+            <h1 className="text-sm font-bold gradient-text">Sortify</h1>
             <p className="text-[10px] text-muted-foreground">AI File Manager</p>
           </div>
         </div>
@@ -51,7 +57,7 @@ const AppSidebar = ({ onClose }: { onClose?: () => void }) => {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.to;
           return (

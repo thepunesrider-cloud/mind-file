@@ -1,18 +1,47 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, Tag, Brain, Calendar, FileText, History, Download, Eye } from "lucide-react";
+import { X, Tag, Brain, Calendar, FileText, History, Download, Eye, RefreshCw, Loader2 } from "lucide-react";
 import type { MockFile } from "@/data/mockFiles";
 import { getFileIcon, getFileColor, tagColors } from "@/data/mockFiles";
 import { cn } from "@/lib/utils";
 import { downloadFile, viewFile } from "@/lib/fileUrl";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface Props {
-  file: MockFile;
+  file: MockFile & { id?: string; fileType?: string };
   onClose: () => void;
 }
 
 const FileDetailPanel = ({ file, onClose }: Props) => {
   const Icon = getFileIcon(file.type);
   const color = getFileColor(file.type);
+  const [reanalyzing, setReanalyzing] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleReanalyze = async () => {
+    if (!file.id) return;
+    setReanalyzing(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-file`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ fileId: file.id, fileName: file.name, fileType: file.fileType || file.type }),
+      });
+      if (!resp.ok) throw new Error("Failed");
+      await queryClient.invalidateQueries({ queryKey: ["files"] });
+      toast.success("File re-analyzed successfully!");
+    } catch {
+      toast.error("Failed to re-analyze file");
+    } finally {
+      setReanalyzing(false);
+    }
+  };
 
   return (
     <motion.div
@@ -39,24 +68,36 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
         </div>
 
         {/* Action Buttons */}
-        {file.fileUrl && (
-          <div className="flex gap-2 mb-5">
+        <div className="flex gap-2 mb-5">
+          {file.fileUrl && (
+            <>
+              <button
+                onClick={() => downloadFile(file.fileUrl!, file.name)}
+                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Download
+              </button>
+              <button
+                onClick={() => viewFile(file.fileUrl!)}
+                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-secondary text-foreground text-xs font-semibold hover:bg-secondary/80 transition-colors"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                View
+              </button>
+            </>
+          )}
+          {file.id && (
             <button
-              onClick={() => downloadFile(file.fileUrl!, file.name)}
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
+              onClick={handleReanalyze}
+              disabled={reanalyzing}
+              className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors disabled:opacity-50"
             >
-              <Download className="w-3.5 h-3.5" />
-              Download
+              {reanalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+              Re-analyze
             </button>
-            <button
-              onClick={() => viewFile(file.fileUrl!)}
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-secondary text-foreground text-xs font-semibold hover:bg-secondary/80 transition-colors"
-            >
-              <Eye className="w-3.5 h-3.5" />
-              View in Browser
-            </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* AI Summary */}
         <Section icon={Brain} title="AI Summary" color="text-primary">
