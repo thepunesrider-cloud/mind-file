@@ -4,6 +4,7 @@ import AppSidebar from "./AppSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import BottomNavBar from "@/components/ui/bottom-nav-bar";
 import { SupportChat } from "@/components/SupportChat";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const isMobile = useIsMobile();
