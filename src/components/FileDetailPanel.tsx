@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, Tag, Brain, Calendar, FileText, History, Download, Eye, RefreshCw, Loader2, MessageCircle } from "lucide-react";
+import { X, Tag, Brain, Calendar, FileText, History, Download, Eye, RefreshCw, Loader2, MessageCircle, User, Check } from "lucide-react";
 import type { MockFile } from "@/data/mockFiles";
 import { getFileIcon, getFileColor, tagColors } from "@/data/mockFiles";
 import { cn } from "@/lib/utils";
@@ -9,9 +9,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
 
 interface Props {
-  file: MockFile & { id?: string; fileType?: string };
+  file: MockFile & { id?: string; fileType?: string; entities?: any[] };
   onClose: () => void;
 }
 
@@ -19,8 +20,21 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
   const Icon = getFileIcon(file.type);
   const color = getFileColor(file.type);
   const [reanalyzing, setReanalyzing] = useState(false);
+  const [namingPerson, setNamingPerson] = useState(false);
+  const [personName, setPersonName] = useState("");
+  const [savingName, setSavingName] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  const isImage = file.fileType?.startsWith("image/") || file.type === "image";
+  
+  // Check if the image likely contains a person based on summary/description/entities
+  const textToCheck = `${file.summary || ""} ${file.aiDescription || ""} ${file.extractedText || ""}`.toLowerCase();
+  const personEntities = (file.entities || []).filter((e: any) => e.type === "person");
+  const hasPerson = isImage && (
+    personEntities.length > 0 ||
+    /\b(person|man|woman|boy|girl|people|selfie|portrait|face|smile|smiling|group photo|young|child|kid)\b/.test(textToCheck)
+  );
 
   const handleReanalyze = async () => {
     if (!file.id) return;
@@ -45,15 +59,58 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
     }
   };
 
+  const handleSavePersonName = async () => {
+    if (!file.id || !personName.trim()) return;
+    setSavingName(true);
+    try {
+      // Append person name to semantic_keywords and ai_summary for searchability
+      const { data: fileData, error: fetchErr } = await supabase
+        .from("files")
+        .select("semantic_keywords, ai_summary, ai_description, entities")
+        .eq("id", file.id)
+        .single();
+
+      if (fetchErr) throw fetchErr;
+
+      const name = personName.trim();
+      const updatedKeywords = `${fileData.semantic_keywords || ""}, ${name}, ${name} photo, ${name} picture, ${name} image, ${name} face`;
+      const updatedSummary = `${fileData.ai_summary || ""} Person identified as: ${name}.`;
+      const updatedDescription = `${fileData.ai_description || ""} Photo of ${name}.`;
+      
+      // Add person entity
+      const existingEntities = Array.isArray(fileData.entities) ? fileData.entities : [];
+      const updatedEntities = [
+        ...existingEntities,
+        { type: "person", value: name, label: `Person: ${name}` },
+      ];
+
+      const { error: updateErr } = await supabase
+        .from("files")
+        .update({
+          semantic_keywords: updatedKeywords,
+          ai_summary: updatedSummary,
+          ai_description: updatedDescription,
+          entities: updatedEntities,
+        })
+        .eq("id", file.id);
+
+      if (updateErr) throw updateErr;
+
+      await queryClient.invalidateQueries({ queryKey: ["files"] });
+      toast.success(`Named person as "${name}" — future searches will find this photo!`);
+      setNamingPerson(false);
+      setPersonName("");
+    } catch (e) {
+      console.error("Save person name error:", e);
+      toast.error("Failed to save person name");
+    } finally {
+      setSavingName(false);
+    }
+  };
+
   return (
     <>
-      {/* Click-away overlay */}
-      <div
-        className="fixed inset-0 z-40"
-        onClick={onClose}
-      />
-
-      {/* Slide-in glass panel */}
+      <div className="fixed inset-0 z-40" onClick={onClose} />
       <motion.div
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
@@ -84,7 +141,7 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
             </button>
           </div>
 
-          {/* Action Buttons — grid layout */}
+          {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-2 mb-6">
             {file.fileUrl && (
               <>
@@ -124,6 +181,58 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
               </>
             )}
           </div>
+
+          {/* Name Person Button — only for images with detected faces */}
+          {hasPerson && file.id && (
+            <div className="mb-5 p-3 rounded-xl border border-primary/20 bg-primary/5">
+              <div className="flex items-center gap-2 mb-2">
+                <User className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-primary">Person Detected</span>
+              </div>
+              {personEntities.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {personEntities.map((e: any, i: number) => (
+                    <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                      {e.value}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {!namingPerson ? (
+                <button
+                  onClick={() => setNamingPerson(true)}
+                  className="flex items-center gap-2 text-xs font-medium text-primary hover:text-primary/80 transition"
+                >
+                  <User className="w-3 h-3" />
+                  Name this person for better search
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={personName}
+                    onChange={(e) => setPersonName(e.target.value)}
+                    placeholder="Enter name (e.g., Shreyas)"
+                    className="h-8 text-xs"
+                    onKeyDown={(e) => e.key === "Enter" && handleSavePersonName()}
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleSavePersonName}
+                    disabled={savingName || !personName.trim()}
+                    className="shrink-0 h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition disabled:opacity-50"
+                  >
+                    {savingName ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    onClick={() => { setNamingPerson(false); setPersonName(""); }}
+                    className="shrink-0 h-8 w-8 rounded-lg border border-border/50 bg-secondary/40 text-muted-foreground flex items-center justify-center hover:bg-secondary/70 transition"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* AI Summary */}
           <Section icon={Brain} title="AI Summary" color="text-primary">
