@@ -1,13 +1,12 @@
 import { ReactNode, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import AppSidebar from "./AppSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import BottomNavBar from "@/components/ui/bottom-nav-bar";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // Auto-close sidebar when switching to mobile
-
 
   return (
     <div className="flex min-h-screen">
@@ -19,19 +18,24 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
         />
       )}
 
-      {/* Sidebar */}
-      <div
-        className={
-          isMobile
-            ? `fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`
-            : ""
-        }
-      >
-        <AppSidebar onClose={() => setSidebarOpen(false)} />
-      </div>
+      {/* Sidebar - hidden on mobile */}
+      {!isMobile && (
+        <div>
+          <AppSidebar onClose={() => setSidebarOpen(false)} />
+        </div>
+      )}
+
+      {/* Mobile sidebar drawer */}
+      {isMobile && (
+        <div
+          className={`fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        >
+          <AppSidebar onClose={() => setSidebarOpen(false)} />
+        </div>
+      )}
 
       {/* Main */}
-      <main className={`flex-1 ${isMobile ? "" : "ml-64"} p-4 sm:p-6 lg:p-8 min-w-0 overflow-x-hidden`}>
+      <main className={`flex-1 ${isMobile ? "pb-20" : "ml-64"} p-4 sm:p-6 lg:p-8 min-w-0 overflow-x-hidden`}>
         {isMobile && !sidebarOpen && (
           <button
             onClick={() => setSidebarOpen(true)}
@@ -43,8 +47,12 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
         )}
         {children}
       </main>
+
+      {/* Mobile bottom nav */}
+      {isMobile && <BottomNavBar />}
     </div>
   );
 };
 
 export default AppLayout;
+
