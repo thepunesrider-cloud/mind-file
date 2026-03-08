@@ -1,5 +1,6 @@
 import { useState, FormEvent } from "react";
 import { Send, Bot, Sparkles } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import {
   ChatBubble,
@@ -131,7 +132,13 @@ export function SupportChat() {
               <ChatBubbleMessage
                 variant={message.sender === "ai" ? "received" : "sent"}
               >
-                {message.content}
+                {message.sender === "ai" ? (
+                  <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>li]:my-0.5 [&>h1]:text-sm [&>h2]:text-sm [&>h3]:text-xs [&>h1]:font-bold [&>h2]:font-semibold [&>h3]:font-medium [&>p]:text-[13px] [&>ul]:text-[13px] [&>ol]:text-[13px] [&_code]:text-xs [&_code]:bg-secondary [&_code]:px-1 [&_code]:rounded">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  message.content
+                )}
               </ChatBubbleMessage>
             </ChatBubble>
           ))}
