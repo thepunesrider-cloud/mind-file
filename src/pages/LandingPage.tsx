@@ -727,11 +727,11 @@ const LANDING_HTML = `
   <div class="cta-inner">
     <div class="cta-badge reveal">NOW LIVE</div>
     <h2 class="cta-title reveal" style="transition-delay:0.1s;">Start managing your documents intelligently — for free.</h2>
-    <p class="cta-sub reveal" style="transition-delay:0.2s;">Join thousands of Indian professionals using Sortify.</p>
+    <p class="cta-sub reveal" style="transition-delay:0.2s;">Join thousands of Indian professionals using Sortify. Your data stays private — always.</p>
     <div class="reveal" style="transition-delay:0.3s;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;">
       <a href="/login" class="btn-primary" style="font-size:17px;padding:16px 40px;">Create Free Account →</a>
     </div>
-    <p class="cta-fine reveal" style="transition-delay:0.4s;">No credit card required · Free plan available · Cancel anytime</p>
+    <p class="cta-fine reveal" style="transition-delay:0.4s;">No credit card required · Free plan available · Cancel anytime · <a href="/privacy" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Privacy Policy</a></p>
   </div>
 </section>
 
