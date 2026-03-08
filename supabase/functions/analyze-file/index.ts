@@ -35,28 +35,87 @@ serve(async (req) => {
       .download(filePath);
 
     const isImage = fileType?.startsWith("image/");
+    const isPdf = fileType === "application/pdf";
+    const isDoc = fileType?.includes("word") || fileType?.includes("document") || fileType?.includes("msword");
+    const isSpreadsheet = fileType?.includes("sheet") || fileType?.includes("excel") || fileType?.includes("csv");
+    const isTextBased = fileType?.includes("text") || fileType?.includes("json") || fileType?.includes("xml") || fileType?.includes("csv");
+
     let fileContent = "";
-    let imageBase64 = "";
+    let fileBase64 = "";
+    let useVisionModel = false;
 
     if (!downloadError && fileData) {
+      const arrayBuffer = await fileData.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+
       if (isImage) {
-        // Convert image to base64 for vision model
-        try {
-          const arrayBuffer = await fileData.arrayBuffer();
-          const bytes = new Uint8Array(arrayBuffer);
-          let binary = "";
-          for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]);
-          }
-          imageBase64 = btoa(binary);
-          console.log(`Image converted to base64, size: ${imageBase64.length} chars`);
-        } catch (e) {
-          console.error("Image base64 conversion error:", e);
+        // Images always use vision model for OCR
+        useVisionModel = true;
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i]);
         }
-      } else if (fileType === "application/pdf" || fileType?.includes("text") || fileType?.includes("document")) {
+        fileBase64 = btoa(binary);
+        console.log(`Image converted to base64, size: ${fileBase64.length} chars`);
+      } else if (isPdf) {
+        // PDFs: Send as base64 to vision model for full OCR (handles scanned PDFs)
+        useVisionModel = true;
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        fileBase64 = btoa(binary);
+        console.log(`PDF converted to base64, size: ${fileBase64.length} chars`);
+
+        // Also try to extract raw text for text-based PDFs as supplementary data
         try {
-          fileContent = await fileData.text();
-          fileContent = fileContent.substring(0, 8000);
+          const textDecoder = new TextDecoder("utf-8", { fatal: false });
+          const rawText = textDecoder.decode(bytes);
+          // Extract readable strings from PDF binary (text between parentheses or after Tj/TJ operators)
+          const textMatches = rawText.match(/\(([^)]{2,})\)/g);
+          if (textMatches) {
+            fileContent = textMatches
+              .map(m => m.slice(1, -1))
+              .filter(t => /[a-zA-Z0-9\u0900-\u097F]{2,}/.test(t))
+              .join(" ")
+              .substring(0, 5000);
+          }
+        } catch {
+          // Ignore - vision model will handle it
+        }
+      } else if (isTextBased) {
+        // Plain text files - read directly
+        const textDecoder = new TextDecoder("utf-8", { fatal: false });
+        fileContent = textDecoder.decode(bytes).substring(0, 15000);
+      } else if (isDoc || isSpreadsheet) {
+        // Office docs: Try to extract text, also send to vision model for better extraction
+        useVisionModel = true;
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        fileBase64 = btoa(binary);
+
+        // Try basic text extraction from XML-based office formats
+        try {
+          const textDecoder = new TextDecoder("utf-8", { fatal: false });
+          const rawText = textDecoder.decode(bytes);
+          const textMatches = rawText.match(/>([^<]{3,})</g);
+          if (textMatches) {
+            fileContent = textMatches
+              .map(m => m.slice(1, -1))
+              .filter(t => /[a-zA-Z0-9\u0900-\u097F]{2,}/.test(t))
+              .join(" ")
+              .substring(0, 8000);
+          }
+        } catch {
+          // Vision model will handle it
+        }
+      } else {
+        // Unknown binary - try text extraction
+        try {
+          const textDecoder = new TextDecoder("utf-8", { fatal: false });
+          fileContent = textDecoder.decode(bytes).substring(0, 8000);
         } catch {
           fileContent = `[Binary file: ${fileName}]`;
         }
@@ -73,28 +132,36 @@ CRITICAL RULES:
 4. For the AI description, write a natural language sentence that someone might use to search for this document. Think: "What would a user type to find this?"
 5. Detect expiry dates, renewal dates, due dates - any future date that matters.
 6. Tags should cover ALL relevant categories. Be generous with tags.
-7. **extracted_text is CRITICAL for search**: Extract EVERY readable word, line, number, and text fragment from the document or image. For images, perform thorough OCR - capture ALL text visible in the image including headers, body text, captions, watermarks, stamps, handwritten text, numbers, dates, and any text in any language. This field is the PRIMARY source for in-text search. Include the raw text as-is without paraphrasing.`;
+7. **extracted_text is THE MOST CRITICAL field**: Extract EVERY readable word, line, number, and text fragment from the document or image. For images, perform thorough OCR - capture ALL text visible in the image including headers, body text, captions, watermarks, stamps, handwritten text, numbers, dates, and any text in any language. For PDFs, extract EVERY line of text from EVERY page. This field is the PRIMARY source for in-text search. Include the raw text as-is without paraphrasing. Users will search by typing dates like "15/03/1999" or names or any text fragment - everything must be captured here.
+8. For dates found in documents (like date of birth, issue date, etc.), include them in EVERY format: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, "15 March 1999", "March 15, 1999", "15/03/99". This ensures date searches work regardless of format.`;
 
     const userMessages: any[] = [];
+    
+    // Determine MIME type for vision model
+    const visionMime = isPdf ? "application/pdf" : fileType;
 
-    if (isImage && imageBase64) {
-      // Use vision model for images
+    if (useVisionModel && fileBase64) {
+      const supplementaryText = fileContent 
+        ? `\n\nSupplementary extracted text (may be partial): ${fileContent}` 
+        : "";
+
       userMessages.push({
         role: "user",
         content: [
           {
             type: "text",
-            text: `Analyze this image thoroughly. Extract ALL text visible in the image using OCR. Capture every word, number, date, name, address, and any text content you can see - even partial or handwritten text. This is critical for search functionality.
+            text: `Analyze this ${isPdf ? "PDF document" : isDoc ? "document" : isImage ? "image" : "file"} thoroughly. Extract ALL text using OCR. Capture every word, number, date, name, address, and any text content you can see - even partial or handwritten text. This is critical for search functionality.
 
 File Name: ${fileName}
 MIME Type: ${fileType}
+${supplementaryText}
 
-IMPORTANT: The "extracted_text" field must contain EVERY piece of text visible in this image, line by line, exactly as it appears. Do not summarize or paraphrase - extract the raw text. This is the most important field for search.`,
+CRITICAL: The "extracted_text" field must contain EVERY piece of text from this ${isPdf ? "document (all pages)" : "image"}, line by line, exactly as it appears. Do not summarize or paraphrase - extract the raw text. Include ALL dates in multiple formats (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, written out). This is the most important field for search. Users might search for a date of birth, a name, an amount - everything must be captured.`,
           },
           {
             type: "image_url",
             image_url: {
-              url: `data:${fileType};base64,${imageBase64}`,
+              url: `data:${visionMime};base64,${fileBase64}`,
             },
           },
         ],
@@ -105,11 +172,14 @@ IMPORTANT: The "extracted_text" field must contain EVERY piece of text visible i
         content: `Analyze this file thoroughly:
 Name: ${fileName}
 MIME Type: ${fileType}
-Content (first 8000 chars): ${fileContent || "[No text content available - analyze based on filename and type]"}
+Content (first 15000 chars): ${fileContent || "[No text content available - analyze based on filename and type]"}
 
-IMPORTANT: The "extracted_text" field must contain ALL key text from this document verbatim - every heading, paragraph opener, key phrases, names, numbers, dates, and identifiers. Users will search by typing remembered lines of text, so include as much raw text as possible. Do not summarize - extract the actual text.`,
+CRITICAL: The "extracted_text" field must contain ALL key text from this document verbatim - every heading, paragraph, key phrases, names, numbers, dates, and identifiers. Users will search by typing remembered lines of text, dates (in any format), names, amounts - so include as much raw text as possible. Include ALL dates in multiple formats. Do not summarize - extract the actual text.`,
       });
     }
+
+    // Use vision-capable model for all visual content
+    const model = useVisionModel ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview";
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -118,7 +188,7 @@ IMPORTANT: The "extracted_text" field must contain ALL key text from this docume
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: isImage ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview",
+        model,
         messages: [
           { role: "system", content: systemPrompt },
           ...userMessages,
@@ -160,21 +230,21 @@ IMPORTANT: The "extracted_text" field must contain ALL key text from this docume
                   },
                   extracted_text: { 
                     type: "string", 
-                    description: "ALL readable text from the document or image, extracted verbatim line by line. For images: every word visible via OCR. For documents: key text passages, headings, identifiers, numbers. This is the PRIMARY field for in-text search - users will search by typing remembered lines. Maximum detail." 
+                    description: "ALL readable text from the document or image, extracted verbatim line by line. For images: every word visible via OCR. For PDFs: every line from every page. For documents: all text content. Include dates in multiple formats (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, written out). This is the PRIMARY field for in-text search - users will search by typing any remembered text. Maximum detail." 
                   },
                   semantic_keywords: {
                     type: "string",
-                    description: "Generate 30-50 semantic keywords, synonyms, related concepts, alternate phrasings, and category terms separated by commas. Include: synonyms in English and Hindi/regional languages, abbreviations and full forms, conceptual relatives, document category terms. E.g. for an insurance policy: 'insurance, policy, premium, coverage, claim, bima, surety, protection, indemnity, underwriting, renewal, health plan, medical coverage, life insurance, term plan'. This powers meaning-based semantic search.",
+                    description: "Generate 30-50 semantic keywords, synonyms, related concepts, alternate phrasings, and category terms separated by commas. Include: synonyms in English and Hindi/regional languages, abbreviations and full forms, conceptual relatives, document category terms, date-related terms. E.g. for an Aadhaar card: 'aadhaar, aadhar, uid, unique identification, identity card, ID proof, government ID, date of birth, DOB, janam tithi, address proof, pata pramaan'. This powers meaning-based semantic search.",
                   },
                   entities: {
                     type: "array",
-                    description: "ALL entities found in the document or image",
+                    description: "ALL entities found in the document or image. Extract every name, date, number, amount, ID, phone, email, address.",
                     items: {
                       type: "object",
                       properties: {
                         type: { 
                           type: "string", 
-                          enum: ["person", "company", "date", "amount", "id_number", "phone", "email", "address", "pan", "gst", "aadhaar", "passport", "policy_number", "invoice_number", "account_number"],
+                          enum: ["person", "company", "date", "amount", "id_number", "phone", "email", "address", "pan", "gst", "aadhaar", "passport", "policy_number", "invoice_number", "account_number", "dob", "issue_date", "expiry_date_entity"],
                           description: "Entity type" 
                         },
                         value: { type: "string", description: "The entity value as found in the document" },
