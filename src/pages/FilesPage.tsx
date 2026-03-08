@@ -673,7 +673,6 @@ const FilesPage = () => {
               transition={{ delay: 0.1, duration: 0.4 }}
               className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6"
             >
-            >
               <div>
                 {activeFolder ? (
                   <div className="flex items-center gap-2">
