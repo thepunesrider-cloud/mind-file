@@ -707,7 +707,7 @@ const FilesPage = () => {
                     placeholder="Search files..."
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
-                    className="w-64 h-10 bg-secondary/50 border-border/40 rounded-2xl pl-4 text-sm placeholder:text-muted-foreground/60 focus:bg-secondary focus:border-primary/50 transition-all"
+                    className="w-full sm:w-64 h-10 bg-secondary/50 border-border/40 rounded-2xl pl-4 text-sm placeholder:text-muted-foreground/60 focus:bg-secondary focus:border-primary/50 transition-all"
                   />
                 </div>
                 <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-secondary/40 border border-border/30 backdrop-blur-sm">
