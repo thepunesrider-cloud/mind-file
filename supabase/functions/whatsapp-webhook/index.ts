@@ -45,12 +45,29 @@ serve(async (req) => {
     // Clean phone number (remove +, spaces)
     const cleanPhone = senderPhone.replace(/[\s+\-()]/g, "");
 
-    // Look up user by phone
-    const { data: waUser } = await supabase
-      .from("whatsapp_users")
-      .select("user_id, verified")
-      .eq("phone_number", cleanPhone)
-      .single();
+    // Try multiple phone formats to match (with/without country code)
+    const phoneVariants = [cleanPhone];
+    // If starts with country code like 91, also try without it
+    if (cleanPhone.length > 10) {
+      phoneVariants.push(cleanPhone.slice(-10)); // last 10 digits
+    }
+    // If only 10 digits, try adding common country code
+    if (cleanPhone.length === 10) {
+      phoneVariants.push("91" + cleanPhone);
+    }
+
+    let waUser = null;
+    for (const pv of phoneVariants) {
+      const { data } = await supabase
+        .from("whatsapp_users")
+        .select("user_id, verified, phone_number")
+        .eq("phone_number", pv)
+        .single();
+      if (data) {
+        waUser = data;
+        break;
+      }
+    }
 
     if (!waUser || !waUser.verified) {
       await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
