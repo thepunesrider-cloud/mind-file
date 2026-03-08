@@ -5,6 +5,10 @@ import AppLayout from "@/components/AppLayout";
 import { useFiles } from "@/hooks/useFiles";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useSearchParams } from "react-router-dom";
+import { useFiles } from "@/hooks/useFiles";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
