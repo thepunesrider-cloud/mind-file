@@ -61,6 +61,7 @@ const App = () => (
               <Route path="/admin" element={<AuthGuard><AdminPage /></AuthGuard>} />
               <Route path="/analytics" element={<AuthGuard><AnalyticsPage /></AuthGuard>} />
               <Route path="/teams" element={<AuthGuard><TeamsPage /></AuthGuard>} />
+              <Route path="/google-drive" element={<AuthGuard><GoogleDrivePage /></AuthGuard>} />
               <Route path="/shared/:token" element={<SharedFilePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

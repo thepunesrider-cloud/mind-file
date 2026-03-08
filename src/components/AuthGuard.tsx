@@ -11,6 +11,9 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Auto-capture Google Drive token on sign-in
+  useGoogleDriveToken();
+
   useEffect(() => {
     const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
