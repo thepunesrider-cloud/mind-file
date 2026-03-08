@@ -16,6 +16,8 @@ import {
   ArrowLeftRight,
   Settings,
   Smartphone,
+  BarChart3,
+  Users,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
