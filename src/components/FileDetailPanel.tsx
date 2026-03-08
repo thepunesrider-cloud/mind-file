@@ -1,12 +1,16 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, Tag, Brain, Calendar, FileText, History, Download, Eye } from "lucide-react";
+import { X, Tag, Brain, Calendar, FileText, History, Download, Eye, RefreshCw, Loader2 } from "lucide-react";
 import type { MockFile } from "@/data/mockFiles";
 import { getFileIcon, getFileColor, tagColors } from "@/data/mockFiles";
 import { cn } from "@/lib/utils";
 import { downloadFile, viewFile } from "@/lib/fileUrl";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface Props {
-  file: MockFile;
+  file: MockFile & { id?: string; fileType?: string };
   onClose: () => void;
 }
 
