@@ -30,6 +30,7 @@ const navItems = [
   { to: "/smart-folders", icon: FolderTree, label: "Smart Folders" },
   { to: "/compare", icon: ArrowLeftRight, label: "Compare" },
   { to: "/reminders", icon: Bell, label: "Reminders" },
+  { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
 const AppSidebar = ({ onClose }: { onClose?: () => void }) => {
