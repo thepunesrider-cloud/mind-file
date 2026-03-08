@@ -840,6 +840,13 @@ const FilesPage = () => {
         </motion.div>
       </div>
 
+      {/* File Detail Overlay Panel */}
+      <AnimatePresence>
+        {selectedFile && (
+          <FileDetailPanel file={selectedFile} onClose={() => setSelectedFile(null)} />
+        )}
+      </AnimatePresence>
+
       {/* New Folder Dialog */}
       <Dialog open={showNewFolder} onOpenChange={setShowNewFolder}>
         <DialogContent className="sm:max-w-sm">
