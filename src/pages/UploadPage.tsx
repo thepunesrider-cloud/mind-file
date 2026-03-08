@@ -1,14 +1,18 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, X, FileText, Image, File, CheckCircle, AlertCircle } from "lucide-react";
+import { Upload, X, FileText, Image, File, CheckCircle, AlertCircle, FolderUp, Sparkles, Loader2 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useCallback, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const UploadPage = () => {
   const { files, handleFiles, removeFile } = useFileUpload();
   const [isDragging, setIsDragging] = useState(false);
+  const [categorizing, setCategorizing] = useState(false);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -22,6 +26,58 @@ const UploadPage = () => {
     return File;
   };
 
+  const openFilePicker = (multiple: boolean) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.multiple = multiple;
+    input.accept = ".pdf,.jpg,.jpeg,.png,.docx";
+    // Allow folder selection for bulk
+    if (multiple) {
+      input.setAttribute("webkitdirectory", "");
+      input.setAttribute("directory", "");
+    }
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files) handleFiles(target.files);
+    };
+    input.click();
+  };
+
+  const handleBulkUpload = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.multiple = true;
+    input.accept = ".pdf,.jpg,.jpeg,.png,.docx";
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files) handleFiles(target.files);
+    };
+    input.click();
+  };
+
+  const autoCategorize = async () => {
+    setCategorizing(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/categorize-files`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({}),
+      });
+      if (!resp.ok) throw new Error("Failed");
+      toast.success("Files auto-categorized! Check Smart Folders.");
+    } catch {
+      toast.error("Failed to auto-categorize files");
+    } finally {
+      setCategorizing(false);
+    }
+  };
+
+  const completedCount = files.filter(f => f.status === "complete").length;
+
   return (
     <AppLayout>
       <div className="max-w-3xl mx-auto">
@@ -29,6 +85,23 @@ const UploadPage = () => {
           <h1 className="text-2xl font-bold">Upload Files</h1>
           <p className="text-muted-foreground text-sm mt-1">Drag & drop files for AI-powered analysis</p>
         </motion.div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 mb-6">
+          <Button onClick={handleBulkUpload} variant="outline" className="rounded-xl gap-2">
+            <FolderUp className="w-4 h-4" />
+            Bulk Upload
+          </Button>
+          <Button
+            onClick={autoCategorize}
+            disabled={categorizing}
+            variant="outline"
+            className="rounded-xl gap-2"
+          >
+            {categorizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            Auto-Categorize All
+          </Button>
+        </div>
 
         {/* Drop Zone */}
         <motion.div
@@ -75,6 +148,11 @@ const UploadPage = () => {
         <AnimatePresence>
           {files.length > 0 && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-6 space-y-3">
+              {completedCount > 0 && (
+                <div className="flex items-center justify-between px-1 mb-2">
+                  <span className="text-xs text-muted-foreground">{completedCount} of {files.length} uploaded</span>
+                </div>
+              )}
               {files.map((f) => {
                 const Icon = getIcon(f.file.type);
                 return (

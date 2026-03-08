@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search as SearchIcon, SlidersHorizontal, Loader2, Sparkles, Brain } from "lucide-react";
+import { Search as SearchIcon, SlidersHorizontal, Loader2, Sparkles, Wand2 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { useFiles } from "@/hooks/useFiles";
@@ -77,7 +77,6 @@ const SearchPage = () => {
 
   const allTags = Array.from(new Set((files || []).flatMap((f) => f.tags.map((t) => t.name))));
 
-  // Generate smart autocomplete suggestions based on files and tags
   const autocompleteSuggestions = useMemo(() => {
     const baseSuggestions = [
       { icon: "📄", label: "Show all invoices", tag: "Finance" },
@@ -91,7 +90,6 @@ const SearchPage = () => {
       { icon: "📅", label: "Files from last month", tag: "Date Range" },
     ];
 
-    // Dynamically add suggestions based on actual tags in files
     const dynamicSuggestions = allTags.slice(0, 5).map((tag) => ({
       icon: "🏷️",
       label: `Show all ${tag.toLowerCase()} files`,
@@ -101,31 +99,25 @@ const SearchPage = () => {
     return [...baseSuggestions, ...dynamicSuggestions];
   }, [allTags]);
 
-  // Filter suggestions based on current query
   const filteredSuggestions = useMemo(() => {
     if (!query.trim()) return [];
     const q = query.toLowerCase();
     return autocompleteSuggestions.filter(
-      (s) =>
-        s.label.toLowerCase().includes(q) ||
-        s.tag.toLowerCase().includes(q)
+      (s) => s.label.toLowerCase().includes(q) || s.tag.toLowerCase().includes(q)
     );
   }, [query, autocompleteSuggestions]);
 
-  // Parse natural language date/entity queries
   const parsedQuery = useMemo(() => {
     let cleanQuery = query;
     let dateFilter: { from?: Date; to?: Date } | undefined;
     let entityFilter: { entityType?: string; value?: string } | undefined;
 
-    // NL date extraction
     const dateResult = extractDateFilter(cleanQuery);
     if (dateResult) {
       dateFilter = { from: dateResult.from, to: dateResult.to };
       cleanQuery = dateResult.cleanQuery;
     }
 
-    // Manual date picker overrides NL dates
     if (dateFrom || dateTo) {
       dateFilter = {
         from: dateFrom ? new Date(dateFrom) : undefined,
@@ -133,7 +125,6 @@ const SearchPage = () => {
       };
     }
 
-    // Entity extraction
     const entityResult = extractEntityQuery(cleanQuery);
     if (entityResult) {
       entityFilter = { entityType: entityResult.entityType, value: entityResult.value };
@@ -145,7 +136,6 @@ const SearchPage = () => {
   }, [query, dateFrom, dateTo]);
 
   const results = useMemo(() => {
-    // Combine original tokens with semantic expansion terms
     const allTokens = semanticEnabled && semanticTerms.length > 0
       ? [...parsedQuery.tokens, ...semanticTerms.flatMap(t => tokenize(t))]
       : parsedQuery.tokens;
@@ -167,7 +157,6 @@ const SearchPage = () => {
   const toggleTag = (tag: string) => setSelectedTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
   const toggleType = (type: string) => setSelectedTypes((prev) => prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]);
 
-  // Detect active smart filters
   const activeSmartFilters: string[] = [];
   if (parsedQuery.dateFilter) activeSmartFilters.push("📅 Date filter active");
   if (parsedQuery.entityFilter) activeSmartFilters.push(`🔍 Entity: ${parsedQuery.entityFilter.entityType}`);
@@ -175,7 +164,7 @@ const SearchPage = () => {
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto">
-          {/* Filters & Semantic Toggle */}
+          {/* Filters & Deep Search Toggle */}
           <div className="flex justify-end mb-2 gap-2">
             <button
               className={cn(
@@ -192,10 +181,10 @@ const SearchPage = () => {
                 }
                 if (!next) setSemanticTerms([]);
               }}
-              aria-label="Toggle semantic search"
+              aria-label="Toggle deep search"
             >
-              <Brain className="w-4 h-4" />
-              {semanticLoading ? "Thinking..." : "Semantic Search"}
+              <Wand2 className="w-4 h-4" />
+              {semanticLoading ? "Thinking..." : "Deep Search"}
             </button>
             <button
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-card text-foreground border border-border hover:bg-primary/10 transition text-sm font-medium"
@@ -209,7 +198,7 @@ const SearchPage = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
           <h1 className="text-2xl font-bold">Smart Search</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Search by content, summary, tags, entities, dates, or natural language
+            Search by name, content, tags, or just describe what you're looking for
           </p>
         </motion.div>
 
@@ -219,7 +208,6 @@ const SearchPage = () => {
             onChange={(val) => {
               setQuery(val);
               if (semanticEnabled && val.trim().length >= 3) {
-                // Debounce semantic expansion
                 clearTimeout((window as any).__semanticTimer);
                 (window as any).__semanticTimer = setTimeout(() => expandQuery(val), 600);
               }
@@ -244,8 +232,8 @@ const SearchPage = () => {
             )}
             {semanticEnabled && semanticTerms.length > 0 && (
               <div className="flex items-center gap-1.5 text-xs">
-                <Brain className="w-3 h-3 text-primary" />
-                <span className="text-muted-foreground">Semantic:</span>
+                <Wand2 className="w-3 h-3 text-primary" />
+                <span className="text-muted-foreground">Deep search finds related:</span>
                 {semanticTerms.slice(0, 8).map((t) => (
                   <span key={t} className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[11px] font-medium">{t}</span>
                 ))}
@@ -257,7 +245,7 @@ const SearchPage = () => {
             {semanticEnabled && semanticLoading && (
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Loader2 className="w-3 h-3 animate-spin" />
-                <span>Expanding query with AI…</span>
+                <span>Finding related terms with AI…</span>
               </div>
             )}
             {activeSmartFilters.map((f) => (
@@ -298,7 +286,7 @@ const SearchPage = () => {
                   <div className="text-center py-16">
                     <SearchIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
                     <p className="text-muted-foreground text-sm">No files match your search.</p>
-                    <p className="text-muted-foreground/60 text-xs mt-1">Try different keywords or check your filters.</p>
+                    <p className="text-muted-foreground/60 text-xs mt-1">Try different keywords or enable Deep Search for better results.</p>
                   </div>
                 )}
                 <div className="space-y-3">

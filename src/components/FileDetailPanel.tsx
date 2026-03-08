@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, Tag, Brain, Calendar, FileText, History, Download, Eye, RefreshCw, Loader2 } from "lucide-react";
+import { X, Tag, Brain, Calendar, FileText, History, Download, Eye, RefreshCw, Loader2, MessageCircle } from "lucide-react";
 import type { MockFile } from "@/data/mockFiles";
 import { getFileIcon, getFileColor, tagColors } from "@/data/mockFiles";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { downloadFile, viewFile } from "@/lib/fileUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   file: MockFile & { id?: string; fileType?: string };
@@ -19,6 +20,7 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
   const color = getFileColor(file.type);
   const [reanalyzing, setReanalyzing] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const handleReanalyze = async () => {
     if (!file.id) return;
@@ -68,7 +70,7 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mb-5">
+        <div className="flex gap-2 mb-5 flex-wrap">
           {file.fileUrl && (
             <>
               <button
@@ -88,14 +90,23 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
             </>
           )}
           {file.id && (
-            <button
-              onClick={handleReanalyze}
-              disabled={reanalyzing}
-              className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors disabled:opacity-50"
-            >
-              {reanalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-              Re-analyze
-            </button>
+            <>
+              <button
+                onClick={() => navigate(`/chat?fileId=${file.id}`)}
+                className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                Chat
+              </button>
+              <button
+                onClick={handleReanalyze}
+                disabled={reanalyzing}
+                className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors disabled:opacity-50"
+              >
+                {reanalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                Re-analyze
+              </button>
+            </>
           )}
         </div>
 
