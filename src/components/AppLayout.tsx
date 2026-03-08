@@ -51,6 +51,8 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
 
       {/* Mobile bottom nav */}
       {isMobile && <BottomNavBar />}
+
+      <SupportChat />
     </div>
   );
 };
