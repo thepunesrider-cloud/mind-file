@@ -298,7 +298,9 @@ const FilesPage = () => {
             Delete
           </ContextMenuItem>
         </ContextMenuContent>
-        {children}
+        <ContextMenuTrigger asChild>
+          {children}
+        </ContextMenuTrigger>
       </ContextMenu>
     );
   };
