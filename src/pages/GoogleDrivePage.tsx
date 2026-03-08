@@ -39,25 +39,20 @@ const GoogleDrivePage = () => {
     { id: "root", name: "My Drive" },
   ]);
   const [activeTab, setActiveTab] = useState<"import" | "export">("import");
+  const [connecting, setConnecting] = useState(false);
+  const [exchangeLoading, setExchangeLoading] = useState(false);
 
   const { data: appFiles } = useFiles();
   const queryClient = useQueryClient();
 
   const currentFolder = folderStack[folderStack.length - 1];
 
-  useEffect(() => {
-    checkConnection();
-  }, []);
-
-  useEffect(() => {
-    if (connected && activeTab === "import") {
-      listDriveFiles();
-    }
-  }, [connected, currentFolder.id, activeTab]);
-
   const checkConnection = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setConnected(false); return; }
+    if (!user) {
+      setConnected(false);
+      return;
+    }
 
     const { data } = await supabase
       .from("google_drive_tokens")
@@ -66,13 +61,11 @@ const GoogleDrivePage = () => {
       .maybeSingle();
 
     setConnected(!!data);
-    if (data) listDriveFiles();
   };
 
   const listDriveFiles = async (query?: string) => {
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
       const resp = await supabase.functions.invoke("gdrive-api", {
         body: { action: "list", folderId: currentFolder.id, query: query || searchQuery },
       });
@@ -81,16 +74,76 @@ const GoogleDrivePage = () => {
       setDriveFiles(resp.data?.files || []);
     } catch (err: any) {
       console.error("List error:", err);
-      if (err.message?.includes("expired") || err.message?.includes("not connected")) {
-        setConnected(false);
-        toast.error("Google Drive session expired. Please re-sign in with Google.");
-      } else {
-        toast.error("Failed to load Drive files");
-      }
+      setConnected(false);
+      toast.error(err?.message || "Failed to load Drive files");
     } finally {
       setLoading(false);
     }
   };
+
+  const exchangeCodeForToken = async (code: string) => {
+    setExchangeLoading(true);
+    try {
+      const redirectUri = `${window.location.origin}/google-drive`;
+      const resp = await supabase.functions.invoke("gdrive-api", {
+        body: { action: "exchange-code", code, redirectUri },
+      });
+
+      if (resp.error) throw new Error(resp.error.message);
+
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("code");
+      cleanUrl.searchParams.delete("scope");
+      cleanUrl.searchParams.delete("authuser");
+      cleanUrl.searchParams.delete("prompt");
+      window.history.replaceState({}, "", cleanUrl.pathname);
+
+      toast.success("Google Drive connected successfully");
+      setConnected(true);
+      await listDriveFiles();
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to connect Google Drive");
+      setConnected(false);
+    } finally {
+      setExchangeLoading(false);
+    }
+  };
+
+  const startDriveConnect = async () => {
+    setConnecting(true);
+    try {
+      const redirectUri = `${window.location.origin}/google-drive`;
+      const resp = await supabase.functions.invoke("gdrive-api", {
+        body: { action: "auth-url", redirectUri },
+      });
+
+      if (resp.error) throw new Error(resp.error.message);
+      if (!resp.data?.url) throw new Error("Failed to start Google Drive connection");
+
+      window.location.href = resp.data.url as string;
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to start Google Drive connection");
+      setConnecting(false);
+    }
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+
+    if (code) {
+      void exchangeCodeForToken(code);
+      return;
+    }
+
+    void checkConnection();
+  }, []);
+
+  useEffect(() => {
+    if (connected && activeTab === "import") {
+      void listDriveFiles();
+    }
+  }, [connected, currentFolder.id, activeTab]);
 
   const handleImport = async (file: DriveFile) => {
     setImporting((prev) => ({ ...prev, [file.id]: true }));
@@ -142,11 +195,12 @@ const GoogleDrivePage = () => {
     }
   };
 
-  if (connected === null) {
+  if (connected === null || exchangeLoading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Connecting Google Drive...</p>
         </div>
       </AppLayout>
     );
@@ -161,13 +215,11 @@ const GoogleDrivePage = () => {
           </div>
           <h1 className="text-2xl font-bold mb-2">Connect Google Drive</h1>
           <p className="text-muted-foreground max-w-md mb-6">
-            Sign in with Google to import and export files between your Drive and Smart Storage.
+            Connect once, then import/export files directly between your Drive and Smart Storage.
           </p>
-          <p className="text-sm text-muted-foreground mb-2">
-            To connect, sign out and sign back in with Google. Drive access will be requested automatically.
-          </p>
-          <Button variant="outline" onClick={() => window.location.href = "/login"}>
-            Go to Login
+          <Button onClick={startDriveConnect} disabled={connecting} className="gap-2">
+            {connecting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            {connecting ? "Redirecting to Google..." : "Connect Google Drive"}
           </Button>
         </div>
       </AppLayout>
@@ -287,7 +339,7 @@ const GoogleDrivePage = () => {
                             disabled={importing[file.id]}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleImport(file);
+                              void handleImport(file);
                             }}
                           >
                             {importing[file.id] ? (
@@ -334,7 +386,7 @@ const GoogleDrivePage = () => {
                       variant="outline"
                       className="rounded-lg gap-1.5 shrink-0"
                       disabled={exporting[file.id]}
-                      onClick={() => handleExport(file.id, file.file_name)}
+                      onClick={() => void handleExport(file.id, file.file_name)}
                     >
                       {exporting[file.id] ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
