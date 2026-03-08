@@ -55,7 +55,11 @@ const ShareDialog = ({ open, onOpenChange, fileId, fileName }: ShareDialogProps)
 
       if (error) throw error;
 
-      const link = `${window.location.origin}/shared/${data.token}`;
+      // Use published domain if available, otherwise current origin
+      const origin = window.location.hostname.includes("preview")
+        ? window.location.origin.replace(/id-preview--[^.]+\.lovable\.app/, "mind-file.lovable.app")
+        : window.location.origin;
+      const link = `${origin}/shared/${data.token}`;
       setShareLink(link);
       toast.success("Share link created!");
     } catch (e) {
