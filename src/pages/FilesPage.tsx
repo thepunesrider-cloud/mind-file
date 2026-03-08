@@ -490,8 +490,8 @@ const FilesPage = () => {
             selectedFile?.id === file.id
               ? "border-primary/50 shadow-lg shadow-primary/10 bg-primary/5"
               : "hover:border-primary/40 hover:shadow-md hover:shadow-primary/5"
-          )}
-        >
+          )}>
+
           <motion.div
             whileHover={{ scale: 1.1, rotate: -5 }}
             className={cn("w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br", color)}
