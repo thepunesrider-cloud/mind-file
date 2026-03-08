@@ -422,7 +422,7 @@ const SmartFoldersPage = () => {
                       onClick={() => togglePin(folder.name)}
                       className={cn(
                         "p-2 rounded-lg transition-colors shrink-0",
-                        isPinned ? "text-yellow-500" : "text-muted-foreground/30 hover:text-yellow-500/60"
+                        isPinned ? "text-accent" : "text-muted-foreground/30 hover:text-accent/60"
                       )}
                       title={isPinned ? "Unpin folder" : "Pin folder"}
                     >
