@@ -54,6 +54,8 @@ const SearchPage = () => {
   const [semanticEnabled, setSemanticEnabled] = useState(false);
   const [semanticTerms, setSemanticTerms] = useState<string[]>([]);
   const [semanticLoading, setSemanticLoading] = useState(false);
+  const [smartResults, setSmartResults] = useState<{ fileId: string; reason: string; confidence: number }[]>([]);
+  const [smartLoading, setSmartLoading] = useState(false);
   const { data: files, isLoading } = useFiles();
 
   // Debounced semantic expansion
