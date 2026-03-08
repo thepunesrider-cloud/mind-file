@@ -191,8 +191,9 @@ const Login = () => {
                 const { error, redirected } = await lovable.auth.signInWithOAuth("google", {
                   redirect_uri: `${window.location.origin}/dashboard`,
                   extraParams: {
-                    prompt: "select_account",
+                    prompt: "consent",
                     access_type: "offline",
+                    include_granted_scopes: "true",
                     scope: "openid email profile https://www.googleapis.com/auth/drive.readonly",
                   },
                 });
