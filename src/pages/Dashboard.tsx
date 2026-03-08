@@ -124,9 +124,9 @@ const Dashboard = () => {
 
   // Quick actions
   const quickActions = [
-    { label: "Upload File", icon: Upload, to: "/upload", gradient: "from-primary to-accent" },
-    { label: "Browse Files", icon: FolderOpen, to: "/files", gradient: "from-primary to-info" },
-    { label: "Search", icon: Search, to: "/search", gradient: "from-accent to-primary" },
+    { label: "Upload File", icon: Upload, to: "/upload", gradient: "from-primary to-accent", onboard: "upload-action" },
+    { label: "Browse Files", icon: FolderOpen, to: "/files", gradient: "from-primary to-info", onboard: "browse-action" },
+    { label: "Search", icon: Search, to: "/search", gradient: "from-accent to-primary", onboard: "" },
   ];
 
   return (
