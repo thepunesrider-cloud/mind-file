@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Grid3X3, List, Loader2, Download, Eye, FolderPlus, Folder, ChevronRight, MessageCircle, ArrowLeft, Trash2, FolderInput, RefreshCw, FileText, ArrowLeftRight, Info } from "lucide-react";
+import { Grid3X3, List, Loader2, Download, Eye, FolderPlus, Folder, ChevronRight, MessageCircle, ArrowLeft, Trash2, FolderInput, RefreshCw, FileText, ArrowLeftRight, Info, Sparkles, Plus } from "lucide-react";
 import { downloadFile, viewFile } from "@/lib/fileUrl";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
