@@ -49,7 +49,31 @@ const SearchPage = () => {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [autocompleteOpen, setAutocompleteOpen] = useState(false);
+  const [semanticEnabled, setSemanticEnabled] = useState(false);
+  const [semanticTerms, setSemanticTerms] = useState<string[]>([]);
+  const [semanticLoading, setSemanticLoading] = useState(false);
   const { data: files, isLoading } = useFiles();
+
+  // Debounced semantic expansion
+  const expandQuery = useCallback(async (q: string) => {
+    if (!q.trim() || q.trim().length < 3) {
+      setSemanticTerms([]);
+      return;
+    }
+    setSemanticLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("semantic-search", {
+        body: { query: q },
+      });
+      if (error) throw error;
+      setSemanticTerms(data?.expanded || []);
+    } catch (e) {
+      console.error("Semantic expansion error:", e);
+      setSemanticTerms([]);
+    } finally {
+      setSemanticLoading(false);
+    }
+  }, []);
 
   const allTags = Array.from(new Set((files || []).flatMap((f) => f.tags.map((t) => t.name))));
 
