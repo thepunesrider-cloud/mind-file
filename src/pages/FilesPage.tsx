@@ -89,6 +89,8 @@ const FilesPage = () => {
   const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [shareFile, setShareFile] = useState<{ id: string; name: string } | null>(null);
 
   const createFolder = () => {
     if (!newFolderName.trim()) return;
