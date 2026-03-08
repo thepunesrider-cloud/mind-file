@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 const MSG91_API = "https://control.msg91.com/api/v5/whatsapp";
+const SESSION_TIMEOUT_MS = 5 * 60 * 1000;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -29,33 +30,25 @@ serve(async (req) => {
     const body = await req.json();
     console.log("Webhook payload:", JSON.stringify(body));
 
-    // MSG91 delivery receipts have eventName like "delivered" — ignore them
-    if (body.eventName) {
-      return jsonOk({ ok: true, msg: "delivery receipt ignored" });
-    }
+    if (body.eventName) return jsonOk({ ok: true, msg: "delivery receipt ignored" });
 
     const senderPhone = body.sender || body.from || body.mobile || body.waId || "";
     const messageText = (body.text || body.message || body.body || "").trim();
 
-    // MSG91 sends file uploads with: url, filename at top level AND messages[0].document
     const msgDoc = body.messages?.[0]?.document;
     const msgImage = body.messages?.[0]?.image;
     const msgVideo = body.messages?.[0]?.video;
     const msgMedia = msgDoc || msgImage || msgVideo;
-
     const mediaUrl = body.url || body.media_url || body.mediaUrl || msgMedia?.url || body.media?.[0]?.url || "";
     const mediaType = body.mime_type || body.media_type || body.mediaType || msgMedia?.mime_type || body.media?.[0]?.type || "";
     const mediaFileName = body.filename || body.media_filename || msgDoc?.filename || body.media?.[0]?.filename || "";
 
-    // MSG91 sends button replies at messages[0].interactive.button_reply
     const msgInteractive = body.messages?.[0]?.interactive;
     const interactiveReply = body.button_reply || body.interactive?.button_reply || msgInteractive?.button_reply || null;
     const listReply = body.list_reply || body.interactive?.list_reply || msgInteractive?.list_reply || null;
     const selectedId = interactiveReply?.id || listReply?.id || "";
 
-    if (!senderPhone) {
-      return jsonOk({ ok: true, msg: "no sender" });
-    }
+    if (!senderPhone) return jsonOk({ ok: true, msg: "no sender" });
 
     const cleanPhone = senderPhone.replace(/[\s+\-()]/g, "");
     const phoneVariants = [cleanPhone];
@@ -73,7 +66,6 @@ serve(async (req) => {
     }
 
     if (!waUser || !waUser.verified) {
-      // Only respond to unverified users if they send "sort"
       const msgLower = messageText.toLowerCase();
       if (msgLower === "sort") {
         await sendText(msg91Key, integratedNumber, cleanPhone,
@@ -98,44 +90,49 @@ serve(async (req) => {
       session = newSession;
     }
 
-    // Check if session is expired (5 min timeout)
-    const SESSION_TIMEOUT_MS = 5 * 60 * 1000;
     const sessionAge = session?.updated_at
       ? Date.now() - new Date(session.updated_at).getTime()
       : Infinity;
     const sessionActive = session && session.session_type !== "idle" && sessionAge < SESSION_TIMEOUT_MS;
 
-    // --- Interactive button/list reply (always handle, buttons carry their own context) ---
+    // ── Interactive button/list reply ──
     if (selectedId) {
       return await handleMenuChoice(selectedId, supabase, msg91Key, integratedNumber, cleanPhone, userId, session, lovableApiKey, supabaseUrl);
     }
 
-    // --- File/media upload (only if session is active or awaiting_upload) ---
+    // ── File/media upload ──
     if (mediaUrl && (sessionActive || session?.session_type === "awaiting_upload")) {
       await handleUpload(supabase, msg91Key, integratedNumber, cleanPhone, userId, mediaUrl, mediaType, mediaFileName, lovableApiKey, supabaseUrl);
       return jsonOk({ ok: true });
     }
 
-    // --- Number pick (awaiting_pick) ---
+    // ── Ask about file mode: every text message is a question about the file ──
+    if (sessionActive && session?.session_type === "asking_about_file" && messageText) {
+      const fileData = (session.session_data as any);
+      await handleAskAboutFile(supabase, msg91Key, integratedNumber, cleanPhone, userId, messageText, fileData, lovableApiKey, supabaseUrl);
+      return jsonOk({ ok: true });
+    }
+
+    // ── Number pick (awaiting_pick) ──
     if (sessionActive && session?.session_type === "awaiting_pick" && /^\d+$/.test(messageText)) {
       const pickNum = parseInt(messageText, 10);
       const results = (session.session_data as any)?.results || [];
       if (pickNum >= 1 && pickNum <= results.length) {
         const picked = results[pickNum - 1];
         await sendFileWithButtons(supabase, msg91Key, integratedNumber, cleanPhone, picked);
-        await resetSession(supabase, cleanPhone);
+        // Store picked file in session for potential "ask about file"
+        await setSession(supabase, cleanPhone, "file_delivered", { fileId: picked.id, fileName: picked.file_name });
         return jsonOk({ ok: true });
       }
     }
 
-    // --- Search input (awaiting_search) ---
+    // ── Search input (awaiting_search) ──
     if (sessionActive && session?.session_type === "awaiting_search" && messageText) {
-      await resetSession(supabase, cleanPhone);
       await handleSearch(supabase, msg91Key, integratedNumber, cleanPhone, userId, messageText);
       return jsonOk({ ok: true });
     }
 
-    // --- Fallback number menu selection ---
+    // ── Fallback number menu selection ──
     if (sessionActive && session?.session_type === "awaiting_menu" && /^\d$/.test(messageText)) {
       const menuMap: Record<string, string> = { "1": "search", "2": "upload", "3": "stats", "4": "recent", "5": "help" };
       const choiceId = menuMap[messageText];
@@ -144,16 +141,13 @@ serve(async (req) => {
       }
     }
 
-    const msgLower = messageText.toLowerCase();
-
-    // --- ONLY "sort" triggers the menu ---
-    if (msgLower === "sort") {
+    // ── Only "sort" triggers the bot ──
+    if (messageText.toLowerCase() === "sort") {
       await sendMainMenu(msg91Key, integratedNumber, cleanPhone);
       await setSession(supabase, cleanPhone, "awaiting_menu");
       return jsonOk({ ok: true });
     }
 
-    // --- Ignore all other messages silently (no fallback reply) ---
     return jsonOk({ ok: true });
   } catch (e) {
     console.error("whatsapp-webhook error:", e);
@@ -228,16 +222,13 @@ async function sendMoreMenu(authKey: string, intNum: string, phone: string) {
 async function sendInteractive(authKey: string, payload: any, logLabel: string): Promise<boolean> {
   try {
     const url = `${MSG91_API}/whatsapp-outbound-message/?integrated_number=${encodeURIComponent(payload.integrated_number)}&recipient_number=${encodeURIComponent(payload.recipient_number)}&content_type=interactive`;
-
     const resp = await fetch(url, {
       method: "POST",
       headers: { accept: "application/json", authkey: authKey, "content-type": "application/json" },
       body: JSON.stringify(payload.payload),
     });
-
     const data = await resp.json();
     console.log(`${logLabel} [${resp.status}]:`, JSON.stringify(data));
-
     return resp.ok && !data?.hasError && data?.status !== "fail" && data?.type !== "error";
   } catch (e) {
     console.error(`${logLabel} error:`, e);
@@ -252,6 +243,13 @@ async function handleMenuChoice(
   phone: string, userId: string, session: any,
   lovableApiKey: string | undefined, supabaseUrl: string
 ) {
+  // ── Back to main menu (from anywhere) ──
+  if (choiceId === "back_menu") {
+    await sendMainMenu(authKey, intNum, phone);
+    await setSession(supabase, phone, "awaiting_menu");
+    return jsonOk({ ok: true });
+  }
+
   if (choiceId === "more") {
     await sendMoreMenu(authKey, intNum, phone);
     return jsonOk({ ok: true });
@@ -291,14 +289,14 @@ async function handleMenuChoice(
     if (!recentFiles || recentFiles.length === 0) {
       await sendTextWithMenuButton(authKey, intNum, phone, "📂 No files yet. Send a document to upload it!");
     } else {
-      // Send first file as actual media with buttons
       await sendFileWithButtons(supabase, authKey, intNum, phone, recentFiles[0]);
+      await setSession(supabase, phone, "file_delivered", { fileId: recentFiles[0].id, fileName: recentFiles[0].file_name });
 
       if (recentFiles.length > 1) {
         let listMsg = "📂 *More recent files:*\n\n";
         recentFiles.slice(1).forEach((f: any, i: number) => {
           const brief = f.ai_summary ? f.ai_summary.substring(0, 40) + "..." : f.file_type;
-          listMsg += `*${i + 2}.* ${f.file_name}\n   _${brief}_\n\n`;
+          listMsg += `*${i + 1}.* ${f.file_name}\n   _${brief}_\n\n`;
         });
         listMsg += "📌 Reply with a number to get that file";
 
@@ -316,15 +314,34 @@ async function handleMenuChoice(
 
   if (choiceId === "help") {
     await sendTextWithMenuButton(authKey, intNum, phone,
-      "🤖 *Sortify Help*\n\n🔍 Search — Find files by name or content\n📤 Upload — Send any file to auto-categorize\n📊 Stats — View your file count\n📂 Recent — See last uploads\n\nYou can also send a file anytime!");
+      "🤖 *Sortify Help*\n\n🔍 Search — Find files by name or content\n📤 Upload — Send any file to auto-categorize\n📊 Stats — View your file count\n📂 Recent — See last uploads\n💬 Ask — Ask AI questions about any file\n\nType *sort* anytime to open the menu.");
     await resetSession(supabase, phone);
     return jsonOk({ ok: true });
   }
 
-  // "back_menu" button
-  if (choiceId === "back_menu") {
-    await sendMainMenu(authKey, intNum, phone);
-    await setSession(supabase, phone, "awaiting_menu");
+  // ── "Ask about file" button pressed ──
+  if (choiceId === "ask_file") {
+    const sessionData = session?.session_data as any;
+    // Get file info from session (stored when file was delivered)
+    const fileId = sessionData?.fileId;
+    const fileName = sessionData?.fileName;
+
+    if (!fileId) {
+      await sendTextWithMenuButton(authKey, intNum, phone, "⚠️ No file selected. Please search or browse files first.");
+      return jsonOk({ ok: true });
+    }
+
+    await sendText(authKey, intNum, phone,
+      `💬 *Ask about: ${fileName}*\n\nType your question about this document.\n\n_Example: "What is the penalty clause?" or "When does it expire?"_`);
+    await setSession(supabase, phone, "asking_about_file", { fileId, fileName, chatHistory: [] });
+    return jsonOk({ ok: true });
+  }
+
+  // ── "Search more" after file delivery ──
+  if (choiceId === "search_more") {
+    await sendText(authKey, intNum, phone,
+      "🔍 *Search Mode*\n\nType what you're looking for:");
+    await setSession(supabase, phone, "awaiting_search");
     return jsonOk({ ok: true });
   }
 
@@ -332,12 +349,11 @@ async function handleMenuChoice(
   return jsonOk({ ok: true });
 }
 
-// ===================== SEND FILE WITH BUTTONS =====================
+// ===================== SEND FILE WITH 3 BUTTONS =====================
 
 async function sendFileWithButtons(
   supabase: any, authKey: string, intNum: string, phone: string, file: any
 ) {
-  // Generate a signed URL for the file
   const { data: signedData } = await supabase.storage
     .from("files")
     .createSignedUrl(file.file_url, 600);
@@ -349,13 +365,10 @@ async function sendFileWithButtons(
 
   const shortSummary = file.ai_summary ? file.ai_summary.substring(0, 100) : "";
   const fileType = (file.file_type || "").toLowerCase();
-
-  // Determine content type for MSG91
   const isImage = fileType.includes("image");
   const contentType = isImage ? "image" : "document";
 
   try {
-    // Send the actual file via MSG91
     const mediaPayload: any = {
       integrated_number: intNum,
       content_type: contentType,
@@ -379,7 +392,6 @@ async function sendFileWithButtons(
     console.log("Media send response:", JSON.stringify(mediaData));
 
     if (!mediaResp.ok || mediaData.type === "error") {
-      // Fallback: send as text with link
       await sendText(authKey, intNum, phone,
         `📄 *${file.file_name}*${shortSummary ? `\n\n${shortSummary}` : ""}\n\n📎 Download: ${signedData.signedUrl}`);
     }
@@ -389,11 +401,7 @@ async function sendFileWithButtons(
       `📄 *${file.file_name}*${shortSummary ? `\n\n${shortSummary}` : ""}\n\n📎 Download: ${signedData.signedUrl}`);
   }
 
-  // Send interactive buttons after the file
-  await sendButtonsAfterFile(authKey, intNum, phone);
-}
-
-async function sendButtonsAfterFile(authKey: string, intNum: string, phone: string) {
+  // 3 buttons: Ask about file, Search more, Main menu
   await sendInteractive(authKey, {
     integrated_number: intNum,
     recipient_number: phone,
@@ -405,16 +413,138 @@ async function sendButtonsAfterFile(authKey: string, intNum: string, phone: stri
       type: "interactive",
       interactive: {
         type: "button",
-        body: { text: "What would you like to do next?" },
+        body: { text: `What would you like to do with *${file.file_name}*?` },
         action: {
           buttons: [
-            { type: "reply", reply: { id: "search", title: "🔍 Search More" } },
+            { type: "reply", reply: { id: "ask_file", title: "💬 Ask About File" } },
+            { type: "reply", reply: { id: "search_more", title: "🔍 Search More" } },
             { type: "reply", reply: { id: "back_menu", title: "📋 Main Menu" } },
           ],
         },
       },
     },
-  }, "Buttons after file response");
+  }, "File action buttons");
+}
+
+// ===================== ASK ABOUT FILE (AI Q&A) =====================
+
+async function handleAskAboutFile(
+  supabase: any, authKey: string, intNum: string, phone: string,
+  userId: string, question: string, sessionData: any,
+  lovableApiKey: string | undefined, supabaseUrl: string
+) {
+  const fileId = sessionData?.fileId;
+  const fileName = sessionData?.fileName || "document";
+  const chatHistory: Array<{ role: string; content: string }> = sessionData?.chatHistory || [];
+
+  if (!fileId) {
+    await sendTextWithMenuButton(authKey, intNum, phone, "⚠️ No file context. Please search a file first.");
+    await resetSession(supabase, phone);
+    return;
+  }
+
+  // Fetch file data
+  const { data: fileRecord } = await supabase
+    .from("files")
+    .select("file_name, ai_summary, extracted_text, entities, expiry_date, semantic_keywords, ai_description")
+    .eq("id", fileId)
+    .eq("user_id", userId)
+    .single();
+
+  if (!fileRecord) {
+    await sendTextWithMenuButton(authKey, intNum, phone, "⚠️ File not found.");
+    await resetSession(supabase, phone);
+    return;
+  }
+
+  await sendText(authKey, intNum, phone, "🤔 Thinking...");
+
+  const fileContext = `--- FILE: ${fileRecord.file_name} ---
+Summary: ${fileRecord.ai_summary || "N/A"}
+Description: ${fileRecord.ai_description || "N/A"}
+Extracted Text: ${(fileRecord.extracted_text || "").substring(0, 3000)}
+Entities: ${JSON.stringify(fileRecord.entities || [])}
+Expiry: ${fileRecord.expiry_date || "None"}
+Keywords: ${fileRecord.semantic_keywords || "N/A"}`;
+
+  const messages = [
+    {
+      role: "system",
+      content: `You are Sortify AI assistant. Answer questions about the user's document concisely. Use the file context below.\n\n${fileContext}`,
+    },
+    ...chatHistory.slice(-6), // Keep last 6 messages for context
+    { role: "user", content: question },
+  ];
+
+  let answer = "";
+
+  if (lovableApiKey) {
+    try {
+      const resp = await fetch("https://ai-gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${lovableApiKey}`,
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages,
+          max_tokens: 500,
+        }),
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        answer = data.choices?.[0]?.message?.content || "I couldn't generate an answer.";
+      } else {
+        answer = "⚠️ AI is temporarily unavailable. Please try again.";
+      }
+    } catch (e) {
+      console.error("AI gateway error:", e);
+      answer = "⚠️ AI is temporarily unavailable. Please try again.";
+    }
+  } else {
+    answer = "⚠️ AI is not configured.";
+  }
+
+  // Truncate if too long for WhatsApp (4096 char limit)
+  if (answer.length > 3500) answer = answer.substring(0, 3500) + "...";
+
+  // Update chat history in session
+  const newHistory = [
+    ...chatHistory.slice(-6),
+    { role: "user", content: question },
+    { role: "assistant", content: answer },
+  ];
+
+  await setSession(supabase, phone, "asking_about_file", {
+    fileId,
+    fileName,
+    chatHistory: newHistory,
+  });
+
+  // Send answer with "Main Menu" button so user can exit anytime
+  await sendInteractive(authKey, {
+    integrated_number: intNum,
+    recipient_number: phone,
+    content_type: "interactive",
+    payload: {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: phone,
+      type: "interactive",
+      interactive: {
+        type: "button",
+        body: { text: answer },
+        action: {
+          buttons: [
+            { type: "reply", reply: { id: "back_menu", title: "📋 Main Menu" } },
+            { type: "reply", reply: { id: "search_more", title: "🔍 Search More" } },
+          ],
+        },
+      },
+    },
+  }, "AI answer with menu button");
 }
 
 // ===================== SEARCH =====================
@@ -458,8 +588,10 @@ async function handleSearch(
     return;
   }
 
-  // Send the top result as actual file
+  // Send top result as file with 3 buttons
   await sendFileWithButtons(supabase, authKey, intNum, phone, scored[0]);
+  // Store delivered file info for "ask about file"
+  await setSession(supabase, phone, "file_delivered", { fileId: scored[0].id, fileName: scored[0].file_name });
 
   if (scored.length > 1) {
     let listMsg = `🔍 *${scored.length - 1} more result(s)* for "*${query}*"\n\n`;
@@ -541,6 +673,8 @@ async function handleUpload(
     } else {
       await sendTextWithMenuButton(authKey, intNum, phone, `✅ *${fileName}* uploaded!`);
     }
+
+    await resetSession(supabase, phone);
   } catch (err) {
     console.error("Upload error:", err);
     await sendText(authKey, intNum, phone, "❌ Upload failed. Please try again.");
