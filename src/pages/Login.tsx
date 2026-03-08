@@ -17,7 +17,7 @@ const Login = () => {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [debugInfo, setDebugInfo] = useState({ session: "checking...", lastEvent: "none", lastTime: "" });
+  
   const navigate = useNavigate();
 
   const redirectByOnboarding = useCallback(async (userId: string) => {
@@ -40,11 +40,6 @@ const Login = () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      setDebugInfo(prev => ({
-        ...prev,
-        session: session ? `✅ ${session.user.email} (${session.user.id.slice(0, 8)}...)` : "❌ No session",
-        lastTime: new Date().toLocaleTimeString(),
-      }));
       if (session?.user?.id) {
         await redirectByOnboarding(session.user.id);
       }
@@ -55,12 +50,6 @@ const Login = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setDebugInfo(prev => ({
-        ...prev,
-        lastEvent: `${event} @ ${new Date().toLocaleTimeString()}`,
-        session: session ? `✅ ${session.user.email}` : "❌ No session",
-        lastTime: new Date().toLocaleTimeString(),
-      }));
       if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user?.id) {
         await redirectByOnboarding(session.user.id);
       }
@@ -150,15 +139,6 @@ const Login = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Debug Banner */}
-      <div className="bg-yellow-500/90 text-black text-xs px-4 py-2 font-mono flex flex-wrap gap-4 items-center z-50">
-        <span>🔍 <strong>DEBUG</strong></span>
-        <span>Session: {debugInfo.session}</span>
-        <span>Last Event: {debugInfo.lastEvent}</span>
-        <span>Checked: {debugInfo.lastTime}</span>
-        <span>Origin: {window.location.origin}</span>
-        <span>Hash: {window.location.hash || "(none)"}</span>
-      </div>
       <div className="flex flex-1">
       {/* Left - Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center dot-pattern">
