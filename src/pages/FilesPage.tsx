@@ -21,6 +21,7 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuLabel,
+  ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
