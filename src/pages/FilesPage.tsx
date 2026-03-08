@@ -519,7 +519,7 @@ const FilesPage = () => {
           </div>
           <span className="hidden md:inline text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.size}</span>
           <span className="hidden md:inline text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.uploadDate}</span>
-          <div className="flex items-center gap-0.5 shrink-0">
+          <div className="hidden sm:flex items-center gap-0.5 shrink-0">
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
