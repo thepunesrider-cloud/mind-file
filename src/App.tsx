@@ -16,6 +16,7 @@ import SmartFoldersPage from "./pages/SmartFoldersPage";
 import ComparePage from "./pages/ComparePage";
 import SettingsPage from "./pages/SettingsPage";
 import SharedFilePage from "./pages/SharedFilePage";
+import PricingPage from "./pages/PricingPage";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 
