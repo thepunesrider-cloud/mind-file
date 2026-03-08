@@ -81,6 +81,34 @@ const SettingsPage = () => {
     }
   };
 
+  const regenerateCode = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not logged in");
+
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+
+      const { error } = await supabase
+        .from("whatsapp_users")
+        .update({ verification_code: code, verified: false })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      setVerified(false);
+      setCodeSent(true);
+      toast.success(`New verification code: ${code}`, {
+        description: "Send this code to Sortify on WhatsApp",
+        duration: 15000,
+      });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to regenerate code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const unlinkWhatsApp = async () => {
     setLoading(true);
     try {
