@@ -415,6 +415,7 @@ const Dashboard = () => {
         </motion.button>
       )}
     </AppLayout>
+  );
 };
 
 export default Dashboard;
