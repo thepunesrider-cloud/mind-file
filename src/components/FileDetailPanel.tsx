@@ -48,9 +48,9 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
   return (
     <motion.div
       initial={{ opacity: 0, x: 20, width: 0 }}
-      animate={{ opacity: 1, x: 0, width: 380 }}
+      animate={{ opacity: 1, x: 0, width: "auto" }}
       exit={{ opacity: 0, x: 20, width: 0 }}
-      className="shrink-0 glass rounded-xl overflow-hidden"
+      className="shrink-0 glass rounded-xl overflow-hidden w-full sm:w-[380px] fixed sm:relative inset-0 sm:inset-auto z-50 sm:z-auto bg-background sm:bg-transparent"
     >
       <div className="p-5 h-full overflow-y-auto max-h-[calc(100vh-8rem)]">
         {/* Header */}
