@@ -197,13 +197,6 @@ const SearchPage = () => {
               Filters
             </button>
           </div>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
-          <h1 className="text-2xl font-bold">Smart Search</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Search by name, content, tags, or just describe what you're looking for
-          </p>
-        </motion.div>
-
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <SearchAutocomplete
             value={query}

@@ -106,14 +106,13 @@ const AppSidebar = ({ onClose }: { onClose?: () => void }) => {
           {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           {isDark ? "Light Mode" : "Dark Mode"}
         </button>
-        <RouterNavLink
-          to="/"
-          onClick={onClose}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
         >
           <LogOut className="w-4 h-4" />
           Sign Out
-        </RouterNavLink>
+        </button>
       </div>
     </aside>
   );
