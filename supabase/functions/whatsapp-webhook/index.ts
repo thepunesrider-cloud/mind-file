@@ -36,10 +36,13 @@ serve(async (req) => {
     const mediaType = body.media_type || body.mediaType || body.media?.[0]?.type || "";
     const mediaFileName = body.media_filename || body.media?.[0]?.filename || "";
 
+    // Extract interactive reply (button or list selection)
+    const interactiveReply = body.button_reply || body.interactive?.button_reply || null;
+    const listReply = body.list_reply || body.interactive?.list_reply || null;
+    const selectedId = interactiveReply?.id || listReply?.id || "";
+
     if (!senderPhone) {
-      return new Response(JSON.stringify({ ok: true, msg: "no sender" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonOk({ ok: true, msg: "no sender" });
     }
 
     // Clean phone number (remove +, spaces)
@@ -47,11 +50,9 @@ serve(async (req) => {
 
     // Try multiple phone formats to match (with/without country code)
     const phoneVariants = [cleanPhone];
-    // If starts with country code like 91, also try without it
     if (cleanPhone.length > 10) {
-      phoneVariants.push(cleanPhone.slice(-10)); // last 10 digits
+      phoneVariants.push(cleanPhone.slice(-10));
     }
-    // If only 10 digits, try adding common country code
     if (cleanPhone.length === 10) {
       phoneVariants.push("91" + cleanPhone);
     }
@@ -93,6 +94,11 @@ serve(async (req) => {
       session = newSession;
     }
 
+    // --- Handle interactive menu selection (button/list reply) ---
+    if (selectedId) {
+      return await handleMenuChoice(selectedId, supabase, msg91Key, integratedNumber, cleanPhone, userId, session, lovableApiKey, supabaseUrl);
+    }
+
     // --- Handle file/media upload ---
     if (mediaUrl) {
       await handleUpload(supabase, msg91Key, integratedNumber, cleanPhone, userId, mediaUrl, mediaType, mediaFileName, lovableApiKey, supabaseUrl);
@@ -127,7 +133,6 @@ serve(async (req) => {
 
     // --- Handle search input (when awaiting_search) ---
     if (session?.session_type === "awaiting_search" && messageText) {
-      // Reset session first, then search
       await supabase
         .from("whatsapp_sessions")
         .update({ session_type: "idle", session_data: {}, updated_at: new Date().toISOString() })
@@ -139,17 +144,9 @@ serve(async (req) => {
 
     const msgLower = messageText.toLowerCase();
 
-    // --- "sort" command: Show main menu ---
-    if (msgLower === "sort" || msgLower === "hi" || msgLower === "hello" || msgLower === "start") {
-      await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
-        "👋 *Welcome to Sortify!*\n\n" +
-        "What would you like to do?\n\n" +
-        "*1.* 🔍 Search files\n" +
-        "*2.* 📤 Upload a file (send document/image next)\n" +
-        "*3.* 📊 View my stats\n" +
-        "*4.* 📂 Recent files\n" +
-        "*5.* ❓ Help\n\n" +
-        "📌 *Reply with a number* to select an option");
+    // --- "sort" command: Show interactive list menu ---
+    if (msgLower === "sort" || msgLower === "hi" || msgLower === "hello" || msgLower === "start" || msgLower === "menu") {
+      await sendInteractiveList(msg91Key, integratedNumber, cleanPhone);
 
       await supabase
         .from("whatsapp_sessions")
@@ -163,96 +160,12 @@ serve(async (req) => {
       return jsonOk({ ok: true });
     }
 
-    // --- Handle menu selection (when awaiting_menu) ---
+    // --- Handle plain text menu selection (fallback for "1", "2", etc.) ---
     if (session?.session_type === "awaiting_menu" && /^\d$/.test(messageText)) {
-      const choice = parseInt(messageText, 10);
-
-      if (choice === 1) {
-        // Search - ask for query
-        await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
-          "🔍 *Search Mode*\n\nType what you're looking for:\n\n_Examples: insurance policy, tax bill, PAN card, invoice from Amazon_");
-
-        await supabase
-          .from("whatsapp_sessions")
-          .update({ session_type: "awaiting_search", session_data: {}, updated_at: new Date().toISOString() })
-          .eq("phone_number", cleanPhone);
-        return jsonOk({ ok: true });
-      }
-
-      if (choice === 2) {
-        // Upload - ask for file
-        await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
-          "📤 *Upload Mode*\n\nSend me any document, image, or file.\nAI will automatically categorize and tag it.");
-
-        await supabase
-          .from("whatsapp_sessions")
-          .update({ session_type: "awaiting_upload", session_data: {}, updated_at: new Date().toISOString() })
-          .eq("phone_number", cleanPhone);
-        return jsonOk({ ok: true });
-      }
-
-      if (choice === 3) {
-        // Stats
-        const { count } = await supabase
-          .from("files")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", userId);
-
-        await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
-          `📊 *Your Sortify Stats*\n\nTotal files: ${count || 0}\n\nType *sort* to go back to menu.`);
-
-        await supabase
-          .from("whatsapp_sessions")
-          .update({ session_type: "idle", session_data: {}, updated_at: new Date().toISOString() })
-          .eq("phone_number", cleanPhone);
-        return jsonOk({ ok: true });
-      }
-
-      if (choice === 4) {
-        // Recent files
-        const { data: recentFiles } = await supabase
-          .from("files")
-          .select("file_name, ai_summary, upload_date")
-          .eq("user_id", userId)
-          .order("upload_date", { ascending: false })
-          .limit(5);
-
-        if (!recentFiles || recentFiles.length === 0) {
-          await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
-            "📂 No files yet. Send a document to upload it!\n\nType *sort* for menu.");
-        } else {
-          let msg = "📂 *Your Recent Files*\n\n";
-          recentFiles.forEach((f: any, i: number) => {
-            const brief = f.ai_summary ? f.ai_summary.substring(0, 50) + "..." : "";
-            msg += `*${i + 1}.* ${f.file_name}\n   _${brief}_\n\n`;
-          });
-          msg += "Type *sort* for menu or *1* to search.";
-          await sendWhatsApp(msg91Key, integratedNumber, cleanPhone, msg);
-        }
-
-        await supabase
-          .from("whatsapp_sessions")
-          .update({ session_type: "idle", session_data: {}, updated_at: new Date().toISOString() })
-          .eq("phone_number", cleanPhone);
-        return jsonOk({ ok: true });
-      }
-
-      if (choice === 5) {
-        // Help
-        await sendWhatsApp(msg91Key, integratedNumber, cleanPhone,
-          "🤖 *Sortify WhatsApp Help*\n\n" +
-          "Type *sort* anytime to see the main menu.\n\n" +
-          "🔍 *Search* — Select option 1, then type your query\n" +
-          "📤 *Upload* — Select option 2, then send a file\n" +
-          "📊 *Stats* — Select option 3\n" +
-          "📂 *Recent* — Select option 4\n\n" +
-          "You can also send a file anytime to upload it!");
-
-        await supabase
-          .from("whatsapp_sessions")
-          .update({ session_type: "idle", session_data: {}, updated_at: new Date().toISOString() })
-          .eq("phone_number", cleanPhone);
-        return jsonOk({ ok: true });
+      const menuMap: Record<string, string> = { "1": "search", "2": "upload", "3": "stats", "4": "recent", "5": "help" };
+      const choiceId = menuMap[messageText];
+      if (choiceId) {
+        return await handleMenuChoice(choiceId, supabase, msg91Key, integratedNumber, cleanPhone, userId, session, lovableApiKey, supabaseUrl);
       }
     }
 
@@ -269,11 +182,182 @@ serve(async (req) => {
   }
 });
 
+// --- Handle menu choice by ID ---
+async function handleMenuChoice(
+  choiceId: string, supabase: any, authKey: string, intNum: string,
+  phone: string, userId: string, session: any,
+  lovableApiKey: string | undefined, supabaseUrl: string
+) {
+  if (choiceId === "search") {
+    await sendWhatsApp(authKey, intNum, phone,
+      "🔍 *Search Mode*\n\nType what you're looking for:\n\n_Examples: insurance policy, tax bill, PAN card, invoice from Amazon_");
+
+    await supabase
+      .from("whatsapp_sessions")
+      .upsert({ phone_number: phone, session_type: "awaiting_search", session_data: {}, updated_at: new Date().toISOString() }, { onConflict: "phone_number" });
+    return jsonOk({ ok: true });
+  }
+
+  if (choiceId === "upload") {
+    await sendWhatsApp(authKey, intNum, phone,
+      "📤 *Upload Mode*\n\nSend me any document, image, or file.\nAI will automatically categorize and tag it.");
+
+    await supabase
+      .from("whatsapp_sessions")
+      .upsert({ phone_number: phone, session_type: "awaiting_upload", session_data: {}, updated_at: new Date().toISOString() }, { onConflict: "phone_number" });
+    return jsonOk({ ok: true });
+  }
+
+  if (choiceId === "stats") {
+    const { count } = await supabase
+      .from("files")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId);
+
+    await sendWhatsApp(authKey, intNum, phone,
+      `📊 *Your Sortify Stats*\n\nTotal files: ${count || 0}\n\nType *sort* to go back to menu.`);
+
+    await supabase
+      .from("whatsapp_sessions")
+      .upsert({ phone_number: phone, session_type: "idle", session_data: {}, updated_at: new Date().toISOString() }, { onConflict: "phone_number" });
+    return jsonOk({ ok: true });
+  }
+
+  if (choiceId === "recent") {
+    const { data: recentFiles } = await supabase
+      .from("files")
+      .select("file_name, ai_summary, upload_date")
+      .eq("user_id", userId)
+      .order("upload_date", { ascending: false })
+      .limit(5);
+
+    if (!recentFiles || recentFiles.length === 0) {
+      await sendWhatsApp(authKey, intNum, phone,
+        "📂 No files yet. Send a document to upload it!\n\nType *sort* for menu.");
+    } else {
+      let msg = "📂 *Your Recent Files*\n\n";
+      recentFiles.forEach((f: any, i: number) => {
+        const brief = f.ai_summary ? f.ai_summary.substring(0, 50) + "..." : "";
+        msg += `*${i + 1}.* ${f.file_name}\n   _${brief}_\n\n`;
+      });
+      msg += "Type *sort* for menu or *1* to search.";
+      await sendWhatsApp(authKey, intNum, phone, msg);
+    }
+
+    await supabase
+      .from("whatsapp_sessions")
+      .upsert({ phone_number: phone, session_type: "idle", session_data: {}, updated_at: new Date().toISOString() }, { onConflict: "phone_number" });
+    return jsonOk({ ok: true });
+  }
+
+  if (choiceId === "help") {
+    await sendWhatsApp(authKey, intNum, phone,
+      "🤖 *Sortify WhatsApp Help*\n\n" +
+      "Type *sort* anytime to see the main menu.\n\n" +
+      "🔍 *Search* — Find your files by name or content\n" +
+      "📤 *Upload* — Send any file to store & auto-categorize\n" +
+      "📊 *Stats* — View your file count\n" +
+      "📂 *Recent* — See last 5 uploaded files\n\n" +
+      "You can also send a file anytime to upload it!");
+
+    await supabase
+      .from("whatsapp_sessions")
+      .upsert({ phone_number: phone, session_type: "idle", session_data: {}, updated_at: new Date().toISOString() }, { onConflict: "phone_number" });
+    return jsonOk({ ok: true });
+  }
+
+  // Unknown choice
+  await sendWhatsApp(authKey, intNum, phone, "Type *sort* to see the menu 🚀");
+  return jsonOk({ ok: true });
+}
+
+// --- Send Interactive List Menu ---
+async function sendInteractiveList(authKey: string, intNum: string, recipient: string) {
+  try {
+    const payload = {
+      integrated_number: intNum,
+      content_type: "interactive",
+      payload: {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: recipient,
+        type: "interactive",
+        interactive: {
+          type: "list",
+          header: {
+            type: "text",
+            text: "👋 Welcome to Sortify!"
+          },
+          body: {
+            text: "What would you like to do? Tap the button below to choose an option."
+          },
+          footer: {
+            text: "Type 'sort' anytime to see this menu"
+          },
+          action: {
+            button: "📋 Open Menu",
+            sections: [
+              {
+                title: "Sortify Options",
+                rows: [
+                  { id: "search", title: "🔍 Search Files", description: "Find files by name or content" },
+                  { id: "upload", title: "📤 Upload File", description: "Send a document to store & categorize" },
+                  { id: "stats", title: "📊 View Stats", description: "See your total file count" },
+                  { id: "recent", title: "📂 Recent Files", description: "View your last 5 uploads" },
+                  { id: "help", title: "❓ Help", description: "Learn how to use Sortify bot" },
+                ]
+              }
+            ]
+          }
+        }
+      }
+    };
+
+    const resp = await fetch(`${MSG91_API}/whatsapp-outbound-message/`, {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        authkey: authKey,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await resp.json();
+    console.log("MSG91 interactive list response:", JSON.stringify(data));
+
+    // If interactive fails, fall back to plain text menu
+    if (!resp.ok || data.type === "error") {
+      console.log("Interactive list failed, falling back to text menu");
+      await sendWhatsApp(authKey, intNum, recipient,
+        "👋 *Welcome to Sortify!*\n\n" +
+        "What would you like to do?\n\n" +
+        "*1.* 🔍 Search files\n" +
+        "*2.* 📤 Upload a file (send document/image next)\n" +
+        "*3.* 📊 View my stats\n" +
+        "*4.* 📂 Recent files\n" +
+        "*5.* ❓ Help\n\n" +
+        "📌 *Reply with a number* to select an option");
+    }
+  } catch (e) {
+    console.error("Interactive list error:", e);
+    // Fallback to text
+    await sendWhatsApp(authKey, intNum, recipient,
+      "👋 *Welcome to Sortify!*\n\n" +
+      "What would you like to do?\n\n" +
+      "*1.* 🔍 Search files\n" +
+      "*2.* 📤 Upload a file\n" +
+      "*3.* 📊 View my stats\n" +
+      "*4.* 📂 Recent files\n" +
+      "*5.* ❓ Help\n\n" +
+      "📌 *Reply with a number* to select an option");
+  }
+}
+
 // --- Search Handler ---
 async function handleSearch(
   supabase: any, authKey: string, intNum: string, phone: string, userId: string, query: string
 ) {
-  // Full-text search across file metadata
   const searchTerms = query.toLowerCase().split(/\s+/).filter(Boolean);
   
   const { data: files } = await supabase
@@ -286,7 +370,6 @@ async function handleSearch(
     return;
   }
 
-  // Score each file
   const scored = files.map((f: any) => {
     let score = 0;
     const haystack = [
@@ -298,7 +381,6 @@ async function handleSearch(
       const regex = new RegExp(term, "gi");
       const matches = haystack.match(regex);
       if (matches) score += matches.length;
-      // Bonus for filename match
       if (f.file_name.toLowerCase().includes(term)) score += 10;
     }
     return { ...f, score };
@@ -313,7 +395,6 @@ async function handleSearch(
   }
 
   if (scored.length === 1) {
-    // Single result - send directly
     const file = scored[0];
     const { data: signedData } = await supabase.storage
       .from("files")
@@ -327,7 +408,6 @@ async function handleSearch(
     return;
   }
 
-  // Multiple results - send numbered list
   let listMsg = `🔍 Found *${scored.length} files* for "*${query}*"\n\n`;
   scored.forEach((f: any, i: number) => {
     const brief = f.ai_summary ? f.ai_summary.substring(0, 60) + "..." : f.file_type;
@@ -335,7 +415,6 @@ async function handleSearch(
   });
   listMsg += "📌 *Reply with a number* (1-" + scored.length + ") to get that file";
 
-  // Save session for pick
   await supabase
     .from("whatsapp_sessions")
     .upsert({
@@ -357,7 +436,6 @@ async function handleUpload(
   await sendWhatsApp(authKey, intNum, phone, "📥 Uploading your file... AI analysis will start shortly.");
 
   try {
-    // Download the media from MSG91
     const mediaResp = await fetch(mediaUrl);
     if (!mediaResp.ok) throw new Error("Failed to download media");
     const mediaBlob = await mediaResp.blob();
@@ -365,14 +443,12 @@ async function handleUpload(
     const fileName = mediaFileName || `whatsapp_${Date.now()}.${getExtension(mediaType)}`;
     const filePath = `${userId}/${fileName}`;
 
-    // Upload to storage
     const { error: storageError } = await supabase.storage
       .from("files")
       .upload(filePath, mediaBlob, { upsert: true, contentType: mediaType || "application/octet-stream" });
 
     if (storageError) throw storageError;
 
-    // Create file record
     const { data: fileRecord, error: insertError } = await supabase
       .from("files")
       .insert({
@@ -387,10 +463,8 @@ async function handleUpload(
 
     if (insertError) throw insertError;
 
-    // Trigger AI analysis inline (since we can't call another edge function easily)
     if (lovableApiKey) {
       try {
-        // Call analyze-file function
         const analyzeResp = await fetch(`${supabaseUrl}/functions/v1/analyze-file`, {
           method: "POST",
           headers: {
