@@ -526,7 +526,7 @@ const LANDING_HTML = `
       <div class="reveal" style="transition-delay:0.1s;">
         <h2 class="solution-title">Sortify doesn't store files.<br>It understands them.</h2>
         <p class="solution-body">The moment you upload a document, Sortify's AI reads it — extracts names, dates, amounts, and context — then makes it instantly findable by meaning, not just filename.</p>
-        <div class="feature-pills"><span class="feature-pill">✓ Auto-tagging</span><span class="feature-pill">✓ Smart summaries</span><span class="feature-pill">✓ Expiry reminders</span><span class="feature-pill">✓ Semantic search</span></div>
+        <div class="feature-pills"><span class="feature-pill">✓ Auto-tagging</span><span class="feature-pill">✓ Smart summaries</span><span class="feature-pill">✓ Expiry reminders</span><span class="feature-pill">✓ Semantic search</span><span class="feature-pill">✓ Doc Chat</span><span class="feature-pill">✓ Secure sharing</span></div>
       </div>
       <div class="reveal" style="transition-delay:0.25s;">
         <div class="terminal-card" id="terminalCard">
