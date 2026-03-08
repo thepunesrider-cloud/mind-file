@@ -220,7 +220,7 @@ async function sendInteractive(authKey: string, payload: any, logLabel: string):
     const resp = await fetch(url, {
       method: "POST",
       headers: { accept: "application/json", authkey: authKey, "content-type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload.payload),
     });
 
     const data = await resp.json();
