@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Grid3X3, List, Loader2, Download, Eye, FolderPlus, Folder, ChevronRight, MessageCircle, ArrowLeft, Trash2, FolderInput, RefreshCw, FileText, ArrowLeftRight, Info, Sparkles, Plus } from "lucide-react";
+import { Grid3X3, List, Loader2, Download, Eye, FolderPlus, Folder, ChevronRight, ChevronLeft, MessageCircle, ArrowLeft, Trash2, FolderInput, RefreshCw, FileText, ArrowLeftRight, Info, Sparkles, Plus, Share2, PanelLeftClose, PanelLeft } from "lucide-react";
 import { downloadFile, viewFile } from "@/lib/fileUrl";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { getFileIcon, getFileColor, tagColors } from "@/data/mockFiles";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import ShareDialog from "@/components/ShareDialog";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -88,6 +89,8 @@ const FilesPage = () => {
   const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [shareFile, setShareFile] = useState<{ id: string; name: string } | null>(null);
 
   const createFolder = () => {
     if (!newFolderName.trim()) return;
@@ -212,6 +215,10 @@ const FilesPage = () => {
               <ContextMenuItem onClick={() => downloadFile(file.file_url, file.file_name)} className="gap-2 cursor-pointer">
                 <Download className="w-4 h-4" />
                 Download
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => setShareFile({ id: file.id, name: file.file_name })} className="gap-2 cursor-pointer">
+                <Share2 className="w-4 h-4" />
+                Share Link
               </ContextMenuItem>
             </>
           )}
@@ -404,37 +411,32 @@ const FilesPage = () => {
               <p className="text-sm font-semibold truncate text-foreground">{file.file_name}</p>
               <p className="text-xs text-muted-foreground/80">{detail.size} · {detail.uploadDate}</p>
             </div>
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
               <motion.button
-                whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={(e) => { e.stopPropagation(); navigate(`/chat?fileId=${file.id}`); }}
-                title="Chat with document"
-                className="p-2 rounded-xl text-muted-foreground hover:text-accent hover:bg-accent/10 transition-all duration-200"
+                title="Chat"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-accent hover:bg-accent/10 transition-all"
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-3.5 h-3.5" />
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={(e) => { e.stopPropagation(); setShareFile({ id: file.id, name: file.file_name }); }}
+                title="Share"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+              >
+                <Share2 className="w-3.5 h-3.5" />
               </motion.button>
               {file.file_url && (
-                <>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => { e.stopPropagation(); viewFile(file.file_url); }}
-                    title="View"
-                    className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => { e.stopPropagation(); downloadFile(file.file_url, file.file_name); }}
-                    title="Download"
-                    className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
-                  >
-                    <Download className="w-4 h-4" />
-                  </motion.button>
-                </>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => { e.stopPropagation(); viewFile(file.file_url); }}
+                  title="View"
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </motion.button>
               )}
             </div>
           </div>
@@ -558,12 +560,15 @@ const FilesPage = () => {
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-8">
-        {/* Left Sidebar - Categories & Folders (hidden on mobile, shown as collapsible) */}
+        {/* Left Sidebar - Categories & Folders */}
+        <AnimatePresence>
+        {!sidebarCollapsed && (
         <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="hidden md:block w-52 flex-shrink-0 sticky top-6 h-fit space-y-4"
+          initial={{ opacity: 0, width: 0 }}
+          animate={{ opacity: 1, width: "auto" }}
+          exit={{ opacity: 0, width: 0 }}
+          transition={{ duration: 0.3 }}
+          className="hidden md:block w-52 flex-shrink-0 sticky top-6 h-fit space-y-4 overflow-hidden"
         >
           {/* Folders Section */}
           <div className="bg-gradient-to-br from-card to-card/80 rounded-3xl p-6 shadow-sm backdrop-blur-sm border border-border/30">
@@ -659,6 +664,8 @@ const FilesPage = () => {
             </div>
           </div>
         </motion.div>
+        )}
+        </AnimatePresence>
 
         {/* Mobile: Horizontal folder/category scroller */}
         <div className="md:hidden mb-4 space-y-3">
@@ -758,6 +765,14 @@ const FilesPage = () => {
                 transition={{ delay: 0.2, duration: 0.4 }}
                 className="flex items-center gap-2 sm:gap-3"
               >
+                {/* Sidebar toggle (desktop only) */}
+                <button
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="hidden md:flex p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                  title={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+                >
+                  {sidebarCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+                </button>
                 <div className="relative">
                   <Input
                     placeholder="Search files..."
@@ -874,6 +889,14 @@ const FilesPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Share Dialog */}
+      <ShareDialog
+        open={!!shareFile}
+        onOpenChange={(open) => { if (!open) setShareFile(null); }}
+        fileId={shareFile?.id || ""}
+        fileName={shareFile?.name || ""}
+      />
     </AppLayout>
   );
 };

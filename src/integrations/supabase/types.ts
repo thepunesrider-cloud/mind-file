@@ -104,6 +104,47 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_links: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          file_id: string
+          id: string
+          token: string
+          user_id: string
+          view_once: boolean
+          viewed: boolean
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          file_id: string
+          id?: string
+          token?: string
+          user_id: string
+          view_once?: boolean
+          viewed?: boolean
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          file_id?: string
+          id?: string
+          token?: string
+          user_id?: string
+          view_once?: boolean
+          viewed?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_links_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tags: {
         Row: {
           id: string
