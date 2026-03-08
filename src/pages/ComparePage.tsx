@@ -1,16 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FileText, ArrowLeftRight, Loader2 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useFiles } from "@/hooks/useFiles";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useSearchParams } from "react-router-dom";
 
 const ComparePage = () => {
   const { data: files } = useFiles();
+  const [searchParams] = useSearchParams();
   const [fileA, setFileA] = useState<string | null>(null);
   const [fileB, setFileB] = useState<string | null>(null);
   const [picking, setPicking] = useState<"a" | "b" | null>(null);
+
+  // Auto-select file from URL query param
+  useEffect(() => {
+    const paramFileA = searchParams.get("fileA");
+    if (paramFileA && files?.some(f => f.id === paramFileA) && !fileA) {
+      setFileA(paramFileA);
+    }
+  }, [searchParams, files]);
 
   const docA = files?.find(f => f.id === fileA);
   const docB = files?.find(f => f.id === fileB);
