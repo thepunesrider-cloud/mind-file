@@ -6,6 +6,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Auto-close sidebar when switching to mobile
+
 
   return (
     <div className="flex min-h-screen">
