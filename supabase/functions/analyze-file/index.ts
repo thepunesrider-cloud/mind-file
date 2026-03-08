@@ -234,7 +234,7 @@ CRITICAL: The "extracted_text" field must contain ALL key text from this documen
                     items: {
                       type: "object",
                       properties: {
-                        name: { type: "string", description: "Tag name from: Invoice, Contract, Travel, Insurance, Work, Personal, Finance, Health, Legal, Tax, ID Document, Medical, Receipt, Agreement, Report, Letter, Certificate, License, Warranty, Subscription, Bill, Statement, Memo, Policy, Photo, Screenshot, Scan, Handwritten" },
+                        name: { type: "string", description: "Tag name from: Invoice, Contract, Travel, Insurance, Work, Personal, Finance, Health, Legal, Tax, ID Document, Medical, Receipt, Agreement, Report, Letter, Certificate, License, Warranty, Subscription, Bill, Statement, Memo, Policy, Photo, Screenshot, Scan, Handwritten, Selfie, Group Photo, Portrait, Landscape, Nature, Beach, Mountains, Wedding, Festival, Family, Friends, Vacation, Office, Food" },
                         confidence: { type: "number", minimum: 0, maximum: 1 },
                       },
                       required: ["name", "confidence"],
@@ -243,11 +243,11 @@ CRITICAL: The "extracted_text" field must contain ALL key text from this documen
                   },
                   summary: { 
                     type: "string", 
-                    description: "Comprehensive 5-8 sentence summary. Include ALL key details: names, dates, amounts, ID numbers, key terms. Add synonyms and related search terms at the end." 
+                    description: "Comprehensive 5-8 sentence summary. For PHOTOS: describe who is in the photo (appearance, clothing, expression), the background/scene (hills, beach, city, indoor), the event/context, and the photo style. Include ALL key details. Add synonyms and related search terms at the end." 
                   },
                   ai_description: { 
                     type: "string", 
-                    description: "Natural language description written as a search query someone would use to find this document. Include alternative phrasings." 
+                    description: "Natural language description written as a search query someone would use to find this. For photos: 'photo of young man in blue shirt standing in front of hills at sunset'. Include alternative phrasings like 'mountains photo', 'outdoor portrait'. Include names from filename." 
                   },
                   expiry_date: { 
                     type: "string", 
@@ -256,24 +256,24 @@ CRITICAL: The "extracted_text" field must contain ALL key text from this documen
                   },
                   extracted_text: { 
                     type: "string", 
-                    description: "ALL readable text from the document or image, extracted verbatim line by line. For images: every word visible via OCR. For PDFs: every line from every page. For documents: all text content. Include dates in multiple formats (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, written out). This is the PRIMARY field for in-text search - users will search by typing any remembered text. Maximum detail." 
+                    description: "ALL readable text from the document or image, extracted verbatim. For PHOTOS with no text: write a detailed visual description instead — describe every person (appearance, clothing, features), the scene, background, objects, colors, lighting, mood. Users search photos by description like 'photo in hills' or 'guy wearing red jacket'. This field MUST be rich for photos." 
                   },
                   semantic_keywords: {
                     type: "string",
-                    description: "Generate 30-50 semantic keywords, synonyms, related concepts, alternate phrasings, and category terms separated by commas. Include: synonyms in English and Hindi/regional languages, abbreviations and full forms, conceptual relatives, document category terms, date-related terms. E.g. for an Aadhaar card: 'aadhaar, aadhar, uid, unique identification, identity card, ID proof, government ID, date of birth, DOB, janam tithi, address proof, pata pramaan'. This powers meaning-based semantic search.",
+                    description: "Generate 40-60 semantic keywords separated by commas. For PHOTOS include: scene words (hills, mountains, pahad, beach, samundar, park, garden), person descriptors (man, woman, boy, girl, young, aadmi, ladka, ladki), clothing (shirt, dress, kurta, saree), event words (vacation, trip, wedding, shaadi, birthday, party, picnic), photo type (selfie, group photo, portrait, candid), mood (happy, smiling, serious), colors (red, blue, green). Also include English + Hindi synonyms for everything. This powers meaning-based search.",
                   },
                   entities: {
                     type: "array",
-                    description: "ALL entities found in the document or image. Extract every name, date, number, amount, ID, phone, email, address.",
+                    description: "ALL entities found. For photos: extract person names (from filename or visible text), location if identifiable, event type. For documents: names, dates, numbers, IDs, etc.",
                     items: {
                       type: "object",
                       properties: {
                         type: { 
                           type: "string", 
-                          enum: ["person", "company", "date", "amount", "id_number", "phone", "email", "address", "pan", "gst", "aadhaar", "passport", "policy_number", "invoice_number", "account_number", "dob", "issue_date", "expiry_date_entity"],
+                          enum: ["person", "company", "date", "amount", "id_number", "phone", "email", "address", "pan", "gst", "aadhaar", "passport", "policy_number", "invoice_number", "account_number", "dob", "issue_date", "expiry_date_entity", "location", "event"],
                           description: "Entity type" 
                         },
-                        value: { type: "string", description: "The entity value as found in the document" },
+                        value: { type: "string", description: "The entity value" },
                         label: { type: "string", description: "Human readable label" },
                       },
                       required: ["type", "value", "label"],
