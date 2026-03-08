@@ -160,6 +160,7 @@ export function scoreFile(
     extractedText: (file.extracted_text || "").toLowerCase(),
     tags: file.tags.map((t) => t.name.toLowerCase()).join(" "),
     entities: entityText,
+    semanticKeywords: (file.semantic_keywords || "").toLowerCase(),
   };
 
   // Weights: extractedText boosted significantly for in-text search
@@ -170,6 +171,7 @@ export function scoreFile(
     description: 7,
     tags: 7,
     extractedText: 8,
+    semanticKeywords: 6,
   };
 
   let totalScore = 0;
