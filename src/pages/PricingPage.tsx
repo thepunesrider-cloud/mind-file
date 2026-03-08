@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Check, X, Zap, ArrowRight, Crown, Rocket, Building2, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SupportChat } from "@/components/SupportChat";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
