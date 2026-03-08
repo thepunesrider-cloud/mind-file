@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { trackEvent } from "@/hooks/useAnalytics";
 
 export interface UploadingFile {
   id: string;
@@ -159,6 +160,8 @@ export function useFileUpload() {
       }
 
       queryClient.invalidateQueries({ queryKey: ["files"] });
+      // Track upload event
+      trackEvent("upload", { fileName: uploadFile.file.name, fileSize: uploadFile.file.size, fileType: uploadFile.file.type });
     } catch (err: any) {
       console.error("Upload error:", err);
       setFiles((prev) => prev.map((f) => f.id === uploadFile.id ? {

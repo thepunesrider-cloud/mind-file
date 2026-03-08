@@ -22,6 +22,8 @@ import PricingPage from "./pages/PricingPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import AdminPage from "./pages/AdminPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import TeamsPage from "./pages/TeamsPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
 import NotFound from "./pages/NotFound";
@@ -56,6 +58,8 @@ const App = () => (
               <Route path="/whatsapp" element={<AuthGuard><WhatsAppPage /></AuthGuard>} />
               <Route path="/onboarding" element={<AuthGuard><OnboardingPage /></AuthGuard>} />
               <Route path="/admin" element={<AuthGuard><AdminPage /></AuthGuard>} />
+              <Route path="/analytics" element={<AuthGuard><AnalyticsPage /></AuthGuard>} />
+              <Route path="/teams" element={<AuthGuard><TeamsPage /></AuthGuard>} />
               <Route path="/shared/:token" element={<SharedFilePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -4,6 +4,7 @@ import AppSidebar from "./AppSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import BottomNavBar from "@/components/ui/bottom-nav-bar";
 import { SupportChat } from "@/components/SupportChat";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const isMobile = useIsMobile();
@@ -38,13 +39,21 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
       {/* Main */}
       <main className={`flex-1 ${isMobile ? "pb-20" : "ml-64"} p-4 sm:p-6 lg:p-8 min-w-0 overflow-x-hidden`}>
         {isMobile && !sidebarOpen && (
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="mb-4 p-2.5 rounded-xl bg-card border border-border hover:bg-secondary transition-colors active:scale-95"
-            aria-label="Open menu"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2.5 rounded-xl bg-card border border-border hover:bg-secondary transition-colors active:scale-95"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <NotificationBell />
+          </div>
+        )}
+        {!isMobile && (
+          <div className="flex justify-end mb-2">
+            <NotificationBell />
+          </div>
         )}
         {children}
       </main>
