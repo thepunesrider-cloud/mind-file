@@ -1,5 +1,6 @@
 import { useState, FormEvent } from "react";
 import { Send, Bot, Sparkles } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import {
   ChatBubble,
