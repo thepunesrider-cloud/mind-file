@@ -498,8 +498,9 @@ const FilesPage = () => {
           </motion.div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold truncate text-foreground">{file.file_name}</p>
+            <p className="text-xs text-muted-foreground/70 sm:hidden">{detail.size} · {detail.uploadDate}</p>
           </div>
-          <div className="flex gap-2 shrink-0">
+          <div className="hidden sm:flex gap-2 shrink-0">
             {file.tags.slice(0, 2).map((tag) => (
               <motion.span
                 key={tag.name}
@@ -514,8 +515,8 @@ const FilesPage = () => {
               </motion.span>
             ))}
           </div>
-          <span className="text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.size}</span>
-          <span className="text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.uploadDate}</span>
+          <span className="hidden md:inline text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.size}</span>
+          <span className="hidden md:inline text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.uploadDate}</span>
           <div className="flex items-center gap-0.5 shrink-0">
             <motion.button
               whileHover={{ scale: 1.1 }}
