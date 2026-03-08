@@ -185,7 +185,7 @@ IMPORTANT: The "extracted_text" field must contain ALL key text from this docume
                     },
                   },
                 },
-                required: ["tags", "summary", "ai_description", "expiry_date", "extracted_text", "entities"],
+                required: ["tags", "summary", "ai_description", "expiry_date", "extracted_text", "semantic_keywords", "entities"],
                 additionalProperties: false,
               },
             },
