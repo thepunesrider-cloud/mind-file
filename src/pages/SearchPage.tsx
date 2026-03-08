@@ -323,6 +323,12 @@ const SearchPage = () => {
             {activeSmartFilters.map((f) => (
               <span key={f} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{f}</span>
             ))}
+            {reanalyzeProgress && (
+              <div className="flex items-center gap-1.5 text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                <RefreshCw className={cn("w-3 h-3", bulkReanalyzing && "animate-spin")} />
+                <span>Re-analyzing {reanalyzeProgress.done}/{reanalyzeProgress.total}</span>
+              </div>
+            )}
           </div>
         </motion.div>
 
