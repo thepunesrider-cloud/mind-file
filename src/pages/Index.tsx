@@ -61,6 +61,13 @@ const Index = () => {
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
+              onClick={() => navigate("/pricing")}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              Pricing
+            </Button>
+            <Button
+              variant="ghost"
               onClick={() => navigate("/login")}
               className="text-sm font-medium text-muted-foreground hover:text-foreground"
             >
