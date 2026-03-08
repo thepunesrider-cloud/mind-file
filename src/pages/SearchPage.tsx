@@ -214,6 +214,7 @@ const SearchPage = () => {
             value={query}
             onChange={(val) => {
               setQuery(val);
+              setSmartResults([]);
               if (semanticEnabled && val.trim().length >= 3) {
                 clearTimeout((window as any).__semanticTimer);
                 (window as any).__semanticTimer = setTimeout(() => expandQuery(val), 600);
