@@ -167,13 +167,22 @@ CRITICAL RULES:
         content: [
           {
             type: "text",
-            text: `Analyze this ${isPdf ? "PDF document" : isDoc ? "document" : isImage ? "image" : "file"} thoroughly. Extract ALL text using OCR. Capture every word, number, date, name, address, and any text content you can see - even partial or handwritten text. This is critical for search functionality.
+            text: `Analyze this ${isPdf ? "PDF document" : isDoc ? "document" : isImage ? "image/photo" : "file"} thoroughly. Extract ALL text using OCR. Capture every word, number, date, name, address, and any text content you can see.
 
 File Name: ${fileName}
 MIME Type: ${fileType}
 ${supplementaryText}
 
-CRITICAL: The "extracted_text" field must contain EVERY piece of text from this ${isPdf ? "document (all pages)" : "image"}, line by line, exactly as it appears. Do not summarize or paraphrase - extract the raw text. Include ALL dates in multiple formats (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, written out). This is the most important field for search. Users might search for a date of birth, a name, an amount - everything must be captured.`,
+${isImage ? `**PHOTO ANALYSIS - THIS IS CRITICAL:**
+- Describe EVERY person visible: gender, age, clothing (color + type), hair, glasses, expression, pose
+- If the filename contains a name (like "shreyas" or "priya"), use that name when describing the person
+- Describe the BACKGROUND/SCENE in extreme detail: location type, landscape features (hills, beach, city, etc.), weather, lighting, objects, vegetation, buildings
+- Describe the photo type: selfie, group, portrait, candid, professional
+- Describe the EVENT/CONTEXT if identifiable: vacation, wedding, birthday, casual outing, office
+- Include all this in the summary, ai_description, extracted_text, and semantic_keywords fields
+- The user should be able to find this photo by searching "photo in hills" or "guy in red shirt at beach" or "wedding group photo"
+` : ""}
+CRITICAL: The "extracted_text" field must contain EVERY piece of text from this ${isPdf ? "document (all pages)" : "image"}, line by line, exactly as it appears. For photos, also include a detailed visual description of people and scenes. Include ALL dates in multiple formats.`,
           },
           {
             type: "image_url",
