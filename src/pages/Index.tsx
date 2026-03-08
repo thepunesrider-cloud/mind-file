@@ -51,7 +51,7 @@ const Index = () => {
           .eq("user_id", session.user.id)
           .maybeSingle();
 
-        if (profile && !profile.onboarding_completed) {
+        if (!profile || !profile.onboarding_completed) {
           navigate("/onboarding", { replace: true });
         } else {
           navigate("/dashboard", { replace: true });
