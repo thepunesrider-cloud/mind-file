@@ -303,6 +303,7 @@ const SmartFoldersPage = () => {
   const { data: files } = useFiles();
   const [folders, setFolders] = useState<SmartFolder[]>(loadSmartFolders);
   const [loading, setLoading] = useState(false);
+  const [deepAllLoading, setDeepAllLoading] = useState(false);
   const [expandedFolder, setExpandedFolder] = useState<string | null>(null);
   const [pinnedFolders, setPinnedFolders] = useState<string[]>(loadPinnedFolders);
   const [dragState, setDragState] = useState<DragState | null>(null);
@@ -363,6 +364,51 @@ const SmartFoldersPage = () => {
     }
   };
 
+  const deepCategorizeAll = async () => {
+    if (folders.length === 0) {
+      toast.info("No folders to deep categorize");
+      return;
+    }
+    setDeepAllLoading(true);
+    let totalNew = 0;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const updated = [...folders];
+      for (const folder of updated) {
+        for (const sub of folder.subfolders) {
+          if (sub.fileIds.length < 2 || (sub.subfolders && sub.subfolders.length > 0)) continue;
+          try {
+            const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deep-categorize`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session?.access_token}`,
+              },
+              body: JSON.stringify({ folderName: folder.name, subfolderName: sub.name, fileIds: sub.fileIds }),
+            });
+            if (!resp.ok) continue;
+            const data = await resp.json();
+            if (data.subfolders && data.subfolders.length > 0) {
+              sub.subfolders = data.subfolders;
+              totalNew += data.subfolders.length;
+            }
+          } catch { /* skip individual failures */ }
+        }
+      }
+      setFolders(updated);
+      saveSmartFolders(updated, currentFileCount);
+      if (totalNew > 0) {
+        toast.success(`Deep categorized into ${totalNew} new sub-categories!`);
+      } else {
+        toast.info("No subfolders needed deeper categorization");
+      }
+    } catch {
+      toast.error("Failed to deep categorize");
+    } finally {
+      setDeepAllLoading(false);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="max-w-3xl mx-auto">
@@ -372,10 +418,16 @@ const SmartFoldersPage = () => {
               <h1 className="text-2xl sm:text-3xl font-bold">Smart Folders</h1>
               <p className="text-muted-foreground text-sm mt-1">AI organizes your files · drag to move · ⭐ to pin</p>
             </div>
-            <Button onClick={categorize} disabled={loading} className="rounded-xl gap-2">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              {hasNewFiles ? `Sync ${currentFileCount - savedFileCount} new` : "Sync"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={deepCategorizeAll} disabled={deepAllLoading || folders.length === 0} variant="outline" className="rounded-xl gap-2">
+                {deepAllLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
+                Deep Categorize
+              </Button>
+              <Button onClick={categorize} disabled={loading} className="rounded-xl gap-2">
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                {hasNewFiles ? `Sync ${currentFileCount - savedFileCount} new` : "Sync"}
+              </Button>
+            </div>
           </div>
           {hasNewFiles && (
             <motion.p
