@@ -393,7 +393,7 @@ const FilesPage = () => {
           onDragStart={(e: any) => { e.dataTransfer?.setData?.("text/plain", file.id); }}
           onClick={() => setSelectedFile(detail)}
           className={cn(
-            "group relative bg-gradient-to-br from-card to-card/80 rounded-3xl p-5 cursor-pointer border border-border/30 backdrop-blur-sm transition-all duration-300",
+            "group relative bg-gradient-to-br from-card to-card/80 rounded-3xl p-4 sm:p-5 cursor-pointer border border-border/30 backdrop-blur-sm transition-all duration-300 overflow-hidden",
             selectedFile?.id === file.id
               ? "border-primary/50 shadow-xl shadow-primary/10 bg-primary/5"
               : "hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
