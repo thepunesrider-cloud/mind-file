@@ -216,6 +216,10 @@ const FilesPage = () => {
                 <Download className="w-4 h-4" />
                 Download
               </ContextMenuItem>
+              <ContextMenuItem onClick={() => setShareFile({ id: file.id, name: file.file_name })} className="gap-2 cursor-pointer">
+                <Share2 className="w-4 h-4" />
+                Share Link
+              </ContextMenuItem>
             </>
           )}
 
