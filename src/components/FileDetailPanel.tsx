@@ -52,7 +52,7 @@ const FileDetailPanel = ({ file, onClose }: Props) => {
       exit={{ opacity: 0, x: 20, width: 0 }}
       className="shrink-0 glass rounded-xl overflow-hidden w-full sm:w-[340px] lg:w-[380px] fixed sm:relative inset-0 sm:inset-auto z-50 sm:z-auto bg-background sm:bg-transparent"
     >
-      <div className="p-5 h-full overflow-y-auto max-h-[calc(100vh-8rem)]">
+      <div className="p-4 sm:p-5 h-full overflow-y-auto max-h-screen sm:max-h-[calc(100vh-8rem)]">
         {/* Header */}
         <div className="flex items-start justify-between mb-5">
           <div className="flex items-center gap-3 min-w-0">

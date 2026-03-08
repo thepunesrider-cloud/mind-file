@@ -486,7 +486,7 @@ const FilesPage = () => {
           onClick={() => setSelectedFile(detail)}
           whileHover={{ x: 8, transition: { duration: 0.2 } }}
           className={cn(
-            "group relative bg-gradient-to-r from-card to-card/80 rounded-3xl px-5 py-3.5 flex items-center gap-4 cursor-pointer border border-border/30 transition-all duration-300",
+            "group relative bg-gradient-to-r from-card to-card/80 rounded-3xl px-3 sm:px-5 py-3 sm:py-3.5 flex items-center gap-2 sm:gap-4 cursor-pointer border border-border/30 transition-all duration-300 overflow-hidden",
             selectedFile?.id === file.id
               ? "border-primary/50 shadow-lg shadow-primary/10 bg-primary/5"
               : "hover:border-primary/40 hover:shadow-md hover:shadow-primary/5"
