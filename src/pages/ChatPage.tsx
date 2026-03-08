@@ -5,6 +5,7 @@ import AppLayout from "@/components/AppLayout";
 import { useFiles } from "@/hooks/useFiles";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useSearchParams } from "react-router-dom";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -92,12 +93,21 @@ function SimpleMarkdown({ content }: { content: string }) {
 
 const ChatPage = () => {
   const { data: files } = useFiles();
+  const [searchParams] = useSearchParams();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
   const [showFilePicker, setShowFilePicker] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Auto-select file from URL query param
+  useEffect(() => {
+    const fileId = searchParams.get("fileId");
+    if (fileId && files?.some(f => f.id === fileId) && !selectedFileIds.includes(fileId)) {
+      setSelectedFileIds(prev => prev.includes(fileId) ? prev : [fileId]);
+    }
+  }, [searchParams, files]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
