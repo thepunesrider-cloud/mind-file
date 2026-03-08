@@ -11,6 +11,9 @@ import UploadPage from "./pages/UploadPage";
 import FilesPage from "./pages/FilesPage";
 import SearchPage from "./pages/SearchPage";
 import RemindersPage from "./pages/RemindersPage";
+import ChatPage from "./pages/ChatPage";
+import SmartFoldersPage from "./pages/SmartFoldersPage";
+import ComparePage from "./pages/ComparePage";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 
@@ -31,6 +34,9 @@ const App = () => (
             <Route path="/files" element={<AuthGuard><FilesPage /></AuthGuard>} />
             <Route path="/search" element={<AuthGuard><SearchPage /></AuthGuard>} />
             <Route path="/reminders" element={<AuthGuard><RemindersPage /></AuthGuard>} />
+            <Route path="/chat" element={<AuthGuard><ChatPage /></AuthGuard>} />
+            <Route path="/smart-folders" element={<AuthGuard><SmartFoldersPage /></AuthGuard>} />
+            <Route path="/compare" element={<AuthGuard><ComparePage /></AuthGuard>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
