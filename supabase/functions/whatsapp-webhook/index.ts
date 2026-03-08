@@ -288,26 +288,29 @@ async function handleMenuChoice(
 
     if (!recentFiles || recentFiles.length === 0) {
       await sendTextWithMenuButton(authKey, intNum, phone, "📂 No files yet. Send a document to upload it!");
-    } else {
+    } else if (recentFiles.length === 1) {
       await sendFileWithButtons(supabase, authKey, intNum, phone, recentFiles[0]);
       await setSession(supabase, phone, "file_delivered", { fileId: recentFiles[0].id, fileName: recentFiles[0].file_name });
+    } else {
+      let listMsg = `📂 *Your ${recentFiles.length} most recent files:*\n\n`;
+      recentFiles.forEach((f: any, i: number) => {
+        const summary = f.ai_summary ? f.ai_summary.substring(0, 60) + "..." : "";
+        const typeEmoji = getFileTypeEmoji(f.file_type);
+        const date = f.upload_date ? new Date(f.upload_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "";
+        listMsg += `*${i + 1}.* ${typeEmoji} ${f.file_name}\n`;
+        if (summary) listMsg += `   📝 _${summary}_\n`;
+        if (date) listMsg += `   📅 _${date}_\n`;
+        listMsg += `\n`;
+      });
+      listMsg += "📌 *Reply with a number* to get that file";
 
-      if (recentFiles.length > 1) {
-        let listMsg = "📂 *More recent files:*\n\n";
-        recentFiles.slice(1).forEach((f: any, i: number) => {
-          const brief = f.ai_summary ? f.ai_summary.substring(0, 40) + "..." : f.file_type;
-          listMsg += `*${i + 1}.* ${f.file_name}\n   _${brief}_\n\n`;
-        });
-        listMsg += "📌 Reply with a number to get that file";
+      await supabase.from("whatsapp_sessions").upsert({
+        phone_number: phone, session_type: "awaiting_pick",
+        session_data: { results: recentFiles.map((f: any) => ({ id: f.id, file_name: f.file_name, file_url: f.file_url, ai_summary: f.ai_summary, file_type: f.file_type })) },
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "phone_number" });
 
-        await supabase.from("whatsapp_sessions").upsert({
-          phone_number: phone, session_type: "awaiting_pick",
-          session_data: { results: recentFiles.slice(1).map((f: any) => ({ id: f.id, file_name: f.file_name, file_url: f.file_url, ai_summary: f.ai_summary, file_type: f.file_type })) },
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "phone_number" });
-
-        await sendText(authKey, intNum, phone, listMsg);
-      }
+      await sendText(authKey, intNum, phone, listMsg);
     }
     return jsonOk({ ok: true });
   }
