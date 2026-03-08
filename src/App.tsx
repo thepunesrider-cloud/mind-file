@@ -18,6 +18,8 @@ import SettingsPage from "./pages/SettingsPage";
 import WhatsAppPage from "./pages/WhatsAppPage";
 import SharedFilePage from "./pages/SharedFilePage";
 import PricingPage from "./pages/PricingPage";
+import OnboardingPage from "./pages/OnboardingPage";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 
