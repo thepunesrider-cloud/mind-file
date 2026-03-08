@@ -197,7 +197,7 @@ const Dashboard = () => {
         </motion.div>
 
         {/* Stat cards grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6" data-onboard="stats-section">
           {[
             { icon: Files, value: totalFiles, label: "Total Files", color: "text-primary", bg: "bg-primary/10" },
             { icon: Upload, value: thisMonth, label: "This Month", color: "text-accent", bg: "bg-accent/10" },
