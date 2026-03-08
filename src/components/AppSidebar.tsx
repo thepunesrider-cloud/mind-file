@@ -15,6 +15,7 @@ import {
   FolderTree,
   ArrowLeftRight,
   RefreshCw,
+  Settings,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -29,6 +30,7 @@ const navItems = [
   { to: "/smart-folders", icon: FolderTree, label: "Smart Folders" },
   { to: "/compare", icon: ArrowLeftRight, label: "Compare" },
   { to: "/reminders", icon: Bell, label: "Reminders" },
+  { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
 const AppSidebar = ({ onClose }: { onClose?: () => void }) => {
