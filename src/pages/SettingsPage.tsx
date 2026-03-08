@@ -179,10 +179,16 @@ const SettingsPage = () => {
                   <li>❓ <strong>Help:</strong> Type "help" for all commands</li>
                 </ul>
               </div>
-              <Button onClick={unlinkWhatsApp} variant="outline" size="sm" className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10" disabled={loading}>
-                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Unlink className="w-3.5 h-3.5" />}
-                Unlink WhatsApp
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={regenerateCode} variant="outline" size="sm" className="gap-2" disabled={loading}>
+                  {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                  Regenerate Code
+                </Button>
+                <Button onClick={unlinkWhatsApp} variant="outline" size="sm" className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10" disabled={loading}>
+                  {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Unlink className="w-3.5 h-3.5" />}
+                  Unlink
+                </Button>
+              </div>
             </div>
           ) : linked && codeSent ? (
             <div className="space-y-4">
