@@ -63,6 +63,7 @@ export type Database = {
           file_type: string
           file_url: string
           id: string
+          semantic_keywords: string | null
           updated_at: string
           upload_date: string
           user_id: string
@@ -79,6 +80,7 @@ export type Database = {
           file_type: string
           file_url: string
           id?: string
+          semantic_keywords?: string | null
           updated_at?: string
           upload_date?: string
           user_id: string
@@ -95,6 +97,7 @@ export type Database = {
           file_type?: string
           file_url?: string
           id?: string
+          semantic_keywords?: string | null
           updated_at?: string
           upload_date?: string
           user_id?: string

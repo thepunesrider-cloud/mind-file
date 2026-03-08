@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search as SearchIcon, SlidersHorizontal, Loader2, Sparkles } from "lucide-react";
+import { Search as SearchIcon, SlidersHorizontal, Loader2, Sparkles, Brain } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { useFiles } from "@/hooks/useFiles";
@@ -12,6 +12,8 @@ import SearchResultCard from "@/components/search/SearchResultCard";
 import { SearchAutocomplete } from "@/components/search/SearchAutocomplete";
 import { cn } from "@/lib/utils";
 import { tokenize, scoreFile, highlightText, extractDateFilter, extractEntityQuery } from "@/lib/searchEngine";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function mapFileType(mimeType: string): "pdf" | "image" | "docx" | "spreadsheet" {
   if (mimeType.includes("pdf")) return "pdf";
@@ -47,7 +49,31 @@ const SearchPage = () => {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [autocompleteOpen, setAutocompleteOpen] = useState(false);
+  const [semanticEnabled, setSemanticEnabled] = useState(false);
+  const [semanticTerms, setSemanticTerms] = useState<string[]>([]);
+  const [semanticLoading, setSemanticLoading] = useState(false);
   const { data: files, isLoading } = useFiles();
+
+  // Debounced semantic expansion
+  const expandQuery = useCallback(async (q: string) => {
+    if (!q.trim() || q.trim().length < 3) {
+      setSemanticTerms([]);
+      return;
+    }
+    setSemanticLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("semantic-search", {
+        body: { query: q },
+      });
+      if (error) throw error;
+      setSemanticTerms(data?.expanded || []);
+    } catch (e) {
+      console.error("Semantic expansion error:", e);
+      setSemanticTerms([]);
+    } finally {
+      setSemanticLoading(false);
+    }
+  }, []);
 
   const allTags = Array.from(new Set((files || []).flatMap((f) => f.tags.map((t) => t.name))));
 
@@ -119,9 +145,14 @@ const SearchPage = () => {
   }, [query, dateFrom, dateTo]);
 
   const results = useMemo(() => {
+    // Combine original tokens with semantic expansion terms
+    const allTokens = semanticEnabled && semanticTerms.length > 0
+      ? [...parsedQuery.tokens, ...semanticTerms.flatMap(t => tokenize(t))]
+      : parsedQuery.tokens;
+
     const scored = (files || [])
       .map((f) => {
-        const score = scoreFile(f, parsedQuery.tokens, parsedQuery.dateFilter, parsedQuery.entityFilter, parsedQuery.cleanQuery);
+        const score = scoreFile(f, allTokens, parsedQuery.dateFilter, parsedQuery.entityFilter, parsedQuery.cleanQuery);
         const matchesTags = selectedTags.length === 0 || f.tags.some((t) => selectedTags.includes(t.name));
         const ft = mapFileType(f.file_type);
         const matchesType = selectedTypes.length === 0 || selectedTypes.includes(ft);
@@ -131,7 +162,7 @@ const SearchPage = () => {
 
     scored.sort((a, b) => b.score - a.score);
     return scored;
-  }, [files, parsedQuery, selectedTags, selectedTypes]);
+  }, [files, parsedQuery, selectedTags, selectedTypes, semanticEnabled, semanticTerms]);
 
   const toggleTag = (tag: string) => setSelectedTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
   const toggleType = (type: string) => setSelectedTypes((prev) => prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]);
@@ -144,8 +175,28 @@ const SearchPage = () => {
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto">
-          {/* Filters Button */}
-          <div className="flex justify-end mb-2">
+          {/* Filters & Semantic Toggle */}
+          <div className="flex justify-end mb-2 gap-2">
+            <button
+              className={cn(
+                "inline-flex items-center gap-2 px-3 py-1.5 rounded-md border transition text-sm font-medium",
+                semanticEnabled
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-foreground border-border hover:bg-primary/10"
+              )}
+              onClick={() => {
+                const next = !semanticEnabled;
+                setSemanticEnabled(next);
+                if (next && query.trim().length >= 3) {
+                  expandQuery(query);
+                }
+                if (!next) setSemanticTerms([]);
+              }}
+              aria-label="Toggle semantic search"
+            >
+              <Brain className="w-4 h-4" />
+              {semanticLoading ? "Thinking..." : "Semantic Search"}
+            </button>
             <button
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-card text-foreground border border-border hover:bg-primary/10 transition text-sm font-medium"
               onClick={() => setShowFilters((v) => !v)}
@@ -165,10 +216,18 @@ const SearchPage = () => {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <SearchAutocomplete
             value={query}
-            onChange={setQuery}
+            onChange={(val) => {
+              setQuery(val);
+              if (semanticEnabled && val.trim().length >= 3) {
+                // Debounce semantic expansion
+                clearTimeout((window as any).__semanticTimer);
+                (window as any).__semanticTimer = setTimeout(() => expandQuery(val), 600);
+              }
+            }}
             onSelect={(suggestion) => {
               setQuery(suggestion);
               setAutocompleteOpen(false);
+              if (semanticEnabled) expandQuery(suggestion);
             }}
             suggestions={filteredSuggestions}
             isOpen={autocompleteOpen && filteredSuggestions.length > 0}
@@ -176,19 +235,35 @@ const SearchPage = () => {
           />
 
           {/* Smart filter indicators */}
-          {(query || activeSmartFilters.length > 0) && (
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {query && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Sparkles className="w-3 h-3 text-primary" />
-                  <span>Searching names, summaries, content, tags & entities</span>
-                </div>
-              )}
-              {activeSmartFilters.map((f) => (
-                <span key={f} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{f}</span>
-              ))}
-            </div>
-          )}
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {query && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Sparkles className="w-3 h-3 text-primary" />
+                <span>Searching names, summaries, content, tags & entities</span>
+              </div>
+            )}
+            {semanticEnabled && semanticTerms.length > 0 && (
+              <div className="flex items-center gap-1.5 text-xs">
+                <Brain className="w-3 h-3 text-primary" />
+                <span className="text-muted-foreground">Semantic:</span>
+                {semanticTerms.slice(0, 8).map((t) => (
+                  <span key={t} className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[11px] font-medium">{t}</span>
+                ))}
+                {semanticTerms.length > 8 && (
+                  <span className="text-muted-foreground text-[11px]">+{semanticTerms.length - 8} more</span>
+                )}
+              </div>
+            )}
+            {semanticEnabled && semanticLoading && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span>Expanding query with AI…</span>
+              </div>
+            )}
+            {activeSmartFilters.map((f) => (
+              <span key={f} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{f}</span>
+            ))}
+          </div>
         </motion.div>
 
         <AnimatePresence>

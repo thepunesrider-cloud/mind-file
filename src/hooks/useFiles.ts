@@ -19,6 +19,7 @@ export interface FileWithTags {
   ai_description: string | null;
   expiry_date: string | null;
   entities: FileEntity[];
+  semantic_keywords: string | null;
   created_at: string;
   updated_at: string;
   user_id: string;
