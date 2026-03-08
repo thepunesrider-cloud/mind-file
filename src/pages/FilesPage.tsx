@@ -663,7 +663,6 @@ const FilesPage = () => {
           </div>
         </motion.div>
         )}
-        </AnimatePresence>
 
         {/* Mobile: Horizontal folder/category scroller */}
         <div className="md:hidden mb-4 space-y-3">
