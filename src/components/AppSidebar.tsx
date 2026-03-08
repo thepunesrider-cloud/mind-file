@@ -37,8 +37,15 @@ const navItems = [
 
 const AppSidebar = ({ onClose }: { onClose?: () => void }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
   const isMobile = useIsMobile();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+    navigate("/");
+  };
 
   return (
     <aside className={cn("h-screen w-64 flex flex-col bg-sidebar border-r border-sidebar-border", isMobile ? "relative" : "fixed left-0 top-0 z-40")}>
