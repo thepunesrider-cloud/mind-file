@@ -561,14 +561,12 @@ const FilesPage = () => {
     <AppLayout>
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-8">
         {/* Left Sidebar - Categories & Folders */}
-        <AnimatePresence>
         {!sidebarCollapsed && (
         <motion.div
-          initial={{ opacity: 0, width: 0 }}
-          animate={{ opacity: 1, width: "auto" }}
-          exit={{ opacity: 0, width: 0 }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
-          className="hidden md:block w-52 flex-shrink-0 sticky top-6 h-fit space-y-4 overflow-hidden"
+          className="hidden md:block w-52 flex-shrink-0 sticky top-6 h-fit space-y-4"
         >
           {/* Folders Section */}
           <div className="bg-gradient-to-br from-card to-card/80 rounded-3xl p-6 shadow-sm backdrop-blur-sm border border-border/30">
