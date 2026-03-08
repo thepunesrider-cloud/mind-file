@@ -73,7 +73,7 @@ function saveFolders(folders: UserFolder[]) {
 }
 
 const FilesPage = () => {
-  const [view, setView] = useState<"grid" | "list">("grid");
+  const [view, setView] = useState<"grid" | "list">("list");
   const [selectedFile, setSelectedFile] = useState<any>(null);
   const [filter, setFilter] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -393,7 +393,7 @@ const FilesPage = () => {
           onDragStart={(e: any) => { e.dataTransfer?.setData?.("text/plain", file.id); }}
           onClick={() => setSelectedFile(detail)}
           className={cn(
-            "group relative bg-gradient-to-br from-card to-card/80 rounded-3xl p-5 cursor-pointer border border-border/30 backdrop-blur-sm transition-all duration-300",
+            "group relative bg-gradient-to-br from-card to-card/80 rounded-3xl p-4 sm:p-5 cursor-pointer border border-border/30 backdrop-blur-sm transition-all duration-300 overflow-hidden",
             selectedFile?.id === file.id
               ? "border-primary/50 shadow-xl shadow-primary/10 bg-primary/5"
               : "hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
@@ -408,8 +408,8 @@ const FilesPage = () => {
               <Icon className="w-5 h-5" />
             </motion.div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold truncate text-foreground">{file.file_name}</p>
-              <p className="text-xs text-muted-foreground/80">{detail.size} · {detail.uploadDate}</p>
+              <p className="text-sm font-semibold truncate max-w-full text-foreground">{file.file_name}</p>
+              <p className="text-xs text-muted-foreground/80 truncate">{detail.size} · {detail.uploadDate}</p>
             </div>
             <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
               <motion.button
@@ -486,21 +486,21 @@ const FilesPage = () => {
           onClick={() => setSelectedFile(detail)}
           whileHover={{ x: 8, transition: { duration: 0.2 } }}
           className={cn(
-            "group relative bg-gradient-to-r from-card to-card/80 rounded-3xl px-5 py-3.5 flex items-center gap-4 cursor-pointer border border-border/30 transition-all duration-300",
+            "group relative bg-gradient-to-r from-card to-card/80 rounded-3xl px-3 sm:px-5 py-3 sm:py-3.5 flex items-center gap-2 sm:gap-4 cursor-pointer border border-border/30 transition-all duration-300 overflow-hidden",
             selectedFile?.id === file.id
               ? "border-primary/50 shadow-lg shadow-primary/10 bg-primary/5"
               : "hover:border-primary/40 hover:shadow-md hover:shadow-primary/5"
-          )}
-        >
+          )}>
+
           <motion.div
             whileHover={{ scale: 1.1, rotate: -5 }}
             className={cn("w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br", color)}
           >
             <Icon className="w-4 h-4" />
           </motion.div>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 overflow-hidden">
             <p className="text-sm font-semibold truncate text-foreground">{file.file_name}</p>
-            <p className="text-xs text-muted-foreground/70 sm:hidden">{detail.size} · {detail.uploadDate}</p>
+            <p className="text-xs text-muted-foreground/70 truncate sm:hidden">{detail.size} · {detail.uploadDate}</p>
           </div>
           <div className="hidden sm:flex gap-2 shrink-0">
             {file.tags.slice(0, 2).map((tag) => (
@@ -519,7 +519,7 @@ const FilesPage = () => {
           </div>
           <span className="hidden md:inline text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.size}</span>
           <span className="hidden md:inline text-xs text-muted-foreground/70 shrink-0 whitespace-nowrap">{detail.uploadDate}</span>
-          <div className="flex items-center gap-0.5 shrink-0">
+          <div className="hidden sm:flex items-center gap-0.5 shrink-0">
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
@@ -760,7 +760,7 @@ const FilesPage = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2, duration: 0.4 }}
-                className="flex items-center gap-2 sm:gap-3"
+                className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto"
               >
                 {/* Sidebar toggle (desktop only) */}
                 <button
@@ -770,7 +770,7 @@ const FilesPage = () => {
                 >
                   {sidebarCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
                 </button>
-                <div className="relative">
+                <div className="relative flex-1 sm:flex-none min-w-0">
                   <Input
                     placeholder="Search files..."
                     value={filter}
