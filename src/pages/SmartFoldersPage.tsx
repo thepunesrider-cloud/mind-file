@@ -303,6 +303,7 @@ const SmartFoldersPage = () => {
   const { data: files } = useFiles();
   const [folders, setFolders] = useState<SmartFolder[]>(loadSmartFolders);
   const [loading, setLoading] = useState(false);
+  const [deepAllLoading, setDeepAllLoading] = useState(false);
   const [expandedFolder, setExpandedFolder] = useState<string | null>(null);
   const [pinnedFolders, setPinnedFolders] = useState<string[]>(loadPinnedFolders);
   const [dragState, setDragState] = useState<DragState | null>(null);
