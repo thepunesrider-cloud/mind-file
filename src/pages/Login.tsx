@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Zap } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Zap, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -21,7 +22,11 @@ const Login = () => {
     setLoading(true);
     try {
       if (isSignUp) {
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin },
+        });
         if (error) throw error;
         if (!data.session) {
           toast.success("Account created! Check your email to confirm.");
@@ -45,6 +50,51 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent! Check your inbox.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send reset link");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isForgotPassword) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background p-8">
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="w-full max-w-md">
+          <button onClick={() => setIsForgotPassword(false)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
+            <ArrowLeft className="w-4 h-4" /> Back to login
+          </button>
+
+          <h2 className="text-3xl font-bold mb-2">Reset Password</h2>
+          <p className="text-muted-foreground mb-8">Enter your email and we'll send you a reset link.</p>
+
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="h-12 bg-secondary border-border" required />
+            </div>
+            <Button type="submit" disabled={loading} className="w-full h-12 font-semibold">
+              {loading ? "Sending..." : "Send Reset Link"}
+            </Button>
+          </form>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -95,7 +145,14 @@ const Login = () => {
               <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="h-12 bg-secondary border-border" required />
             </div>
             <div className="space-y-2">
-              <Label>Password</Label>
+              <div className="flex items-center justify-between">
+                <Label>Password</Label>
+                {!isSignUp && (
+                  <button type="button" onClick={() => setIsForgotPassword(true)} className="text-xs text-primary hover:underline">
+                    Forgot password?
+                  </button>
+                )}
+              </div>
               <div className="relative">
                 <Input type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="h-12 bg-secondary border-border pr-10" required minLength={6} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
