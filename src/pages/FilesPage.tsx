@@ -411,37 +411,32 @@ const FilesPage = () => {
               <p className="text-sm font-semibold truncate text-foreground">{file.file_name}</p>
               <p className="text-xs text-muted-foreground/80">{detail.size} · {detail.uploadDate}</p>
             </div>
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
               <motion.button
-                whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={(e) => { e.stopPropagation(); navigate(`/chat?fileId=${file.id}`); }}
-                title="Chat with document"
-                className="p-2 rounded-xl text-muted-foreground hover:text-accent hover:bg-accent/10 transition-all duration-200"
+                title="Chat"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-accent hover:bg-accent/10 transition-all"
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-3.5 h-3.5" />
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={(e) => { e.stopPropagation(); setShareFile({ id: file.id, name: file.file_name }); }}
+                title="Share"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+              >
+                <Share2 className="w-3.5 h-3.5" />
               </motion.button>
               {file.file_url && (
-                <>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => { e.stopPropagation(); viewFile(file.file_url); }}
-                    title="View"
-                    className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => { e.stopPropagation(); downloadFile(file.file_url, file.file_name); }}
-                    title="Download"
-                    className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
-                  >
-                    <Download className="w-4 h-4" />
-                  </motion.button>
-                </>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => { e.stopPropagation(); viewFile(file.file_url); }}
+                  title="View"
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </motion.button>
               )}
             </div>
           </div>
