@@ -289,11 +289,76 @@ const SearchPage = () => {
                   {results.length} result{results.length !== 1 ? "s" : ""}
                   {query && <span className="text-primary ml-1">· sorted by relevance</span>}
                 </p>
-                {results.length === 0 && query && (
+                {results.length === 0 && query && !smartLoading && smartResults.length === 0 && (
                   <div className="text-center py-16">
                     <SearchIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-muted-foreground text-sm">No files match your search.</p>
-                    <p className="text-muted-foreground/60 text-xs mt-1">Try different keywords or enable Deep Search for better results.</p>
+                    <p className="text-muted-foreground text-sm">No exact matches found.</p>
+                    <p className="text-muted-foreground/60 text-xs mt-1 mb-4">Let AI find related files for you.</p>
+                    <button
+                      onClick={async () => {
+                        if (!files || files.length === 0) return;
+                        setSmartLoading(true);
+                        try {
+                          const fileSummaries = files.map(f => ({
+                            id: f.id,
+                            name: f.file_name,
+                            summary: (f.ai_summary || "").substring(0, 200),
+                            tags: f.tags.map(t => t.name).join(", "),
+                            entities: (f.entities || []).map((e: any) => `${e.label}: ${e.value}`).join(", ").substring(0, 200),
+                          }));
+                          const { data, error } = await supabase.functions.invoke("smart-search", {
+                            body: { query, fileSummaries },
+                          });
+                          if (error) throw error;
+                          setSmartResults(data?.suggestions || []);
+                        } catch (e) {
+                          console.error("Smart search error:", e);
+                          toast.error("AI search failed");
+                        } finally {
+                          setSmartLoading(false);
+                        }
+                      }}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition"
+                    >
+                      <Wand2 className="w-4 h-4" />
+                      Find Related Files with AI
+                    </button>
+                  </div>
+                )}
+                {smartLoading && (
+                  <div className="text-center py-16">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+                    <p className="text-muted-foreground text-sm">AI is analyzing your files to find related documents...</p>
+                  </div>
+                )}
+                {results.length === 0 && smartResults.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Wand2 className="w-4 h-4 text-primary" />
+                      <p className="text-sm font-medium text-primary">AI found related files</p>
+                    </div>
+                    <div className="space-y-3">
+                      {smartResults.map((suggestion) => {
+                        const file = (files || []).find(f => f.id === suggestion.fileId);
+                        if (!file) return null;
+                        const detail = toDetailFile(file);
+                        return (
+                          <div key={suggestion.fileId}>
+                            <SearchResultCard
+                              file={file}
+                              detail={detail}
+                              snippet={suggestion.reason}
+                              isSelected={selectedFile?.id === file.id}
+                              index={0}
+                              onClick={() => setSelectedFile(detail)}
+                            />
+                            <p className="text-xs text-muted-foreground ml-4 mt-1 italic">
+                              💡 {suggestion.reason}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
                 <div className="space-y-3">
