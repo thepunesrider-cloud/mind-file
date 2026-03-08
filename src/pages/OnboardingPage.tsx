@@ -264,11 +264,14 @@ const OnboardingPage = () => {
                   </div>
                   <div>
                     <Label className="text-xs font-medium mb-1.5 block">Designation / Role</Label>
-                    <Input
-                      value={form.designation}
-                      onChange={(e) => update("designation", e.target.value)}
-                      placeholder="e.g., Founder, CA, Manager"
-                    />
+                    <Select value={form.designation} onValueChange={(v) => update("designation", v)}>
+                      <SelectTrigger><SelectValue placeholder="Select your role" /></SelectTrigger>
+                      <SelectContent>
+                        {designations.map((d) => (
+                          <SelectItem key={d} value={d}>{d}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </>
               )}
