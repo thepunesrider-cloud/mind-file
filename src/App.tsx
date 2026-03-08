@@ -38,6 +38,7 @@ const App = () => (
             <Route path="/chat" element={<AuthGuard><ChatPage /></AuthGuard>} />
             <Route path="/smart-folders" element={<AuthGuard><SmartFoldersPage /></AuthGuard>} />
             <Route path="/compare" element={<AuthGuard><ComparePage /></AuthGuard>} />
+            <Route path="/shared/:token" element={<SharedFilePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
