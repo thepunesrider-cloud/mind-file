@@ -29,11 +29,12 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
       </div>
 
       {/* Main */}
-      <main className={`flex-1 ${isMobile ? "" : "ml-64"} p-4 sm:p-6 lg:p-8 min-w-0`}>
-        {isMobile && (
+      <main className={`flex-1 ${isMobile ? "" : "ml-64"} p-4 sm:p-6 lg:p-8 min-w-0 overflow-x-hidden`}>
+        {isMobile && !sidebarOpen && (
           <button
             onClick={() => setSidebarOpen(true)}
-            className="mb-4 p-2 rounded-lg bg-card border border-border hover:bg-secondary transition-colors"
+            className="mb-4 p-2.5 rounded-xl bg-card border border-border hover:bg-secondary transition-colors active:scale-95"
+            aria-label="Open menu"
           >
             <Menu className="w-5 h-5" />
           </button>
