@@ -316,19 +316,25 @@ const OnboardingPage = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label className="text-xs font-medium mb-1.5 block">City</Label>
-                      <Input
-                        value={form.city}
-                        onChange={(e) => update("city", e.target.value)}
-                        placeholder="e.g., Mumbai"
-                      />
+                      <Select value={form.city} onValueChange={(v) => update("city", v)}>
+                        <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
+                        <SelectContent>
+                          {majorCities.map((c) => (
+                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label className="text-xs font-medium mb-1.5 block">State</Label>
-                      <Input
-                        value={form.state}
-                        onChange={(e) => update("state", e.target.value)}
-                        placeholder="e.g., Maharashtra"
-                      />
+                      <Select value={form.state} onValueChange={(v) => update("state", v)}>
+                        <SelectTrigger><SelectValue placeholder="Select state" /></SelectTrigger>
+                        <SelectContent>
+                          {indianStates.map((s) => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <div>
