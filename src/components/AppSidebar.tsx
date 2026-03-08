@@ -11,8 +11,10 @@ import {
   LogOut,
   Moon,
   Sun,
+  X,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -23,21 +25,29 @@ const navItems = [
   { to: "/reminders", icon: Bell, label: "Reminders" },
 ];
 
-const AppSidebar = () => {
+const AppSidebar = ({ onClose }: { onClose?: () => void }) => {
   const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
+  const isMobile = useIsMobile();
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 flex flex-col bg-sidebar border-r border-sidebar-border">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
-        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center glow">
-          <Zap className="w-5 h-5 text-primary" />
+      <div className="flex items-center justify-between px-6 py-5 border-b border-sidebar-border">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center glow">
+            <Zap className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-sm font-bold gradient-text">Smart Storage</h1>
+            <p className="text-[10px] text-muted-foreground">AI File Manager</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-sm font-bold gradient-text">Smart Storage</h1>
-          <p className="text-[10px] text-muted-foreground">AI File Manager</p>
-        </div>
+        {isMobile && onClose && (
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Nav */}
@@ -48,6 +58,7 @@ const AppSidebar = () => {
             <RouterNavLink
               key={item.to}
               to={item.to}
+              onClick={onClose}
               className={cn(
                 "relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                 isActive
@@ -74,20 +85,13 @@ const AppSidebar = () => {
         <button
           onClick={toggleTheme}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
-          title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
         >
           {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           {isDark ? "Light Mode" : "Dark Mode"}
         </button>
         <RouterNavLink
-          to="/settings"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
-        >
-          <Settings className="w-4 h-4" />
-          Settings
-        </RouterNavLink>
-        <RouterNavLink
           to="/"
+          onClick={onClose}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
         >
           <LogOut className="w-4 h-4" />

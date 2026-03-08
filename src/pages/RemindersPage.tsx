@@ -1,100 +1,163 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, Clock, CheckCircle, AlertTriangle, Calendar } from "lucide-react";
+import { Bell, Clock, AlertTriangle, Calendar, FileText, Download, Eye, CheckCircle } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
-import { mockFiles } from "@/data/mockFiles";
+import { useFiles } from "@/hooks/useFiles";
 import { Button } from "@/components/ui/button";
+import { downloadFile, viewFile } from "@/lib/fileUrl";
 import { cn } from "@/lib/utils";
 
 const RemindersPage = () => {
-  const expiringFiles = mockFiles.filter((f) => f.expiryDate).map((f) => {
-    const days = Math.ceil((new Date(f.expiryDate!).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-    return { ...f, daysUntil: days };
-  }).sort((a, b) => a.daysUntil - b.daysUntil);
-
+  const { data: files, isLoading } = useFiles();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+
+  const expiringFiles = (files || [])
+    .filter((f) => f.expiry_date)
+    .map((f) => {
+      const days = Math.ceil((new Date(f.expiry_date!).getTime() - Date.now()) / 864e5);
+      return { ...f, daysUntil: days };
+    })
+    .sort((a, b) => a.daysUntil - b.daysUntil);
+
+  const expired = expiringFiles.filter((f) => f.daysUntil <= 0 && !dismissedIds.has(f.id));
+  const urgent = expiringFiles.filter((f) => f.daysUntil > 0 && f.daysUntil <= 30 && !dismissedIds.has(f.id));
+  const upcoming = expiringFiles.filter((f) => f.daysUntil > 30 && f.daysUntil <= 90 && !dismissedIds.has(f.id));
+  const later = expiringFiles.filter((f) => f.daysUntil > 90 && !dismissedIds.has(f.id));
+
+  const summaryCards = [
+    { icon: AlertTriangle, label: "Expired", count: expired.length, color: "text-destructive", bg: "bg-destructive/10" },
+    { icon: Clock, label: "Within 30 days", count: urgent.length, color: "text-warning", bg: "bg-warning/10" },
+    { icon: Calendar, label: "Within 90 days", count: upcoming.length, color: "text-primary", bg: "bg-primary/10" },
+    { icon: CheckCircle, label: "Total tracked", count: expiringFiles.length, color: "text-success", bg: "bg-success/10" },
+  ];
+
+  const renderSection = (title: string, items: typeof expiringFiles, severity: "expired" | "urgent" | "normal") => {
+    if (items.length === 0) return null;
+    return (
+      <div className="mb-6">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{title}</h3>
+        <div className="space-y-2">
+          {items.map((file, i) => (
+            <motion.div
+              key={file.id}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.03 }}
+              className={cn(
+                "rounded-xl border bg-card p-4 transition-colors hover:bg-secondary/30",
+                severity === "expired" && "border-destructive/30",
+                severity === "urgent" && "border-warning/30",
+                severity === "normal" && "border-border"
+              )}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
+                    severity === "expired" ? "bg-destructive/10" : severity === "urgent" ? "bg-warning/10" : "bg-primary/10"
+                  )}>
+                    {severity === "expired" ? (
+                      <AlertTriangle className="w-5 h-5 text-destructive" />
+                    ) : severity === "urgent" ? (
+                      <Clock className="w-5 h-5 text-warning" />
+                    ) : (
+                      <Calendar className="w-5 h-5 text-primary" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{file.file_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Expires: {new Date(file.expiry_date!).toLocaleDateString()} ·{" "}
+                      <span className={cn(
+                        severity === "expired" ? "text-destructive font-medium" :
+                        severity === "urgent" ? "text-warning font-medium" : "text-muted-foreground"
+                      )}>
+                        {file.daysUntil > 0 ? `${file.daysUntil} days left` : `Expired ${Math.abs(file.daysUntil)} days ago`}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => viewFile(file.file_url)}
+                    title="View"
+                    className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => downloadFile(file.file_url, file.file_name)}
+                    title="Download"
+                    className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                  </button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 text-xs text-muted-foreground"
+                    onClick={() => setDismissedIds((prev) => new Set(prev).add(file.id))}
+                  >
+                    Dismiss
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <AppLayout>
       <div className="max-w-3xl mx-auto">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
-          <h1 className="text-2xl font-bold">Reminders</h1>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold">Reminders</h1>
           <p className="text-muted-foreground text-sm mt-1">Document expiry alerts and notifications</p>
         </motion.div>
 
         {/* Summary */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-xl p-4 text-center">
-            <AlertTriangle className="w-5 h-5 text-destructive mx-auto mb-2" />
-            <p className="text-2xl font-bold">{expiringFiles.filter((f) => f.daysUntil <= 30).length}</p>
-            <p className="text-xs text-muted-foreground">Within 30 days</p>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass rounded-xl p-4 text-center">
-            <Clock className="w-5 h-5 text-warning mx-auto mb-2" />
-            <p className="text-2xl font-bold">{expiringFiles.filter((f) => f.daysUntil <= 90 && f.daysUntil > 30).length}</p>
-            <p className="text-xs text-muted-foreground">Within 90 days</p>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass rounded-xl p-4 text-center">
-            <Calendar className="w-5 h-5 text-primary mx-auto mb-2" />
-            <p className="text-2xl font-bold">{expiringFiles.length}</p>
-            <p className="text-xs text-muted-foreground">Total tracked</p>
-          </motion.div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+          {summaryCards.map((card, i) => (
+            <motion.div
+              key={card.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="rounded-xl border border-border bg-card p-4 text-center"
+            >
+              <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center mx-auto mb-2", card.bg)}>
+                <card.icon className={cn("w-4 h-4", card.color)} />
+              </div>
+              <p className="text-2xl font-bold">{card.count}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{card.label}</p>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Reminders List */}
-        <div className="space-y-3">
-          {expiringFiles.map((file, i) => {
-            const isUrgent = file.daysUntil <= 30;
-            const isDismissed = dismissedIds.has(file.id);
-            if (isDismissed) return null;
-
-            return (
-              <motion.div
-                key={file.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className={cn(
-                  "glass rounded-xl p-4",
-                  isUrgent && "border-destructive/30"
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-10 h-10 rounded-lg flex items-center justify-center",
-                      isUrgent ? "bg-destructive/10" : "bg-warning/10"
-                    )}>
-                      {isUrgent ? (
-                        <AlertTriangle className="w-5 h-5 text-destructive" />
-                      ) : (
-                        <Clock className="w-5 h-5 text-warning" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Expires: {file.expiryDate} ·{" "}
-                        <span className={isUrgent ? "text-destructive font-medium" : "text-warning"}>
-                          {file.daysUntil > 0 ? `${file.daysUntil} days left` : "Expired"}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setDismissedIds((prev) => new Set(prev).add(file.id))}>
-                      Dismiss
-                    </Button>
-                    <Button size="sm" className="h-8 text-xs text-primary-foreground">
-                      <Bell className="w-3 h-3 mr-1" />
-                      Set Alert
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+        {/* Sections */}
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 rounded-xl bg-secondary/50 animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <>
+            {renderSection("Expired", expired, "expired")}
+            {renderSection("Expiring within 30 days", urgent, "urgent")}
+            {renderSection("Expiring within 90 days", upcoming, "normal")}
+            {renderSection("Later", later, "normal")}
+            {expiringFiles.length === 0 && (
+              <div className="text-center py-16">
+                <Bell className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">No documents with expiry dates found</p>
+                <p className="text-xs text-muted-foreground mt-1">Upload documents with expiry dates to see reminders here</p>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </AppLayout>
   );
