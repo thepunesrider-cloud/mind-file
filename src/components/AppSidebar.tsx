@@ -1,4 +1,4 @@
-import { NavLink as RouterNavLink, useLocation } from "react-router-dom";
+import { NavLink as RouterNavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
@@ -20,6 +20,8 @@ import {
 import { useTheme } from "@/hooks/useTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -35,8 +37,15 @@ const navItems = [
 
 const AppSidebar = ({ onClose }: { onClose?: () => void }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
   const isMobile = useIsMobile();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+    navigate("/");
+  };
 
   return (
     <aside className={cn("h-screen w-64 flex flex-col bg-sidebar border-r border-sidebar-border", isMobile ? "relative" : "fixed left-0 top-0 z-40")}>
@@ -97,14 +106,13 @@ const AppSidebar = ({ onClose }: { onClose?: () => void }) => {
           {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           {isDark ? "Light Mode" : "Dark Mode"}
         </button>
-        <RouterNavLink
-          to="/"
-          onClick={onClose}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
         >
           <LogOut className="w-4 h-4" />
           Sign Out
-        </RouterNavLink>
+        </button>
       </div>
     </aside>
   );

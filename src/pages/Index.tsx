@@ -301,7 +301,7 @@ const Index = () => {
             <Zap className="w-4 h-4 text-primary" />
             <span className="text-sm font-bold gradient-text">Sortify</span>
           </div>
-          <p className="text-xs text-muted-foreground">© 2025 Sortify. AI-Powered File Intelligence.</p>
+          <p className="text-xs text-muted-foreground">© 2026 Sortify. AI-Powered File Intelligence.</p>
         </div>
       </footer>
     </div>
