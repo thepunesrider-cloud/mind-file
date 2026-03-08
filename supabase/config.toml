@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.send-whatsapp-otp]
 verify_jwt = false
+
+[functions.get-shared-file]
+verify_jwt = false

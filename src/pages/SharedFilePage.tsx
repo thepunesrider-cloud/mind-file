@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Loader2, FileText, AlertCircle, Clock, Eye } from "lucide-react";
+import { Loader2, FileText, AlertCircle, Download, Eye, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { viewFile, downloadFile } from "@/lib/fileUrl";
 
 const SharedFilePage = () => {
   const { token } = useParams<{ token: string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [file, setFile] = useState<{ file_name: string; file_url: string; file_type: string } | null>(null);
+  const [file, setFile] = useState<{ fileName: string; fileType: string; signedUrl: string } | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -18,47 +16,19 @@ const SharedFilePage = () => {
 
   const loadSharedFile = async () => {
     try {
-      // Fetch shared link
-      const { data: link, error: linkErr } = await supabase
-        .from("shared_links")
-        .select("*, files(file_name, file_url, file_type)")
-        .eq("token", token!)
-        .single();
+      const resp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-shared-file?token=${encodeURIComponent(token!)}`,
+      );
+      const data = await resp.json();
 
-      if (linkErr || !link) {
-        setError("This link is invalid or has been removed.");
+      if (!resp.ok) {
+        setError(data.error || "This link is invalid or has expired.");
         return;
       }
 
-      // Check expiry
-      if (link.expires_at && new Date(link.expires_at) < new Date()) {
-        setError("This link has expired.");
-        return;
-      }
-
-      // Check view once
-      if (link.view_once && link.viewed) {
-        setError("This link has already been viewed and is no longer available.");
-        return;
-      }
-
-      const fileData = (link as any).files;
-      if (!fileData) {
-        setError("File not found.");
-        return;
-      }
-
-      setFile(fileData);
-
-      // Mark as viewed if view_once
-      if (link.view_once) {
-        await supabase
-          .from("shared_links")
-          .update({ viewed: true })
-          .eq("id", link.id);
-      }
+      setFile(data);
     } catch {
-      setError("Something went wrong.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -95,14 +65,29 @@ const SharedFilePage = () => {
         <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <FileText className="w-8 h-8 text-primary" />
         </div>
-        <h1 className="text-xl font-bold mb-1">{file?.file_name}</h1>
+        <h1 className="text-xl font-bold mb-1">{file?.fileName}</h1>
         <p className="text-muted-foreground text-sm mb-6">Shared file</p>
         <div className="flex gap-3 justify-center">
-          <Button onClick={() => file && viewFile(file.file_url)} className="rounded-xl gap-2">
+          <Button
+            onClick={() => window.open(file?.signedUrl, "_blank")}
+            className="rounded-xl gap-2"
+          >
             <Eye className="w-4 h-4" /> View
           </Button>
-          <Button variant="outline" onClick={() => file && downloadFile(file.file_url, file.file_name)} className="rounded-xl gap-2">
-            Download
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (!file) return;
+              const a = document.createElement("a");
+              a.href = file.signedUrl;
+              a.download = file.fileName;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            }}
+            className="rounded-xl gap-2"
+          >
+            <Download className="w-4 h-4" /> Download
           </Button>
         </div>
       </div>
