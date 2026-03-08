@@ -175,8 +175,28 @@ const SearchPage = () => {
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto">
-          {/* Filters Button */}
-          <div className="flex justify-end mb-2">
+          {/* Filters & Semantic Toggle */}
+          <div className="flex justify-end mb-2 gap-2">
+            <button
+              className={cn(
+                "inline-flex items-center gap-2 px-3 py-1.5 rounded-md border transition text-sm font-medium",
+                semanticEnabled
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-foreground border-border hover:bg-primary/10"
+              )}
+              onClick={() => {
+                const next = !semanticEnabled;
+                setSemanticEnabled(next);
+                if (next && query.trim().length >= 3) {
+                  expandQuery(query);
+                }
+                if (!next) setSemanticTerms([]);
+              }}
+              aria-label="Toggle semantic search"
+            >
+              <Brain className="w-4 h-4" />
+              {semanticLoading ? "Thinking..." : "Semantic Search"}
+            </button>
             <button
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-card text-foreground border border-border hover:bg-primary/10 transition text-sm font-medium"
               onClick={() => setShowFilters((v) => !v)}
