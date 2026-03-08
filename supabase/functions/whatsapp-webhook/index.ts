@@ -588,27 +588,35 @@ async function handleSearch(
     return;
   }
 
-  // Send top result as file with 3 buttons
-  await sendFileWithButtons(supabase, authKey, intNum, phone, scored[0]);
-  // Store delivered file info for "ask about file"
-  await setSession(supabase, phone, "file_delivered", { fileId: scored[0].id, fileName: scored[0].file_name });
-
-  if (scored.length > 1) {
-    let listMsg = `🔍 *${scored.length - 1} more result(s)* for "*${query}*"\n\n`;
-    scored.slice(1).forEach((f: any, i: number) => {
-      const brief = f.ai_summary ? f.ai_summary.substring(0, 40) + "..." : f.file_type;
-      listMsg += `*${i + 1}.* ${f.file_name}\n   _${brief}_\n\n`;
-    });
-    listMsg += "📌 Reply with a number to get that file";
-
-    await supabase.from("whatsapp_sessions").upsert({
-      phone_number: phone, session_type: "awaiting_pick",
-      session_data: { results: scored.slice(1).map((f: any) => ({ id: f.id, file_name: f.file_name, file_url: f.file_url, ai_summary: f.ai_summary, file_type: f.file_type })) },
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "phone_number" });
-
-    await sendText(authKey, intNum, phone, listMsg);
+  // Single result → send directly
+  if (scored.length === 1) {
+    await sendFileWithButtons(supabase, authKey, intNum, phone, scored[0]);
+    await setSession(supabase, phone, "file_delivered", { fileId: scored[0].id, fileName: scored[0].file_name });
+    return;
   }
+
+  // Multiple results → list ALL with rich details so user picks the right one
+  let listMsg = `🔍 *${scored.length} result(s)* for "*${query}*"\n\n`;
+  scored.forEach((f: any, i: number) => {
+    const summary = f.ai_summary ? f.ai_summary.substring(0, 60) + "..." : "";
+    const entities = Array.isArray(f.entities) ? f.entities.slice(0, 3) : [];
+    const entityStr = entities.map((e: any) => e.value || e.label).filter(Boolean).join(", ");
+    const typeEmoji = getFileTypeEmoji(f.file_type);
+    
+    listMsg += `*${i + 1}.* ${typeEmoji} ${f.file_name}\n`;
+    if (summary) listMsg += `   📝 _${summary}_\n`;
+    if (entityStr) listMsg += `   🏷️ _${entityStr}_\n`;
+    listMsg += `\n`;
+  });
+  listMsg += "📌 *Reply with a number* to get that file";
+
+  await supabase.from("whatsapp_sessions").upsert({
+    phone_number: phone, session_type: "awaiting_pick",
+    session_data: { results: scored.map((f: any) => ({ id: f.id, file_name: f.file_name, file_url: f.file_url, ai_summary: f.ai_summary, file_type: f.file_type })) },
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "phone_number" });
+
+  await sendText(authKey, intNum, phone, listMsg);
 }
 
 // ===================== UPLOAD =====================
