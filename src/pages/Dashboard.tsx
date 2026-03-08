@@ -24,7 +24,9 @@ import { downloadFile, viewFile } from "@/lib/fileUrl";
 import { getFileIcon, getFileColor } from "@/data/mockFiles";
 import { cn } from "@/lib/utils";
 import { ActionSearchbar } from "@/components/ui/action-searchbar";
-
+import { InteractiveOnboardingChecklist, type Step } from "@/components/ui/onboarding-checklist";
+import { useOnboardingGuide } from "@/hooks/useOnboardingGuide";
+import { PlayCircle } from "lucide-react";
 function mapType(mime: string) {
   if (mime.includes("pdf")) return "pdf" as const;
   if (mime.startsWith("image/")) return "image" as const;
