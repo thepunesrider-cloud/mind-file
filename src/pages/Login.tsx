@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { useGoogleDriveToken } from "@/hooks/useGoogleDriveToken";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -18,6 +19,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   
+  useGoogleDriveToken();
+
   const navigate = useNavigate();
 
   const redirectByOnboarding = useCallback(async (userId: string) => {
@@ -188,8 +191,9 @@ const Login = () => {
                 const { error, redirected } = await lovable.auth.signInWithOAuth("google", {
                   redirect_uri: `${window.location.origin}/dashboard`,
                   extraParams: {
-                    prompt: "select_account",
+                    prompt: "consent",
                     access_type: "offline",
+                    include_granted_scopes: "true",
                     scope: "openid email profile https://www.googleapis.com/auth/drive.readonly",
                   },
                 });
