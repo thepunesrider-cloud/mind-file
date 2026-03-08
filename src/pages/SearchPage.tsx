@@ -231,7 +231,16 @@ const SearchPage = () => {
                 Search by name, content, tags, or just describe what you're looking for
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap justify-end">
+              <button
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-card text-foreground border border-border hover:bg-primary/10 transition text-sm font-medium disabled:opacity-60"
+                onClick={handleReanalyzeAll}
+                disabled={bulkReanalyzing || !files?.length}
+                aria-label="Re-analyze all files"
+              >
+                {bulkReanalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                {bulkReanalyzing ? "Re-analyzing..." : "Re-analyze All"}
+              </button>
               <button
                 className={cn(
                   "inline-flex items-center gap-2 px-3 py-1.5 rounded-md border transition text-sm font-medium",
