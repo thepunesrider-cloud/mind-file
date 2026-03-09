@@ -555,7 +555,32 @@ Keywords: ${fileRecord.semantic_keywords || "N/A"}`;
 async function handleSearch(
   supabase: any, authKey: string, intNum: string, phone: string, userId: string, query: string
 ) {
-  const searchTerms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const queryLower = query.toLowerCase();
+  const searchTerms = queryLower.split(/\s+/).filter(Boolean);
+
+  // ── Intent analysis: detect document type keywords ──
+  const docTypeAliases: Record<string, string[]> = {
+    aadhaar: ["aadhar", "aadha", "aadhaar", "adhar", "adhar card", "uid"],
+    pan: ["pan", "pan card", "permanent account"],
+    passport: ["passport"],
+    license: ["license", "licence", "driving license", "dl"],
+    insurance: ["insurance", "policy", "premium"],
+    invoice: ["invoice", "bill", "receipt"],
+    certificate: ["certificate", "cert"],
+  };
+
+  let detectedDocType: string | null = null;
+  for (const [docType, aliases] of Object.entries(docTypeAliases)) {
+    if (aliases.some(a => queryLower.includes(a))) {
+      detectedDocType = docType;
+      break;
+    }
+  }
+
+  // ── Extract numbers/IDs from query (could be Aadhaar, PAN, phone, DOB, etc.) ──
+  const numbersInQuery = query.match(/\d{4,}/g) || [];
+  const datePatterns = query.match(/\b(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})\b/g) || [];
+  const allIdentifiers = [...numbersInQuery, ...datePatterns];
 
   const { data: files } = await supabase
     .from("files")
@@ -569,17 +594,57 @@ async function handleSearch(
 
   const scored = files.map((f: any) => {
     let score = 0;
-    const haystack = [
-      f.file_name, f.ai_summary, f.ai_description, f.extracted_text, f.semantic_keywords,
-      ...(Array.isArray(f.entities) ? f.entities.map((e: any) => `${e.value} ${e.label}`) : []),
+    const entities = Array.isArray(f.entities) ? f.entities : [];
+    const entityValues = entities.map((e: any) => (e.value || "").replace(/[\s\-]/g, "")).filter(Boolean);
+    const entityLabels = entities.map((e: any) => (e.label || "").toLowerCase()).filter(Boolean);
+    const fileNameLower = (f.file_name || "").toLowerCase();
+    const summaryLower = (f.ai_summary || "").toLowerCase();
+    const descLower = (f.ai_description || "").toLowerCase();
+    const extractedLower = (f.extracted_text || "").toLowerCase();
+    const keywordsLower = (f.semantic_keywords || "").toLowerCase();
+
+    const haystack = [fileNameLower, summaryLower, descLower, extractedLower, keywordsLower,
+      ...entities.map((e: any) => `${e.value} ${e.label}`)
     ].filter(Boolean).join(" ").toLowerCase();
 
+    // ── Phase 1: Exact identifier match (MASSIVE boost) ──
+    for (const id of allIdentifiers) {
+      const cleanId = id.replace(/[\s\-\/]/g, "");
+      // Check entity values for exact number match
+      for (const ev of entityValues) {
+        if (ev.includes(cleanId) || cleanId.includes(ev)) {
+          score += 100; // Huge boost for exact entity match
+        }
+      }
+      // Check extracted text for the number
+      if (extractedLower.includes(cleanId)) score += 30;
+      if (fileNameLower.includes(cleanId)) score += 50;
+    }
+
+    // ── Phase 2: Document type match ──
+    if (detectedDocType) {
+      const typeAliases = docTypeAliases[detectedDocType];
+      for (const alias of typeAliases) {
+        if (fileNameLower.includes(alias)) score += 25;
+        if (summaryLower.includes(alias)) score += 20;
+        for (const el of entityLabels) {
+          if (el.includes(alias)) score += 15;
+        }
+      }
+    }
+
+    // ── Phase 3: Standard term matching ──
     for (const term of searchTerms) {
-      const regex = new RegExp(term, "gi");
+      // Skip pure numbers already handled in Phase 1
+      if (/^\d+$/.test(term) && term.length >= 4) continue;
+      
+      const regex = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
       const matches = haystack.match(regex);
       if (matches) score += matches.length;
-      if (f.file_name.toLowerCase().includes(term)) score += 10;
+      if (fileNameLower.includes(term)) score += 10;
+      if (summaryLower.includes(term)) score += 5;
     }
+
     return { ...f, score };
   }).filter((f: any) => f.score > 0)
     .sort((a: any, b: any) => b.score - a.score)
