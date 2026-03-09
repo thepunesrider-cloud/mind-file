@@ -449,22 +449,26 @@ const SearchPage = () => {
                     </div>
                   </div>
                 )}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {results.map(({ file }, i) => {
                     const detail = toDetailFile(file);
                     const snippet = query
                       ? highlightText(file.ai_summary || file.ai_description || file.extracted_text || "", parsedQuery.tokens)
                       : detail.summary?.slice(0, 150);
+                    const isTopResult = i === 0 && query.trim().length > 0 && results.length > 1;
                     return (
-                      <SearchResultCard
-                        key={file.id}
-                        file={file}
-                        detail={detail}
-                        snippet={snippet}
-                        isSelected={selectedFile?.id === file.id}
-                        index={i}
-                        onClick={() => setSelectedFile(detail)}
-                      />
+                      <div key={file.id}>
+                        <SearchResultCard
+                          file={file}
+                          detail={detail}
+                          snippet={snippet}
+                          isSelected={selectedFile?.id === file.id}
+                          index={i}
+                          onClick={() => setSelectedFile(detail)}
+                          isTopResult={isTopResult}
+                        />
+                        {isTopResult && <div className="border-b border-border/50 my-4" />}
+                      </div>
                     );
                   })}
                 </div>

@@ -13,9 +13,10 @@ interface SearchResultCardProps {
   isSelected: boolean;
   index: number;
   onClick: () => void;
+  isTopResult?: boolean;
 }
 
-const SearchResultCard = ({ file, detail, snippet, isSelected, index, onClick }: SearchResultCardProps) => {
+const SearchResultCard = ({ file, detail, snippet, isSelected, index, onClick, isTopResult }: SearchResultCardProps) => {
   const Icon = getFileIcon(detail.type);
   const color = getFileColor(detail.type);
   const entities = (file as any).entities || [];
@@ -27,15 +28,32 @@ const SearchResultCard = ({ file, detail, snippet, isSelected, index, onClick }:
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03 }}
       onClick={onClick}
-      className={cn("glass rounded-xl p-4 cursor-pointer glass-hover", isSelected && "border-primary/40")}
+      className={cn(
+        "rounded-xl cursor-pointer transition-all",
+        isTopResult
+          ? "glass p-5 border-2 border-primary/30 bg-primary/5 shadow-lg shadow-primary/5 ring-1 ring-primary/10"
+          : "glass p-4 glass-hover",
+        isSelected && "border-primary/40"
+      )}
     >
+      {isTopResult && (
+        <div className="flex items-center gap-1.5 mb-3">
+          <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary">
+            ✨ Best Match
+          </span>
+        </div>
+      )}
       <div className="flex items-start gap-3">
-        <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center bg-secondary shrink-0", color)}>
-          <Icon className="w-5 h-5" />
+        <div className={cn(
+          "rounded-lg flex items-center justify-center bg-secondary shrink-0",
+          isTopResult ? "w-12 h-12" : "w-10 h-10",
+          color
+        )}>
+          <Icon className={isTopResult ? "w-6 h-6" : "w-5 h-5"} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium">{file.file_name}</p>
-          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{snippet}</p>
+          <p className={cn("font-medium", isTopResult ? "text-base" : "text-sm")}>{file.file_name}</p>
+          <p className={cn("text-muted-foreground mt-1", isTopResult ? "text-sm line-clamp-3" : "text-xs line-clamp-2")}>{snippet}</p>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <div className="flex gap-1">
               {file.tags.slice(0, 3).map((tag) => (
