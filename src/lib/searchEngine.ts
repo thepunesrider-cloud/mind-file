@@ -146,25 +146,7 @@ export function scoreFile(
     if (!entityMatch && entities.length > 0) return 0;
   }
 
-  // ── PHASE 0: Exact identifier/number match in entities (massive boost) ──
-  const numbersInQuery = (rawQuery || "").match(/\d{4,}/g) || [];
-  if (numbersInQuery.length > 0) {
-    const entities = file.entities || [];
-    for (const num of numbersInQuery) {
-      const cleanNum = num.replace(/[\s\-]/g, "");
-      for (const entity of entities) {
-        const cleanVal = (entity.value || "").replace(/[\s\-]/g, "");
-        if (cleanVal.includes(cleanNum) || cleanNum.includes(cleanVal)) {
-          totalScore += 100; // Massive boost for exact entity ID match
-        }
-      }
-      // Also check extracted text for the number
-      if ((file.extracted_text || "").includes(cleanNum)) totalScore += 20;
-      if ((file.file_name || "").includes(cleanNum)) totalScore += 30;
-    }
-  }
-
-  if (queryTokens.length === 0) return totalScore > 0 ? totalScore + 1 : 1;
+  if (queryTokens.length === 0) return 1;
 
   const entityText = (file.entities || [])
     .map((e) => `${e.label} ${e.value}`)
@@ -181,7 +163,6 @@ export function scoreFile(
     semanticKeywords: (file.semantic_keywords || "").toLowerCase(),
   };
 
-  // Weights: extractedText boosted significantly for in-text search
   const weights: Record<string, number> = {
     fileName: 10,
     summary: 9,
@@ -194,6 +175,23 @@ export function scoreFile(
 
   let totalScore = 0;
   let matchedTokens = 0;
+
+  // ── PHASE 0: Exact identifier/number match in entities (massive boost) ──
+  const numbersInQuery = (rawQuery || "").match(/\d{4,}/g) || [];
+  if (numbersInQuery.length > 0) {
+    const fileEntities = file.entities || [];
+    for (const num of numbersInQuery) {
+      const cleanNum = num.replace(/[\s\-]/g, "");
+      for (const entity of fileEntities) {
+        const cleanVal = (entity.value || "").replace(/[\s\-]/g, "");
+        if (cleanVal.includes(cleanNum) || cleanNum.includes(cleanVal)) {
+          totalScore += 100;
+        }
+      }
+      if ((file.extracted_text || "").includes(cleanNum)) totalScore += 20;
+      if ((file.file_name || "").includes(cleanNum)) totalScore += 30;
+    }
+  }
 
   // ── PHASE 1: Exact phrase match (huge bonus) ──
   // If the raw query (multi-word) appears as a contiguous phrase in any field
