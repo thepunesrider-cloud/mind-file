@@ -27,6 +27,7 @@ import TeamsPage from "./pages/TeamsPage";
 import GoogleDrivePage from "./pages/GoogleDrivePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
+import DPRPage from "./pages/DPRPage";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 
